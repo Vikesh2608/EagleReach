@@ -1,34 +1,55 @@
-from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+# TODO: replace "*" with your real frontend origin when you have it
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],          # e.g., ["https://your-frontend.app"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# backend/main.py
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List
 
-app = FastAPI()
+# ✅ our free provider (Census Geocoder + congress-legislators JSON)
+from backend.providers.free_civic import (
+    get_federal_officials,
+    CivicLookupError,
+    Official,
+)
 
-# Define a request body using Pydantic
-class Question(BaseModel):
-    question: str
-
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to EagleReach - Civic AI Assistant"}
-
-@app.post("/ask")
-def ask_question(input: Question):
-    question = input.question.lower()
-
-    # Enhanced keyword-matching logic
-    if "mayor" in question:
-        return {"response": "The current mayor is Jane Smith. You can contact her office at mayor@example.gov."}
-    elif "council" in question or "council member" in question:
-        return {"response": "The city council member is John Doe. You can reach him at council.john@example.gov."}
-    elif "vote" in question or "register" in question:
-        return {"response": "You can register to vote at vote.gov. Early voting starts two weeks before election day."}
-    else:
-        return {"response": "Sorry, I couldn't find an answer. Please rephrase or ask something else!"}
-
-# (Optional for local testing)
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+app = FastAPI(title="EagleReach API", version="1.0.0")
 
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+# ---------- /ask (address -> officials) ----------
+class AskRequest(BaseModel):
+    # Use a full street address for best accuracy; ZIP-only will be added next step
+    address: str
+
+
+class AskResponse(BaseModel):
+    officials: List[Official]
+
+
+@app.post("/ask", response_model=AskResponse)
+async def ask(payload: AskRequest):
+    try:
+        addr = payload.address.strip()
+        if addr.isdigit() and len(addr) == 5:
+            # It's a ZIP code
+            from backend.providers.free_civic import address_from_zip
+            addr = await address_from_zip(addr)
+        officials = await get_federal_officials(addr)
+        return AskResponse(officials=officials)
+    except CivicLookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Lookup failed")
 
