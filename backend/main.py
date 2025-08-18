@@ -41,13 +41,17 @@ allow_origins: List[str] = (
 # ─────────────────────────────────────────────────────────────
 app = FastAPI(title="EagleReach API", version="1.0.0")
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
-    allow_credentials=True,
+    allow_origins=["*"],       # TEMP: allow any origin
+    allow_credentials=False,   # must be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 # ─────────────────────────────────────────────────────────────
 # Models
