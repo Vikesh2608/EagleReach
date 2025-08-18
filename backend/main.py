@@ -15,7 +15,7 @@ from backend.providers.free_civic import get_federal_officials, CivicLookupError
 # Configure the origins that can call this API from the browser
 # ─────────────────────────────────────────────────────────────
 # Option A (simple): fill these in and commit
-GITHUB_USERNAME = "Vikesh2608"       # e.g., "Vikesh2608"
+GITHUB_USERNAME = "vikesh2608"       # e.g., "Vikesh2608"
 GITHUB_REPO     = "EagleReach"             # e.g., "EagleReach"
 
 # Option B (preferred for production): set ALLOWED_ORIGINS in Render
