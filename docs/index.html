@@ -2,78 +2,179 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EagleReach</title>
+  <!-- TailwindCSS CDN (simple for this static page) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Favicon (USA flag) -->
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7410 3900'%3E%3Crect width='7410' height='3900' fill='%23b22234'/%3E%3Cg fill='%23fff'%3E%3Cpath d='M0 450h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0z'/%3E%3C/g%3E%3Crect width='2964' height='2100' fill='%23002b7f'/%3E%3Cg fill='%23fff'%3E%3Cg id='s'%3E%3Cg id='t'%3E%3Cpath d='M247 90l70 216-184-134h228L177 306z'/%3E%3C/g%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' x='1235'/%3E%3C/g%3E%3Cuse href='%23s' y='210'/%3E%3Cuse href='%23s' y='420'/%3E%3Cuse href='%23s' y='630'/%3E%3Cuse href='%23s' y='840'/%3E%3Cuse href='%23s' y='1050'/%3E%3Cuse href='%23s' y='1260'/%3E%3Cuse href='%23s' y='1470'/%3E%3Cuse href='%23s' y='1680'/%3E%3Cg transform='translate(123)'%3E%3Cuse href='%23t'/%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' y='210'/%3E%3Cuse href='%23t' y='420'/%3E%3Cuse href='%23t' y='630'/%3E%3Cuse href='%23t' y='840'/%3E%3Cuse href='%23t' y='1050'/%3E%3Cuse href='%23t' y='1260'/%3E%3Cuse href='%23t' y='1470'/%3E%3Cuse href='%23t' y='1680'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"
+  />
 </head>
-<body class="bg-gray-50 text-gray-900">
-  <!-- Header -->
-  <header class="p-6 text-center">
-    <h1 class="text-4xl font-extrabold flex items-center justify-center space-x-2">
-      <img alt="USA Flag" class="w-10 h-6 rounded-sm shadow" 
-           src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" />
-      <span>EagleReach</span>
-    </h1>
-    <p class="mt-2 text-gray-600">Enter your ZIP code to find local civic information and resources.</p>
-  </header>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-5xl mx-auto px-5 py-10">
 
-  <!-- Search -->
-  <div class="flex justify-center mt-6 space-x-2">
-    <input id="zipInput" type="text" placeholder="Enter ZIP code"
-           class="border rounded-lg p-2 w-64" />
-    <button id="searchBtn"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-      Search
-    </button>
+    <!-- Title + Flag -->
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-center tracking-tight mb-2 flex items-center justify-center gap-3">
+      <img
+        alt="USA Flag"
+        class="w-10 h-6 rounded-sm shadow"
+        loading="lazy"
+        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7410 3900'%3E%3Crect width='7410' height='3900' fill='%23b22234'/%3E%3Cg fill='%23fff'%3E%3Cpath d='M0 450h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0z'/%3E%3C/g%3E%3Crect width='2964' height='2100' fill='%23002b7f'/%3E%3Cg fill='%23fff'%3E%3Cg id='s'%3E%3Cg id='t'%3E%3Cpath d='M247 90l70 216-184-134h228L177 306z'/%3E%3C/g%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' x='1235'/%3E%3C/g%3E%3Cuse href='%23s' y='210'/%3E%3Cuse href='%23s' y='420'/%3E%3Cuse href='%23s' y='630'/%3E%3Cuse href='%23s' y='840'/%3E%3Cuse href='%23s' y='1050'/%3E%3Cuse href='%23s' y='1260'/%3E%3Cuse href='%23s' y='1470'/%3E%3Cuse href='%23s' y='1680'/%3E%3Cg transform='translate(123)'%3E%3Cuse href='%23t'/%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' y='210'/%3E%3Cuse href='%23t' y='420'/%3E%3Cuse href='%23t' y='630'/%3E%3Cuse href='%23t' y='840'/%3E%3Cuse href='%23t' y='1050'/%3E%3Cuse href='%23t' y='1260'/%3E%3Cuse href='%23t' y='1470'/%3E%3Cuse href='%23t' y='1680'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"
+      />
+      EagleReach
+    </h1>
+    <p class="text-center text-gray-600 mb-6">
+      Enter your ZIP code to find local civic information and resources.
+    </p>
+
+    <!-- Search -->
+    <div class="flex items-center justify-center gap-3 mb-2">
+      <input
+        id="zipInput"
+        type="text"
+        inputmode="numeric"
+        maxlength="5"
+        placeholder="62704"
+        class="w-64 sm:w-80 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
+      />
+      <button
+        id="searchBtn"
+        class="px-5 py-3 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 active:bg-blue-800 transition"
+      >
+        Search
+      </button>
+    </div>
+
+    <!-- Recent ZIPs -->
+    <div id="history" class="mt-3 hidden">
+      <div class="text-sm text-gray-500 mb-1">Recent</div>
+      <div id="zipHistory" class="flex gap-2 flex-wrap"></div>
+    </div>
+
+    <!-- Cards -->
+    <div class="grid md:grid-cols-2 gap-6 mt-8">
+      <!-- Upcoming Election -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Upcoming Election</h2>
+        <div class="space-y-2">
+          <p><span class="font-semibold">Type</span> <span class="text-gray-600 block">General Election</span></p>
+          <p><span class="font-semibold">Date</span> <span class="text-gray-600 block">November 4, 2025</span></p>
+        </div>
+      </section>
+
+      <!-- Elected Representatives -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Elected Representatives</h2>
+        <ul id="officialsList" class="space-y-4"></ul>
+        <button
+          id="emailBtn"
+          class="mt-5 w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 active:bg-indigo-800 transition"
+        >
+          Generate Email
+        </button>
+      </section>
+
+      <!-- City Council Minutes -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">City Council Minutes</h2>
+        <p class="text-gray-700">
+          A new public park on Riverside Drive received final approval, and the city's budget for the next fiscal year
+          was passed, including investments in road safety and 311 responsiveness.
+        </p>
+        <button class="mt-5 px-4 py-2 rounded-lg border border-gray-300 font-semibold hover:bg-gray-50 transition">
+          Summarized
+        </button>
+      </section>
+
+      <!-- Report an Issue -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Report an Issue</h2>
+        <p class="text-gray-700">
+          You can report issues—potholes, outages, trash pickup—via your city’s 311 services.
+        </p>
+        <a
+          href="https://www.usa.gov/local-governments"
+          target="_blank" rel="noopener noreferrer"
+          class="inline-block mt-5 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 active:bg-blue-800 transition"
+        >
+          Report
+        </a>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-sm text-gray-500 mt-10">
+      Built for civic engagement. Data via Congress Legislators + Census.
+    </footer>
   </div>
 
-  <!-- Info cards -->
-  <main class="max-w-4xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
-    <!-- Election -->
-    <section class="bg-white p-6 rounded-2xl shadow">
-      <h2 class="text-xl font-bold mb-2">Upcoming Election</h2>
-      <p><strong>Type</strong><br />General Election</p>
-      <p><strong>Date</strong><br />November 4, 2025</p>
-    </section>
-
-    <!-- Officials -->
-    <section class="bg-white p-6 rounded-2xl shadow">
-      <h2 class="text-xl font-bold mb-2">Elected Representatives</h2>
-      <button id="emailBtn"
-              class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-        Generate Email
-      </button>
-      <ul id="officialsList" class="mt-4 space-y-2"></ul>
-    </section>
-
-    <!-- Minutes -->
-    <section class="bg-white p-6 rounded-2xl shadow">
-      <h2 class="text-xl font-bold mb-2">City Council Minutes</h2>
-      <p>A new public park on Riverside Drive received final approval, and the city’s budget for the next fiscal year was passed, including investments in road safety and 311 responsiveness.</p>
-      <button class="mt-3 bg-gray-800 text-white px-3 py-1 rounded">Summarized</button>
-    </section>
-
-    <!-- Report -->
-    <section class="bg-white p-6 rounded-2xl shadow">
-      <h2 class="text-xl font-bold mb-2">Report an Issue</h2>
-      <p>You can report issues—potholes, outages, trash pickup—via your city’s 311 services.</p>
-      <button class="mt-3 bg-blue-600 text-white px-3 py-1 rounded">Report</button>
-    </section>
-  </main>
-
-  <!-- Fixed JavaScript -->
+  <!-- App Script (Recent ZIPs + Lookup + Email) -->
   <script>
+    // Backend base (Render)
     var BACKEND_BASE = "https://eaglereach-1.onrender.com";
-    var zipInput  = document.getElementById("zipInput");
-    var searchBtn = document.getElementById("searchBtn");
-    var emailBtn  = document.getElementById("emailBtn");
-    var listEl    = document.getElementById("officialsList");
 
+    // Elements
+    var zipInput   = document.getElementById("zipInput");
+    var searchBtn  = document.getElementById("searchBtn");
+    var emailBtn   = document.getElementById("emailBtn");
+    var listEl     = document.getElementById("officialsList");
+    var historyBox = document.getElementById("history");
+    var historyEl  = document.getElementById("zipHistory");
+
+    // ---- History (localStorage) ----
+    var HISTORY_KEY = "er_zip_history";
+
+    function getHistory() {
+      try {
+        var h = JSON.parse(localStorage.getItem(HISTORY_KEY));
+        return Array.isArray(h) ? h : [];
+      } catch (_) { return []; }
+    }
+    function setHistory(arr) {
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr)); } catch (_) {}
+    }
+    function saveZipToHistory(zip) {
+      var z = String(zip || "").trim();
+      if (!/^\d{5}$/.test(z)) return;
+      var h = getHistory().filter(function (x) { return x !== z; });
+      h.unshift(z);
+      if (h.length > 6) h = h.slice(0, 6);
+      setHistory(h);
+      renderHistory();
+    }
+    function renderHistory() {
+      var h = getHistory();
+      if (!h.length) {
+        historyBox.classList.add("hidden");
+        historyEl.innerHTML = "";
+        return;
+      }
+      historyBox.classList.remove("hidden");
+      var html = "";
+      for (var i = 0; i < h.length; i++) {
+        var z = h[i];
+        html += '<button data-zip="' + z + '" class="px-3 py-1 rounded-full border border-gray-300 text-sm hover:bg-gray-50">'
+             +  z
+             + '</button>';
+      }
+      historyEl.innerHTML = html;
+    }
+    if (historyEl) {
+      historyEl.addEventListener("click", function (e) {
+        var b = e.target.closest("button[data-zip]");
+        if (!b) return;
+        if (zipInput) zipInput.value = b.getAttribute("data-zip");
+        onSearch();
+      });
+    }
+
+    // ---- Lookup helpers ----
     function isZip(v) {
       v = (v || "").trim();
       return /^\d{5}$/.test(v);
     }
-
     function escapeHtml(s) {
       return String(s || "")
         .replace(/&/g, "&amp;")
@@ -82,7 +183,6 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
-
     function officialRow(o) {
       var office = o && o.office ? o.office : "Official";
       var name   = o && o.name ? o.name : "N/A";
@@ -102,39 +202,23 @@
              + escapeHtml(safeHref.replace(/^https?:\/\/(www\.)?/i, ''))
              + '</a>';
       }
-
       html += '</li>';
       return html;
     }
-
-    function setListLoading() {
-      listEl.innerHTML = '<li class="text-gray-500">Loading…</li>';
-    }
-    function setListError(msg) {
-      listEl.innerHTML = '<li class="text-red-600">Error: ' + escapeHtml(msg) + '</li>';
-    }
-    function setListEmpty() {
-      listEl.innerHTML = '<li class="text-gray-500">No officials found.</li>';
-    }
-
+    function setListLoading() { listEl.innerHTML = '<li class="text-gray-500">Loading…</li>'; }
+    function setListError(msg) { listEl.innerHTML = '<li class="text-red-600">Error: ' + escapeHtml(msg) + '</li>'; }
+    function setListEmpty() { listEl.innerHTML = '<li class="text-gray-500">No officials found.</li>'; }
     function renderOfficials(officials) {
-      if (!officials || !officials.length) {
-        setListEmpty();
-        return;
-      }
+      if (!officials || !officials.length) { setListEmpty(); return; }
       var html = '';
-      for (var i = 0; i < officials.length; i++) {
-        html += officialRow(officials[i]);
-      }
+      for (var i = 0; i < officials.length; i++) html += officialRow(officials[i]);
       listEl.innerHTML = html;
     }
 
+    // ---- Main search ----
     async function onSearch() {
       var zip = (zipInput.value || "").trim();
-      if (!isZip(zip)) {
-        setListError("Please enter a valid 5-digit ZIP.");
-        return;
-      }
+      if (!isZip(zip)) { setListError("Please enter a valid 5-digit ZIP."); return; }
       setListLoading();
       try {
         var res = await fetch(BACKEND_BASE + "/ask", {
@@ -143,15 +227,15 @@
           body: JSON.stringify({ address: zip })
         });
         var data = await res.json();
-        if (!res.ok) {
-          throw new Error((data && data.detail) ? data.detail : "Lookup failed.");
-        }
+        if (!res.ok) throw new Error((data && data.detail) ? data.detail : "Lookup failed.");
         renderOfficials(data.officials || []);
+        saveZipToHistory(zip);
       } catch (err) {
         setListError(err && err.message ? err.message : "Lookup failed.");
       }
     }
 
+    // ---- Email helper ----
     function generateEmail() {
       var zip = (zipInput.value || "").trim();
       var subject = encodeURIComponent("Constituent Inquiry");
@@ -161,6 +245,7 @@
       window.location.href = "mailto:?subject=" + subject + "&body=" + body;
     }
 
+    // Wire up events
     if (searchBtn) searchBtn.addEventListener("click", onSearch);
     if (zipInput) {
       zipInput.addEventListener("keydown", function (e) {
@@ -169,9 +254,10 @@
     }
     if (emailBtn) emailBtn.addEventListener("click", generateEmail);
 
-    if (zipInput) {
-      zipInput.value = "62704";
-    }
+    // Initial
+    renderHistory();
+    if (zipInput) zipInput.value = "62704"; // keep your demo prefill
+    // (Don’t auto-run; users can press Search or a recent chip)
   </script>
 </body>
 </html>
