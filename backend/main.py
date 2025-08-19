@@ -3,7 +3,6 @@ import os
 import re
 from typing import List, Dict, Any, Optional
 
-import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
