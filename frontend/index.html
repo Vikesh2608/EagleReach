@@ -2,314 +2,188 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, user-scalable=no"
+  />
   <title>EagleReach</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --bg: #f7fafc;
-      --card: #ffffff;
-      --muted: #6b7280;
-      --text: #111827;
-      --primary: #3b82f6;
-      --primary-600: #2563eb;
-      --primary-700: #1d4ed8;
-      --border: #e5e7eb;
+      --bg: #0f172a;       /* slate-900 */
+      --panel: #111827;    /* gray-900 */
+      --muted: #94a3b8;    /* slate-400 */
+      --text: #e5e7eb;     /* gray-200 */
+      --accent: #60a5fa;   /* blue-400 */
+      --error: #fca5a5;    /* red-300 */
+      --ok: #86efac;       /* green-300 */
+      --card: #0b1220;     /* deep panel */
+      --border: #1f2937;   /* gray-800 */
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 600px at 50% -200px, #eaf2ff 0%, transparent 70%), var(--bg);
-      color: var(--text);
-    }
-    .wrap { max-width: 1040px; margin: 48px auto; padding: 0 20px; }
-    .title { font-size: clamp(28px, 5vw, 56px); font-weight: 800; letter-spacing: -0.02em; text-align: center; margin: 14px 0 8px; }
-    .sub { text-align: center; color: var(--muted); margin-bottom: 28px; }
 
-    .search {
-      display: flex; gap: 12px; justify-content: center; margin: 14px 0 30px; flex-wrap: wrap;
+    html, body {
+      background: radial-gradient(1200px 600px at 50% -100px, #0b1220 10%, #020617 50%, #000 100%);
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      min-height: 100%;
+      margin: 0;
     }
+
+    .wrap { max-width: 900px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-weight: 800; font-size: 44px; margin: 0 0 6px; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); margin-bottom: 24px; }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(6px);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
     input[type="text"] {
-      width: min(420px, 90vw);
-      padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border); font-size: 16px; outline: none;
-      background: #fff;
+      flex: 1 1 320px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 12px 14px;
+      outline: none;
+      font-size: 16px;
     }
-    .btn {
-      background: var(--primary); color: #fff; border: none; padding: 12px 18px; border-radius: 10px; cursor: pointer;
-      font-weight: 600; box-shadow: 0 6px 16px rgba(59,130,246,.25);
+    input[type="text"]::placeholder { color: var(--muted); }
+    button {
+      background: linear-gradient(180deg, #60a5fa, #2563eb);
+      color: white;
+      border: none;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: transform .05s ease;
     }
-    .btn:hover { background: var(--primary-600); }
-    .btn:active { background: var(--primary-700); }
+    button:active { transform: translateY(1px); }
+
+    .status { margin-top: 10px; color: var(--muted); font-size: 14px; }
 
     .grid {
-      display: grid; gap: 20px; grid-template-columns: repeat(12, 1fr);
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
     }
     .card {
-      grid-column: span 6;
-      background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px 20px 18px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
     }
-    @media (max-width: 860px) { .card { grid-column: span 12; } }
-    .card h3 { margin: 0 0 10px; font-size: 20px; }
-    .meta { color: var(--muted); font-size: 14px; margin: 10px 0; }
-    .muted { color: var(--muted); }
-    .list { margin: 8px 0 0; padding-left: 18px; }
-    .pill {
-      display: inline-block; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); text-decoration: none;
-      font-weight: 600; color: var(--primary-600); background: #f8fbff;
-    }
-    .row { display: flex; align-items: center; gap: 12px; }
-    .space { height: 4px; }
-
-    .alert { text-align: center; color: var(--muted); margin: 8px 0 0; min-height: 22px; }
-
-    /* Modal */
-    .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(15,23,42,.5); display: none; align-items: center; justify-content: center; padding: 16px;
-    }
-    .modal {
-      width: min(720px, 92vw); background: #fff; border-radius: 16px; padding: 18px; border: 1px solid var(--border);
-      box-shadow: 0 30px 80px rgba(0,0,0,.25);
-    }
-    .modal h4 { margin: 0 0 10px; }
-    .modal textarea {
-      width: 100%; min-height: 200px; border-radius: 12px; border: 1px solid var(--border); padding: 12px; font-family: inherit; font-size: 15px;
-    }
-    .modal .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
-    .btn.outline { background: transparent; color: var(--primary-600); border: 1px solid var(--primary-200, #bfdbfe); box-shadow: none; }
-
-    /* Officials list polish */
-    .list li.official { margin: 8px 0 14px; }
-    .official .office { color: var(--muted); font-weight: 500; }
-    .official .links { margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; }
-    .official .links a {
-      color: var(--primary-600);
-      text-decoration: none;
-      border-bottom: 1px dashed var(--primary-200, #bfdbfe);
-      padding-bottom: 1px;
-    }
-    .official .links a:hover { text-decoration: underline; }
+    .title { color: var(--accent); font-weight: 800; margin-bottom: 4px; }
+    .name { font-weight: 700; font-size: 18px; margin-bottom: 6px; }
+    .meta, .line { color: var(--muted); font-size: 14px; }
+    .line a { color: var(--accent); text-decoration: none; }
+    .error { color: var(--error); }
+    .ok { color: var(--ok); }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="title">EagleReach</div>
-    <div class="sub">Enter your ZIP code to find local civic information and resources.</div>
+    <h1>EagleReach</h1>
+    <div class="sub">Enter a <strong>5‑digit ZIP</strong> or a <strong>full street address</strong> to find your federal representatives.</div>
 
-    <div class="search">
-      <input id="zip" type="text" inputmode="numeric" maxlength="5" placeholder="ZIP code (e.g., 41011)" />
-      <button id="go" class="btn">Search</button>
-    </div>
-    <div id="alert" class="alert"></div>
-
-    <div class="grid">
-      <!-- Upcoming Election -->
-      <section class="card" id="election-card">
-        <h3>Upcoming Election</h3>
-        <div class="meta"><div><b>Type</b> &nbsp; <span class="muted">General Election</span></div></div>
-        <div><b>Date</b> &nbsp; <span id="election-date" class="muted">—</span></div>
-      </section>
-
-      <!-- Elected Representatives -->
-      <section class="card" id="reps-card">
-        <h3>Elected Representatives</h3>
-        <ul id="reps" class="list muted" style="margin-bottom:12px;">
-          <li>—</li>
-        </ul>
-        <button id="genEmail" class="btn">Generate Email</button>
-      </section>
-
-      <!-- City Council Minutes -->
-      <section class="card">
-        <h3>City Council Minutes</h3>
-        <p class="muted">
-          A new public park on Riverside Drive received final approval, and the city's budget for the next fiscal year was passed,
-          including investments in road safety and 311 responsiveness.
-        </p>
-        <a class="pill" href="#" onclick="alert('Demo content. A real feed can be integrated later.'); return false;">Summarized</a>
-      </section>
-
-      <!-- Report an issue -->
-      <section class="card">
-        <h3>Report an Issue</h3>
-        <p class="muted">You can report issues—potholes, outages, trash pickup—via your city’s 311 services.</p>
-        <button class="btn" onclick="alert('For now, please use your local 311 app or website to submit an issue.');">Report</button>
-      </section>
-    </div>
-  </div>
-
-  <!-- Email Modal -->
-  <div id="modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="emailTitle">
-    <div class="modal">
-      <h4 id="emailTitle">Draft email to your representatives</h4>
-      <textarea id="emailBody"></textarea>
-      <div class="actions">
-        <button class="btn outline" onclick="copyEmail()">Copy</button>
-        <button class="btn" onclick="closeModal()">Close</button>
+    <div class="panel">
+      <div class="row">
+        <input
+          id="zip"
+          type="text"
+          inputmode="text"
+          autocomplete="postal-code"
+          placeholder="e.g. 62704 or “1600 Pennsylvania Ave NW, Washington, DC”"
+          onkeydown="if(event.key==='Enter'){lookup();}"
+        />
+        <button onclick="lookup()">Search</button>
       </div>
+      <div id="status" class="status"></div>
     </div>
+
+    <div id="results" class="grid" style="margin-top:16px;"></div>
   </div>
 
   <script>
-    // ===============================================
-    //  BACKEND URL (public API base)
-    // ===============================================
+    // 👉 your deployed backend on Render
     const API_BASE = "https://eaglereach-1.onrender.com";
 
-    // Elements
-    const zipInput = document.getElementById('zip');
-    const goBtn = document.getElementById('go');
-    const alertEl = document.getElementById('alert');
-    const repsList = document.getElementById('reps');
-    const genEmailBtn = document.getElementById('genEmail');
-    const electionDateEl = document.getElementById('election-date');
+    const $ = (id) => document.getElementById(id);
 
-    // Modal
-    const modal = document.getElementById('modal');
-    const emailBody = document.getElementById('emailBody');
-
-    // Compute "next general election" (first Tuesday after first Monday in November).
-    function nextGeneralElectionDate() {
-      const today = new Date();
-      let year = today.getFullYear();
-      if (today.getMonth() > 10 || (today.getMonth() === 10 && today.getDate() > 15)) {
-        year += 1;
-      }
-      const nov1 = new Date(year, 10, 1);
-      const day = nov1.getDay();
-      const offsetToMonday = (day === 0 ? 1 : (day <= 1 ? 1 - day : 8 - day));
-      const firstMonday = new Date(year, 10, 1 + offsetToMonday);
-      const firstTuesday = new Date(firstMonday);
-      firstTuesday.setDate(firstMonday.getDate() + 1);
-      return firstTuesday.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-    }
-    electionDateEl.textContent = nextGeneralElectionDate();
-
-    function showAlert(msg, isError = false) {
-      alertEl.textContent = msg || '';
-      alertEl.style.color = isError ? '#b91c1c' : 'var(--muted)';
+    function setStatus(msg, cls="") {
+      const el = $("status");
+      el.className = "status " + (cls || "");
+      el.textContent = msg || "";
     }
 
-    function validateZip(z) {
-      return /^\d{5}$/.test(z);
+    function card(o) {
+      const phones = Array.isArray(o.phones) && o.phones.length ? `📞 ${o.phones.join(", ")}` : "";
+      const site   = Array.isArray(o.urls) && o.urls.length ? `<a href="${o.urls[0]}" target="_blank" rel="noopener">Website</a>` : "";
+      const state  = o.state ? `State: ${o.state}` : "";
+      const dist   = o.district ? ` • District: ${o.district}` : "";
+
+      return `
+        <div class="card">
+          <div class="title">${o.office}</div>
+          <div class="name">${o.name}${o.party ? ` (${o.party})` : ""}</div>
+          <div class="meta">${state}${dist}</div>
+          ${phones ? `<div class="line" style="margin-top:8px">${phones}</div>` : ""}
+          ${site ? `<div class="line" style="margin-top:6px">🔗 ${site}</div>` : ""}
+        </div>
+      `;
     }
 
-    async function fetchOfficialsByZip(zip) {
-      const url = `${API_BASE}/ask`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: zip })
-      });
-      if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(t || `Request failed (${res.status})`);
-      }
-      return res.json();
-    }
-
-    // Helper to make URLs look nice (e.g., "www.senate.gov/path" -> "senate.gov/path")
-    function prettyUrl(u) {
-      try {
-        const url = new URL(u.startsWith('http') ? u : `https://${u}`);
-        const host = url.hostname.replace(/^www\./, '');
-        const path = url.pathname.replace(/\/$/, '');
-        return path && path !== '/' ? `${host}${path}` : host;
-      } catch {
-        return u;
-      }
-    }
-
-    // Renders name, office, and website links under each official
-    function renderOfficials(officials) {
-      repsList.innerHTML = '';
-      if (!officials || !officials.length) {
-        repsList.innerHTML = '<li>No officials found for that ZIP.</li>';
+    async function lookup() {
+      const addr = ($("zip").value || "").trim();
+      const results = $("results");
+      results.innerHTML = "";
+      if (!addr) {
+        setStatus("Please enter a 5‑digit ZIP or a full address.", "error");
         return;
       }
-      officials.forEach(o => {
-        const li = document.createElement('li');
-        li.className = 'official';
 
-        const name = o.name || 'Unknown official';
-        const office = o.office ? ` — <span class="office">${o.office}</span>` : '';
-        li.innerHTML = `<strong>${name}</strong>${office}`;
+      setStatus("Looking up…");
 
-        const urls = Array.isArray(o.urls) ? o.urls : (o.url ? [o.url] : []);
-        if (urls.length) {
-          const linksDiv = document.createElement('div');
-          linksDiv.className = 'links';
-          urls.slice(0, 3).forEach(raw => {
-            const href = raw.startsWith('http') ? raw : `https://${raw}`;
-            const a = document.createElement('a');
-            a.href = href;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            a.textContent = prettyUrl(href);
-            linksDiv.appendChild(a);
-          });
-          li.appendChild(linksDiv);
+      try {
+        const resp = await fetch(`${API_BASE}/ask`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: addr })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          setStatus(`Error: ${data?.detail || "Lookup failed."}`, "error");
+          return;
         }
 
-        repsList.appendChild(li);
-      });
-    }
+        const officials = data.officials || [];
+        if (!officials.length) {
+          setStatus("No officials found for that location.", "error");
+          return;
+        }
 
-    async function onSearch() {
-      const zip = zipInput.value.trim();
-      if (!validateZip(zip)) {
-        showAlert('Please enter a valid 5-digit ZIP code.', true);
-        return;
-      }
-      showAlert('Looking up your district and officials…');
-      repsList.innerHTML = '<li>Loading…</li>';
-
-      try {
-        const data = await fetchOfficialsByZip(zip);
-        renderOfficials(data.officials || []);
-        showAlert('');
-        // Prebuild email from API result for Generate Email
-        genEmailBtn.onclick = () => openEmailComposer(zip, data.officials || []);
+        // Success
+        setStatus(`Found ${officials.length} official(s).`, "ok");
+        results.innerHTML = officials.map(card).join("");
       } catch (err) {
-        repsList.innerHTML = '<li>—</li>';
-        showAlert(err.message || 'Lookup failed.', true);
+        console.error(err);
+        setStatus("Network error. Please try again.", "error");
       }
     }
 
-    function openEmailComposer(zip, officials) {
-      const names = (officials || []).map(o => o.name).filter(Boolean);
-      const body =
-`Subject: Constituent message from ZIP ${zip}
-
-Dear ${names.length ? names[0] + ' and team' : 'Representative'},
-
-I am a constituent in ZIP ${zip}. I’m reaching out regarding [your topic here].
-[Briefly describe the issue, context, and what you’re requesting.]
-
-Thank you for your service and time.
-
-Sincerely,
-[Your Name]
-[Your Street/Neighborhood, ZIP ${zip}]
-[Your contact info]`;
-
-      emailBody.value = body;
-      modal.style.display = 'flex';
-    }
-
-    function closeModal() { modal.style.display = 'none'; }
-    function copyEmail() {
-      emailBody.select();
-      document.execCommand('copy');
-      showAlert('Draft copied to clipboard.');
-    }
-
-    // Events
-    goBtn.addEventListener('click', onSearch);
-    zipInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') onSearch(); });
-
-    // Prefill a handy test ZIP
-    zipInput.value = '41011';
+    // Quick health check (optional visual hint)
+    (async () => {
+      try {
+        const r = await fetch(`${API_BASE}/health`);
+        if (r.ok) setStatus("API ready.", "ok");
+      } catch(e) { /* ignore */ }
+    })();
   </script>
 </body>
 </html>
