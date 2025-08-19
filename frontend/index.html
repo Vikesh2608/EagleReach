@@ -1,202 +1,256 @@
-<script>
-  // ===== Config =====
-  var BACKEND_BASE = "https://eaglereach-1.onrender.com";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EagleReach</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="color-scheme" content="light dark">
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <main class="max-w-5xl mx-auto px-5 py-10">
+    <!-- Title -->
+    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-center mb-3 flex items-center justify-center gap-3">
+      <img alt="USA Flag" class="w-10 h-6 rounded-sm shadow"
+           src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7410 3900'%3E%3Crect width='7410' height='3900' fill='%23b22234'/%3E%3Cg fill='%23fff'%3E%3Cpath d='M0 450h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0z'/%3E%3C/g%3E%3Crect width='2964' height='2100' fill='%23002b7f'/%3E%3Cg fill='%23fff'%3E%3Cg id='s'%3E%3Cg id='t'%3E%3Cpath d='M247 90l70 216-184-134h228L177 306z'/%3E%3C/g%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' x='1235'/%3E%3C/g%3E%3Cuse href='%23s' y='210'/%3E%3Cuse href='%23s' y='420'/%3E%3Cuse href='%23s' y='630'/%3E%3Cuse href='%23s' y='840'/%3E%3Cuse href='%23s' y='1050'/%3E%3Cuse href='%23s' y='1260'/%3E%3Cuse href='%23s' y='1470'/%3E%3Cuse href='%23s' y='1680'/%3E%3Cg transform='translate(123)'%3E%3Cuse href='%23t'/%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' y='210'/%3E%3Cuse href='%23t' y='420'/%3E%3Cuse href='%23t' y='630'/%3E%3Cuse href='%23t' y='840'/%3E%3Cuse href='%23t' y='1050'/%3E%3Cuse href='%23t' y='1260'/%3E%3Cuse href='%23t' y='1470'/%3E%3Cuse href='%23t' y='1680'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E" />
+      EagleReach
+    </h1>
+    <p class="text-center text-gray-600 mb-6">Enter your ZIP code to find local civic information and resources.</p>
 
-  // ===== DOM =====
-  var zipInput   = document.getElementById("zipInput");
-  var searchBtn  = document.getElementById("searchBtn");
-  var emailBtn   = document.getElementById("emailBtn");
-  var listEl     = document.getElementById("officialsList");
-  var recentWrap = document.getElementById("recentZips"); // optional, shown if present
+    <!-- Search -->
+    <div class="flex items-center justify-center gap-3 mb-5">
+      <input id="zipInput" type="text" inputmode="numeric" maxlength="5" placeholder="ZIP code (e.g., 62704)"
+             class="w-64 sm:w-80 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm" />
+      <button id="searchBtn"
+              class="px-5 py-3 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 active:bg-blue-800 transition">
+        Search
+      </button>
+    </div>
 
-  // ===== State =====
-  var lastOfficials = [];              // snapshot from last successful lookup
-  var RECENT_KEY    = "eaglereach_recent_zips";
-  var RECENT_LIMIT  = 6;
+    <!-- Recent zips (optional) -->
+    <div id="recentZips" class="flex flex-wrap gap-2 justify-center mb-8"></div>
 
-  // ===== Utils =====
-  function isZip(v) {
-    v = (v || "").trim();
-    return /^\d{5}$/.test(v);
-  }
+    <!-- Main grid -->
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Upcoming election (static placeholder) -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Upcoming Election</h2>
+        <p class="mb-2"><span class="font-semibold">Type</span> <span class="text-gray-600">General Election</span></p>
+        <p><span class="font-semibold">Date</span> <span class="text-gray-600">November 4, 2025</span></p>
+      </section>
 
-  function escapeHtml(s) {
-    return String(s || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+      <!-- Officials -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Elected Representatives</h2>
+        <ul id="officialsList" class="space-y-3"><li class="text-gray-500">—</li></ul>
+        <button id="emailBtn"
+                class="mt-5 w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 active:bg-indigo-800 transition">
+          Generate Email
+        </button>
+      </section>
 
-  function fmtPrettyUrl(u) {
-    try {
-      var url = new URL(u.startsWith("http") ? u : "https://" + u);
-      var host = url.hostname.replace(/^www\./, "");
-      var path = url.pathname.replace(/\/$/, "");
-      return path && path !== "/" ? (host + path) : host;
-    } catch (e) {
-      return u;
+      <!-- City council minutes (placeholder) -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">City Council Minutes</h2>
+        <p class="text-gray-700">
+          A new public park on Riverside Drive received final approval, and the city's budget for the next fiscal year
+          was passed, including investments in road safety and 311 responsiveness.
+        </p>
+        <button class="mt-5 px-4 py-2 rounded-lg border border-gray-300 font-semibold hover:bg-gray-50 transition">
+          Summarized
+        </button>
+      </section>
+
+      <!-- Report an issue -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Report an Issue</h2>
+        <p class="text-gray-700">
+          You can report issues—potholes, outages, trash pickup—via your city’s 311 services.
+        </p>
+        <a href="https://www.usa.gov/local-governments" target="_blank" rel="noopener noreferrer"
+           class="inline-block mt-5 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 active:bg-blue-800 transition">
+          Report
+        </a>
+      </section>
+    </div>
+
+    <footer class="text-center text-sm text-gray-500 mt-10">
+      Built for civic engagement. Data via Census & Congress Legislators (free sources).
+    </footer>
+  </main>
+
+  <noscript>
+    <div class="max-w-5xl mx-auto px-5 pb-10 text-center text-red-600">
+      JavaScript is required for EagleReach to work.
+    </div>
+  </noscript>
+
+  <!-- App script -->
+  <script>
+    // ===== Config =====
+    var BACKEND_BASE = "https://eaglereach-1.onrender.com";
+
+    // ===== DOM =====
+    var zipInput   = document.getElementById("zipInput");
+    var searchBtn  = document.getElementById("searchBtn");
+    var emailBtn   = document.getElementById("emailBtn");
+    var listEl     = document.getElementById("officialsList");
+    var recentWrap = document.getElementById("recentZips");
+
+    // ===== State =====
+    var lastOfficials = [];
+    var RECENT_KEY    = "eaglereach_recent_zips";
+    var RECENT_LIMIT  = 6;
+
+    // ===== Utils =====
+    function isZip(v) { v = (v || "").trim(); return /^\d{5}$/.test(v); }
+    function escapeHtml(s) {
+      return String(s || "")
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
-  }
+    function fmtPrettyUrl(u) {
+      try {
+        var url = new URL(u.startsWith("http") ? u : "https://" + u);
+        var host = url.hostname.replace(/^www\./, "");
+        var path = url.pathname.replace(/\/$/, "");
+        return path && path !== "/" ? (host + path) : host;
+      } catch (e) { return u; }
+    }
 
-  // ===== Recent ZIPs =====
-  function loadRecents() {
-    try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); }
-    catch (e) { return []; }
-  }
-  function saveRecent(zip) {
-    if (!isZip(zip)) return;
-    var r = loadRecents().filter(function (z) { return z !== zip; });
-    r.unshift(zip);
-    if (r.length > RECENT_LIMIT) r.length = RECENT_LIMIT;
-    localStorage.setItem(RECENT_KEY, JSON.stringify(r));
-    renderRecents();
-  }
-  function renderRecents() {
-    if (!recentWrap) return;
-    var r = loadRecents();
-    recentWrap.innerHTML = "";
-    if (!r.length) return;
-    r.forEach(function (zip) {
-      var b = document.createElement("button");
-      b.className =
-        "inline-flex items-center px-3 py-1.5 rounded-lg border border-gray-300 " +
-        "text-gray-700 bg-white hover:bg-gray-50 transition";
-      b.textContent = zip;
-      b.addEventListener("click", function () {
-        zipInput.value = zip;
-        onSearch();
+    // ===== Recent ZIPs =====
+    function loadRecents() {
+      try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); }
+      catch (e) { return []; }
+    }
+    function saveRecent(zip) {
+      if (!isZip(zip)) return;
+      var r = loadRecents().filter(function (z) { return z !== zip; });
+      r.unshift(zip);
+      if (r.length > RECENT_LIMIT) r.length = RECENT_LIMIT;
+      localStorage.setItem(RECENT_KEY, JSON.stringify(r));
+      renderRecents();
+    }
+    function renderRecents() {
+      if (!recentWrap) return;
+      var r = loadRecents();
+      recentWrap.innerHTML = "";
+      if (!r.length) return;
+      r.forEach(function (zip) {
+        var b = document.createElement("button");
+        b.className = "inline-flex items-center px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition";
+        b.textContent = zip;
+        b.addEventListener("click", function () {
+          zipInput.value = zip;
+          onSearch();
+        });
+        recentWrap.appendChild(b);
       });
-      recentWrap.appendChild(b);
-    });
-  }
-
-  // ===== Rendering =====
-  function setListLoading() {
-    listEl.innerHTML = '<li class="text-gray-500">Loading…</li>';
-  }
-  function setListError(msg) {
-    listEl.innerHTML = '<li class="text-red-600">Error: ' + escapeHtml(msg) + "</li>";
-  }
-  function setListEmpty() {
-    listEl.innerHTML = '<li class="text-gray-500">No officials found.</li>';
-  }
-
-  function officialRow(o) {
-    var office = o && o.office ? o.office : "Official";
-    var name   = o && o.name ? o.name : "N/A";
-    var site   = (o && o.urls && o.urls.length) ? o.urls[0] : "";
-    var phone  = (o && o.phones && o.phones.length) ? o.phones[0] : "";
-
-    var html = ''
-      + '<li class="border border-gray-200 rounded-lg p-4 bg-white">'
-      +   '<p class="font-semibold">' + escapeHtml(name) + ' — '
-      +     '<span class="text-gray-600">' + escapeHtml(office) + '</span>'
-      +   '</p>';
-
-    if (site) {
-      var safeHref = site.indexOf("http") === 0 ? site : ("https://" + site);
-      html += '<a class="text-blue-600 hover:underline break-all block mt-1" href="'
-           + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer">'
-           + escapeHtml(fmtPrettyUrl(safeHref)) + '</a>';
-    }
-    if (phone) {
-      html += '<div class="text-gray-700 mt-1">📞 ' + escapeHtml(phone) + "</div>";
     }
 
-    html += "</li>";
-    return html;
-  }
+    // ===== Rendering =====
+    function setListLoading() { listEl.innerHTML = '<li class="text-gray-500">Loading…</li>'; }
+    function setListError(msg) { listEl.innerHTML = '<li class="text-red-600">Error: ' + escapeHtml(msg) + "</li>"; }
+    function setListEmpty() { listEl.innerHTML = '<li class="text-gray-500">No officials found.</li>'; }
+    function officialRow(o) {
+      var office = o && o.office ? o.office : "Official";
+      var name   = o && o.name ? o.name : "N/A";
+      var site   = (o && o.urls && o.urls.length) ? o.urls[0] : "";
+      var phone  = (o && o.phones && o.phones.length) ? o.phones[0] : "";
 
-  function renderOfficials(officials) {
-    if (!officials || !officials.length) {
-      setListEmpty();
-      return;
-    }
-    var html = "";
-    for (var i = 0; i < officials.length; i++) html += officialRow(officials[i]);
-    listEl.innerHTML = html;
-  }
+      var html = ''
+        + '<li class="border border-gray-200 rounded-lg p-4 bg-white">'
+        +   '<p class="font-semibold">' + escapeHtml(name) + ' — '
+        +     '<span class="text-gray-600">' + escapeHtml(office) + '</span>'
+        +   '</p>';
 
-  // ===== Fetch & Search =====
-  async function onSearch() {
-    var zip = (zipInput.value || "").trim();
-    if (!isZip(zip)) {
-      setListError("Please enter a valid 5-digit ZIP.");
-      return;
-    }
-    setListLoading();
-    try {
-      var res = await fetch(BACKEND_BASE + "/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: zip })
-      });
-      var data = await res.json();
-      if (!res.ok) {
-        throw new Error((data && data.detail) ? data.detail : "Lookup failed.");
+      if (site) {
+        var safeHref = site.indexOf("http") === 0 ? site : ("https://" + site);
+        html += '<a class="text-blue-600 hover:underline break-all block mt-1" href="'
+              + escapeHtml(safeHref) + '" target="_blank" rel="noopener noreferrer">'
+              + escapeHtml(fmtPrettyUrl(safeHref)) + '</a>';
       }
-      lastOfficials = data.officials || [];
-      renderOfficials(lastOfficials);
-      saveRecent(zip);
-    } catch (err) {
-      setListError(err && err.message ? err.message : "Lookup failed.");
+      if (phone) { html += '<div class="text-gray-700 mt-1">📞 ' + escapeHtml(phone) + "</div>"; }
+      html += "</li>";
+      return html;
     }
-  }
+    function renderOfficials(officials) {
+      if (!officials || !officials.length) { setListEmpty(); return; }
+      var html = "";
+      for (var i = 0; i < officials.length; i++) html += officialRow(officials[i]);
+      listEl.innerHTML = html;
+    }
 
-  // ===== Email Draft =====
-  function salutationFor(o) {
-    var office = (o && o.office || "").toLowerCase();
-    if (office.indexOf("senator") >= 0) return "Senator";
-    if (office.indexOf("representative") >= 0) return "Representative";
-    return "Official";
-  }
+    // ===== Fetch & Search =====
+    async function onSearch() {
+      var zip = (zipInput.value || "").trim();
+      if (!isZip(zip)) { setListError("Please enter a valid 5-digit ZIP."); return; }
+      setListLoading();
+      try {
+        var res = await fetch(BACKEND_BASE + "/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ address: zip })
+        });
+        var data = await res.json();
+        if (!res.ok) { throw new Error((data && data.detail) ? data.detail : "Lookup failed."); }
+        lastOfficials = data.officials || [];
+        renderOfficials(lastOfficials);
+        saveRecent(zip);
+      } catch (err) {
+        setListError(err && err.message ? err.message : "Lookup failed.");
+      }
+    }
 
-  function generateEmail() {
-    var zip = (zipInput.value || "").trim();
-    var names = (lastOfficials || [])
-      .map(function (o) { return salutationFor(o) + " " + (o.name || ""); })
-      .filter(Boolean)
-      .join(", ");
+    // ===== Email Draft =====
+    function salutationFor(o) {
+      var office = (o && o.office || "").toLowerCase();
+      if (office.indexOf("senator") >= 0) return "Senator";
+      if (office.indexOf("representative") >= 0) return "Representative";
+      return "Official";
+    }
+    function generateEmail() {
+      var zip = (zipInput.value || "").trim();
+      var names = (lastOfficials || [])
+        .map(function (o) { return salutationFor(o) + " " + (o.name || ""); })
+        .filter(Boolean)
+        .join(", ");
 
-    var linkLines = (lastOfficials || []).map(function (o) {
-      var url = (o.urls && o.urls[0]) ? o.urls[0] : "";
-      var phone = (o.phones && o.phones[0]) ? o.phones[0] : "";
-      var parts = ["- " + (o.name || "Unknown") + " — " + (o.office || "Official")];
-      if (url)   parts.push(url);
-      if (phone) parts.push("Phone: " + phone);
-      return parts.join(" — ");
-    }).join("\n");
+      var linkLines = (lastOfficials || []).map(function (o) {
+        var url = (o.urls && o.urls[0]) ? o.urls[0] : "";
+        var phone = (o.phones && o.phones[0]) ? o.phones[0] : "";
+        var parts = ["- " + (o.name || "Unknown") + " — " + (o.office || "Official")];
+        if (url)   parts.push(url);
+        if (phone) parts.push("Phone: " + phone);
+        return parts.join(" — ");
+      }).join("\n");
 
-    var subject = encodeURIComponent("Constituent message from ZIP " + zip);
-    var body = encodeURIComponent(
-      "Dear " + (names || "Representative") + ",\n\n" +
-      "I am a constituent in ZIP " + zip + ". I am writing regarding [your topic/issue].\n" +
-      "[Add 2–3 sentences of context and a clear request here.]\n\n" +
-      "Helpful links and contacts:\n" +
-      (linkLines || "- (contact links to your offices will appear here after a lookup)") + "\n\n" +
-      "Thank you for your service.\n\n" +
-      "[Your Name]\n" +
-      "[Street/Neighborhood, " + zip + "]\n" +
-      "[Your contact info]"
-    );
+      var subject = encodeURIComponent("Constituent message from ZIP " + zip);
+      var body = encodeURIComponent(
+        "Dear " + (names || "Representative") + ",\n\n" +
+        "I am a constituent in ZIP " + zip + ". I am writing regarding [your topic/issue].\n" +
+        "[Add 2–3 sentences of context and a clear request here.]\n\n" +
+        "Helpful links and contacts:\n" +
+        (linkLines || "- (contact links appear here after a lookup)") + "\n\n" +
+        "Thank you for your service.\n\n" +
+        "[Your Name]\n" +
+        "[Street/Neighborhood, " + zip + "]\n" +
+        "[Your contact info]"
+      );
 
-    // Open the user's email client with subject + body prefilled.
-    window.location.href = "mailto:?subject=" + subject + "&body=" + body;
-  }
+      window.location.href = "mailto:?subject=" + subject + "&body=" + body;
+    }
 
-  // ===== Wire-up =====
-  if (searchBtn) searchBtn.addEventListener("click", onSearch);
-  if (zipInput) {
-    zipInput.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") onSearch();
-    });
-  }
-  if (emailBtn) emailBtn.addEventListener("click", generateEmail);
+    // ===== Wire-up =====
+    if (searchBtn) searchBtn.addEventListener("click", onSearch);
+    if (zipInput)  zipInput.addEventListener("keydown", function (e) { if (e.key === "Enter") onSearch(); });
+    if (emailBtn)  emailBtn.addEventListener("click", generateEmail);
 
-  // Prefill + populate recents
-  if (zipInput && !zipInput.value) zipInput.value = "62704";
-  renderRecents();
-  // Optionally auto-run: onSearch();
-</script>
+    // Prefill + render recents
+    if (zipInput && !zipInput.value) zipInput.value = "62704";
+    renderRecents();
+    // Optional auto-run: onSearch();
+  </script>
+</body>
+</html>
