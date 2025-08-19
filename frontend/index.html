@@ -4,32 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EagleReach</title>
-
   <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Favicon (emoji flag) -->
-  <link
-    rel="icon"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%87%BA%F0%9F%87%B8%3C/text%3E%3C/svg%3E"
-  />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%87%BA%F0%9F%87%B8%3C/text%3E%3C/svg%3E"/>  
 </head>
-
 <body class="bg-gray-50 text-gray-800">
   <div class="max-w-5xl mx-auto px-5 py-10">
 
-    <!-- Title + USA Flag -->
+    <!-- Title + Inline USA Flag -->
     <h1 class="text-4xl sm:text-5xl font-extrabold text-center tracking-tight mb-2 flex items-center justify-center gap-3">
       <img
-        src="https://flagcdn.com/us.svg"
         alt="USA Flag"
         class="w-10 h-6 rounded-sm shadow"
         loading="lazy"
-        referrerpolicy="no-referrer"
+        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7410 3900'%3E%3Crect width='7410' height='3900' fill='%23b22234'/%3E%3Cg fill='%23fff'%3E%3Cpath d='M0 450h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0z'/%3E%3C/g%3E%3Crect width='2964' height='2100' fill='%23002b7f'/%3E%3Cg fill='%23fff'%3E%3Cg id='s'%3E%3Cg id='t'%3E%3Cpath d='M247 90l70 216-184-134h228L177 306z'/%3E%3C/g%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' x='1235'/%3E%3C/g%3E%3Cuse href='%23s' y='210'/%3E%3Cuse href='%23s' y='420'/%3E%3Cuse href='%23s' y='630'/%3E%3Cuse href='%23s' y='840'/%3E%3Cuse href='%23s' y='1050'/%3E%3Cuse href='%23s' y='1260'/%3E%3Cuse href='%23s' y='1470'/%3E%3Cuse href='%23s' y='1680'/%3E%3Cg transform='translate(123)'%3E%3Cuse href='%23t'/%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' y='210'/%3E%3Cuse href='%23t' y='420'/%3E%3Cuse href='%23t' y='630'/%3E%3Cuse href='%23t' y='840'/%3E%3Cuse href='%23t' y='1050'/%3E%3Cuse href='%23t' y='1260'/%3E%3Cuse href='%23t' y='1470'/%3E%3Cuse href='%23t' y='1680'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"
       />
       EagleReach
     </h1>
-
     <p class="text-center text-gray-600 mb-8">
       Enter your ZIP code to find local civic information and resources.
     </p>
@@ -54,7 +45,7 @@
 
     <!-- Cards grid -->
     <div class="grid md:grid-cols-2 gap-6">
-      <!-- Upcoming Election (placeholder/static demo) -->
+      <!-- Upcoming Election -->
       <section class="bg-white rounded-xl shadow p-6">
         <h2 class="text-xl font-bold mb-4">Upcoming Election</h2>
         <div class="space-y-2">
@@ -66,9 +57,7 @@
       <!-- Elected Representatives -->
       <section class="bg-white rounded-xl shadow p-6">
         <h2 class="text-xl font-bold mb-4">Elected Representatives</h2>
-        <ul id="officialsList" class="space-y-4">
-          <!-- Filled by JS -->
-        </ul>
+        <ul id="officialsList" class="space-y-4"></ul>
         <button
           id="emailBtn"
           class="mt-5 w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 active:bg-indigo-800 transition"
@@ -77,7 +66,7 @@
         </button>
       </section>
 
-      <!-- City Council Minutes (placeholder demo text) -->
+      <!-- City Council Minutes -->
       <section class="bg-white rounded-xl shadow p-6">
         <h2 class="text-xl font-bold mb-4">City Council Minutes</h2>
         <p class="text-gray-700">
@@ -91,7 +80,7 @@
         </button>
       </section>
 
-      <!-- Report an Issue (links to 311) -->
+      <!-- Report an Issue -->
       <section class="bg-white rounded-xl shadow p-6">
         <h2 class="text-xl font-bold mb-4">Report an Issue</h2>
         <p class="text-gray-700">
@@ -114,7 +103,6 @@
   </div>
 
   <script>
-    // 👉 Change this if you deploy to a different backend URL
     const BACKEND_BASE = "https://eaglereach-1.onrender.com";
 
     const zipInput  = document.getElementById("zipInput");
@@ -166,10 +154,9 @@
     }
 
     function generateEmail() {
-      // Simple mailto template (user will edit)
       const subject = encodeURIComponent("Constituent Inquiry");
       const body    = encodeURIComponent(
-        \`Hello,\n\nI am a constituent in ZIP \${zipInput.value.trim()} and would like to share my concerns...\n\nThank you,\n[Your Name]\`
+        `Hello,\n\nI am a constituent in ZIP ${zipInput.value.trim()} and would like to share my concerns...\n\nThank you,\n[Your Name]`
       );
       window.location.href = \`mailto:?subject=\${subject}&body=\${body}\`;
     }
@@ -178,7 +165,7 @@
     zipInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runLookup(); });
     emailBtn.addEventListener("click", generateEmail);
 
-    // Optional: preload a demo ZIP for faster testing
+    // preload demo ZIP
     zipInput.value = "62704";
     runLookup();
   </script>
