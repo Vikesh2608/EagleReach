@@ -1,189 +1,186 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, user-scalable=no"
-  />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EagleReach</title>
-  <style>
-    :root {
-      --bg: #0f172a;       /* slate-900 */
-      --panel: #111827;    /* gray-900 */
-      --muted: #94a3b8;    /* slate-400 */
-      --text: #e5e7eb;     /* gray-200 */
-      --accent: #60a5fa;   /* blue-400 */
-      --error: #fca5a5;    /* red-300 */
-      --ok: #86efac;       /* green-300 */
-      --card: #0b1220;     /* deep panel */
-      --border: #1f2937;   /* gray-800 */
-    }
 
-    html, body {
-      background: radial-gradient(1200px 600px at 50% -100px, #0b1220 10%, #020617 50%, #000 100%);
-      color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      min-height: 100%;
-      margin: 0;
-    }
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    .wrap { max-width: 900px; margin: 40px auto; padding: 0 16px; }
-    h1 { font-weight: 800; font-size: 44px; margin: 0 0 6px; letter-spacing: -0.02em; }
-    .sub { color: var(--muted); margin-bottom: 24px; }
-
-    .panel {
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
-      border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(6px);
-      border-radius: 14px;
-      padding: 16px;
-    }
-
-    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    input[type="text"] {
-      flex: 1 1 320px;
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 10px;
-      padding: 12px 14px;
-      outline: none;
-      font-size: 16px;
-    }
-    input[type="text"]::placeholder { color: var(--muted); }
-    button {
-      background: linear-gradient(180deg, #60a5fa, #2563eb);
-      color: white;
-      border: none;
-      font-weight: 700;
-      border-radius: 10px;
-      padding: 12px 16px;
-      cursor: pointer;
-      transition: transform .05s ease;
-    }
-    button:active { transform: translateY(1px); }
-
-    .status { margin-top: 10px; color: var(--muted); font-size: 14px; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 14px;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-    }
-    .title { color: var(--accent); font-weight: 800; margin-bottom: 4px; }
-    .name { font-weight: 700; font-size: 18px; margin-bottom: 6px; }
-    .meta, .line { color: var(--muted); font-size: 14px; }
-    .line a { color: var(--accent); text-decoration: none; }
-    .error { color: var(--error); }
-    .ok { color: var(--ok); }
-  </style>
+  <!-- Favicon (emoji flag) -->
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%87%BA%F0%9F%87%B8%3C/text%3E%3C/svg%3E"
+  />
 </head>
-<body>
-  <div class="wrap">
-    <h1>EagleReach</h1>
-    <div class="sub">Enter a <strong>5‑digit ZIP</strong> or a <strong>full street address</strong> to find your federal representatives.</div>
 
-    <div class="panel">
-      <div class="row">
-        <input
-          id="zip"
-          type="text"
-          inputmode="text"
-          autocomplete="postal-code"
-          placeholder="e.g. 62704 or “1600 Pennsylvania Ave NW, Washington, DC”"
-          onkeydown="if(event.key==='Enter'){lookup();}"
-        />
-        <button onclick="lookup()">Search</button>
-      </div>
-      <div id="status" class="status"></div>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-5xl mx-auto px-5 py-10">
+
+    <!-- Title + USA Flag -->
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-center tracking-tight mb-2 flex items-center justify-center gap-3">
+      <img
+        src="https://flagcdn.com/us.svg"
+        alt="USA Flag"
+        class="w-10 h-6 rounded-sm shadow"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+      />
+      EagleReach
+    </h1>
+
+    <p class="text-center text-gray-600 mb-8">
+      Enter your ZIP code to find local civic information and resources.
+    </p>
+
+    <!-- Search -->
+    <div class="flex items-center justify-center gap-3 mb-10">
+      <input
+        id="zipInput"
+        type="text"
+        inputmode="numeric"
+        maxlength="5"
+        placeholder="62704"
+        class="w-64 sm:w-80 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
+      />
+      <button
+        id="searchBtn"
+        class="px-5 py-3 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 active:bg-blue-800 transition"
+      >
+        Search
+      </button>
     </div>
 
-    <div id="results" class="grid" style="margin-top:16px;"></div>
+    <!-- Cards grid -->
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Upcoming Election (placeholder/static demo) -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Upcoming Election</h2>
+        <div class="space-y-2">
+          <p><span class="font-semibold">Type</span> <span class="text-gray-600 block">General Election</span></p>
+          <p><span class="font-semibold">Date</span> <span class="text-gray-600 block">November 4, 2025</span></p>
+        </div>
+      </section>
+
+      <!-- Elected Representatives -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Elected Representatives</h2>
+        <ul id="officialsList" class="space-y-4">
+          <!-- Filled by JS -->
+        </ul>
+        <button
+          id="emailBtn"
+          class="mt-5 w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 active:bg-indigo-800 transition"
+        >
+          Generate Email
+        </button>
+      </section>
+
+      <!-- City Council Minutes (placeholder demo text) -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">City Council Minutes</h2>
+        <p class="text-gray-700">
+          A new public park on Riverside Drive received final approval, and the city's budget for the next fiscal year
+          was passed, including investments in road safety and 311 responsiveness.
+        </p>
+        <button
+          class="mt-5 px-4 py-2 rounded-lg border border-gray-300 font-semibold hover:bg-gray-50 transition"
+        >
+          Summarized
+        </button>
+      </section>
+
+      <!-- Report an Issue (links to 311) -->
+      <section class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Report an Issue</h2>
+        <p class="text-gray-700">
+          You can report issues—potholes, outages, trash pickup—via your city’s 311 services.
+        </p>
+        <a
+          href="https://www.usa.gov/local-governments"
+          target="_blank" rel="noopener noreferrer"
+          class="inline-block mt-5 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 active:bg-blue-800 transition"
+        >
+          Report
+        </a>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-sm text-gray-500 mt-10">
+      Built for civic engagement. Data via Congress Legislators + Census.
+    </footer>
   </div>
 
   <script>
-    // 👉 your deployed backend on Render
-    const API_BASE = "https://eaglereach-1.onrender.com";
+    // 👉 Change this if you deploy to a different backend URL
+    const BACKEND_BASE = "https://eaglereach-1.onrender.com";
 
-    const $ = (id) => document.getElementById(id);
+    const zipInput  = document.getElementById("zipInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const emailBtn  = document.getElementById("emailBtn");
+    const listEl    = document.getElementById("officialsList");
 
-    function setStatus(msg, cls="") {
-      const el = $("status");
-      el.className = "status " + (cls || "");
-      el.textContent = msg || "";
+    function isZip(v) {
+      return /^[0-9]{5}$/.test(v.trim());
     }
 
-    function card(o) {
-      const phones = Array.isArray(o.phones) && o.phones.length ? `📞 ${o.phones.join(", ")}` : "";
-      const site   = Array.isArray(o.urls) && o.urls.length ? `<a href="${o.urls[0]}" target="_blank" rel="noopener">Website</a>` : "";
-      const state  = o.state ? `State: ${o.state}` : "";
-      const dist   = o.district ? ` • District: ${o.district}` : "";
+    function officialRow(o) {
+      const office = o.office || "Official";
+      const name   = o.name || "N/A";
+      const site   = (o.urls && o.urls[0]) ? o.urls[0] : null;
 
       return `
-        <div class="card">
-          <div class="title">${o.office}</div>
-          <div class="name">${o.name}${o.party ? ` (${o.party})` : ""}</div>
-          <div class="meta">${state}${dist}</div>
-          ${phones ? `<div class="line" style="margin-top:8px">${phones}</div>` : ""}
-          ${site ? `<div class="line" style="margin-top:6px">🔗 ${site}</div>` : ""}
-        </div>
-      `;
+        <li class="border border-gray-200 rounded-lg p-4">
+          <p class="font-semibold">${name} — <span class="text-gray-600">${office}</span></p>
+          ${site ? `<a class="text-blue-600 hover:underline break-all" href="${site}" target="_blank" rel="noopener noreferrer">${site}</a>` : ""}
+        </li>`;
     }
 
-    async function lookup() {
-      const addr = ($("zip").value || "").trim();
-      const results = $("results");
-      results.innerHTML = "";
-      if (!addr) {
-        setStatus("Please enter a 5‑digit ZIP or a full address.", "error");
+    async function runLookup() {
+      const zip = zipInput.value.trim();
+      if (!isZip(zip)) {
+        alert("Please enter a valid 5-digit ZIP.");
         return;
       }
-
-      setStatus("Looking up…");
-
+      listEl.innerHTML = `<li class="text-gray-500">Loading…</li>`;
       try {
-        const resp = await fetch(`${API_BASE}/ask`, {
+        const res = await fetch(\`\${BACKEND_BASE}/ask\`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ address: addr })
+          body: JSON.stringify({ address: zip })
         });
-
-        const data = await resp.json();
-
-        if (!resp.ok) {
-          setStatus(`Error: ${data?.detail || "Lookup failed."}`, "error");
-          return;
-        }
-
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Lookup failed.");
         const officials = data.officials || [];
         if (!officials.length) {
-          setStatus("No officials found for that location.", "error");
+          listEl.innerHTML = `<li class="text-gray-500">No officials found.</li>`;
           return;
         }
-
-        // Success
-        setStatus(`Found ${officials.length} official(s).`, "ok");
-        results.innerHTML = officials.map(card).join("");
+        listEl.innerHTML = officials.map(officialRow).join("");
       } catch (err) {
         console.error(err);
-        setStatus("Network error. Please try again.", "error");
+        listEl.innerHTML = `<li class="text-red-600">Error: ${err.message}</li>`;
       }
     }
 
-    // Quick health check (optional visual hint)
-    (async () => {
-      try {
-        const r = await fetch(`${API_BASE}/health`);
-        if (r.ok) setStatus("API ready.", "ok");
-      } catch(e) { /* ignore */ }
-    })();
+    function generateEmail() {
+      // Simple mailto template (user will edit)
+      const subject = encodeURIComponent("Constituent Inquiry");
+      const body    = encodeURIComponent(
+        \`Hello,\n\nI am a constituent in ZIP \${zipInput.value.trim()} and would like to share my concerns...\n\nThank you,\n[Your Name]\`
+      );
+      window.location.href = \`mailto:?subject=\${subject}&body=\${body}\`;
+    }
+
+    searchBtn.addEventListener("click", runLookup);
+    zipInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runLookup(); });
+    emailBtn.addEventListener("click", generateEmail);
+
+    // Optional: preload a demo ZIP for faster testing
+    zipInput.value = "62704";
+    runLookup();
   </script>
 </body>
 </html>
