@@ -1,173 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EagleReach</title>
-  <!-- TailwindCSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%87%BA%F0%9F%87%B8%3C/text%3E%3C/svg%3E"/>  
-</head>
-<body class="bg-gray-50 text-gray-800">
-  <div class="max-w-5xl mx-auto px-5 py-10">
+<!-- ZIP input and search button -->
+<div class="flex gap-2 mt-4">
+  <input id="zipInput" type="text" inputmode="numeric" maxlength="5"
+         placeholder="ZIP code (e.g., 62704)" class="border p-2 rounded w-full" />
 
-    <!-- Title + Inline USA Flag -->
-    <h1 class="text-4xl sm:text-5xl font-extrabold text-center tracking-tight mb-2 flex items-center justify-center gap-3">
-      <img
-        alt="USA Flag"
-        class="w-10 h-6 rounded-sm shadow"
-        loading="lazy"
-        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7410 3900'%3E%3Crect width='7410' height='3900' fill='%23b22234'/%3E%3Cg fill='%23fff'%3E%3Cpath d='M0 450h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0zm0 600h7410v300H0z'/%3E%3C/g%3E%3Crect width='2964' height='2100' fill='%23002b7f'/%3E%3Cg fill='%23fff'%3E%3Cg id='s'%3E%3Cg id='t'%3E%3Cpath d='M247 90l70 216-184-134h228L177 306z'/%3E%3C/g%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' x='1235'/%3E%3C/g%3E%3Cuse href='%23s' y='210'/%3E%3Cuse href='%23s' y='420'/%3E%3Cuse href='%23s' y='630'/%3E%3Cuse href='%23s' y='840'/%3E%3Cuse href='%23s' y='1050'/%3E%3Cuse href='%23s' y='1260'/%3E%3Cuse href='%23s' y='1470'/%3E%3Cuse href='%23s' y='1680'/%3E%3Cg transform='translate(123)'%3E%3Cuse href='%23t'/%3E%3Cuse href='%23t' x='247'/%3E%3Cuse href='%23t' x='494'/%3E%3Cuse href='%23t' x='741'/%3E%3Cuse href='%23t' x='988'/%3E%3Cuse href='%23t' y='210'/%3E%3Cuse href='%23t' y='420'/%3E%3Cuse href='%23t' y='630'/%3E%3Cuse href='%23t' y='840'/%3E%3Cuse href='%23t' y='1050'/%3E%3Cuse href='%23t' y='1260'/%3E%3Cuse href='%23t' y='1470'/%3E%3Cuse href='%23t' y='1680'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"
-      />
-      EagleReach
-    </h1>
-    <p class="text-center text-gray-600 mb-8">
-      Enter your ZIP code to find local civic information and resources.
-    </p>
+  <button id="searchBtn" type="button"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+    Search
+  </button>
+</div>
 
-    <!-- Search -->
-    <div class="flex items-center justify-center gap-3 mb-10">
-      <input
-        id="zipInput"
-        type="text"
-        inputmode="numeric"
-        maxlength="5"
-        placeholder="62704"
-        class="w-64 sm:w-80 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
-      />
-      <button
-        id="searchBtn"
-        class="px-5 py-3 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 active:bg-blue-800 transition"
-      >
-        Search
-      </button>
-    </div>
+<!-- Where officials will be listed -->
+<ul id="officialsList" class="mt-4 space-y-2"></ul>
 
-    <!-- Cards grid -->
-    <div class="grid md:grid-cols-2 gap-6">
-      <!-- Upcoming Election -->
-      <section class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold mb-4">Upcoming Election</h2>
-        <div class="space-y-2">
-          <p><span class="font-semibold">Type</span> <span class="text-gray-600 block">General Election</span></p>
-          <p><span class="font-semibold">Date</span> <span class="text-gray-600 block">November 4, 2025</span></p>
-        </div>
-      </section>
+<script>
+  const BACKEND_BASE = "https://eaglereach-1.onrender.com";
 
-      <!-- Elected Representatives -->
-      <section class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold mb-4">Elected Representatives</h2>
-        <ul id="officialsList" class="space-y-4"></ul>
-        <button
-          id="emailBtn"
-          class="mt-5 w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 active:bg-indigo-800 transition"
-        >
-          Generate Email
-        </button>
-      </section>
+  const zipInput  = document.getElementById('zipInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const listEl    = document.getElementById('officialsList');
 
-      <!-- City Council Minutes -->
-      <section class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold mb-4">City Council Minutes</h2>
-        <p class="text-gray-700">
-          A new public park on Riverside Drive received final approval, and the city's budget for the next fiscal year
-          was passed, including investments in road safety and 311 responsiveness.
-        </p>
-        <button
-          class="mt-5 px-4 py-2 rounded-lg border border-gray-300 font-semibold hover:bg-gray-50 transition"
-        >
-          Summarized
-        </button>
-      </section>
+  // Escape HTML helper
+  function escapeHtml(s) {
+    return String(s || "").replace(/&/g, "&amp;")
+                          .replace(/</g, "&lt;")
+                          .replace(/>/g, "&gt;");
+  }
 
-      <!-- Report an Issue -->
-      <section class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-xl font-bold mb-4">Report an Issue</h2>
-        <p class="text-gray-700">
-          You can report issues—potholes, outages, trash pickup—via your city’s 311 services.
-        </p>
-        <a
-          href="https://www.usa.gov/local-governments"
-          target="_blank" rel="noopener noreferrer"
-          class="inline-block mt-5 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 active:bg-blue-800 transition"
-        >
-          Report
-        </a>
-      </section>
-    </div>
+  // Render one official row
+  function officialRow(o) {
+    const name   = o?.name   || "N/A";
+    const office = o?.office || "Official";
+    const url    = o?.urls?.[0] || "";
+    const phone  = o?.phones?.[0] || "";
 
-    <!-- Footer -->
-    <footer class="text-center text-sm text-gray-500 mt-10">
-      Built for civic engagement. Data via Congress Legislators + Census.
-    </footer>
-  </div>
+    let html = `<li class="border border-gray-200 rounded-lg p-4 bg-white">
+      <p class="font-semibold">${escapeHtml(name)} 
+      <span class="text-gray-600">(${escapeHtml(office)})</span></p>`;
 
-  <script>
-    const BACKEND_BASE = "https://eaglereach-1.onrender.com";
-
-    const zipInput  = document.getElementById("zipInput");
-    const searchBtn = document.getElementById("searchBtn");
-    const emailBtn  = document.getElementById("emailBtn");
-    const listEl    = document.getElementById("officialsList");
-
-    function isZip(v) {
-      return /^[0-9]{5}$/.test(v.trim());
+    if (url) {
+      html += `<a class="text-blue-600 hover:underline break-all block mt-1" 
+                 target="_blank" rel="noopener" 
+                 href="${url}">
+                 ${escapeHtml(url.replace(/^https?:\/\/(www\.)?/, ""))}
+               </a>`;
     }
 
-    function officialRow(o) {
-      const office = o.office || "Official";
-      const name   = o.name || "N/A";
-      const site   = (o.urls && o.urls[0]) ? o.urls[0] : null;
-
-      return `
-        <li class="border border-gray-200 rounded-lg p-4">
-          <p class="font-semibold">${name} — <span class="text-gray-600">${office}</span></p>
-          ${site ? `<a class="text-blue-600 hover:underline break-all" href="${site}" target="_blank" rel="noopener noreferrer">${site}</a>` : ""}
-        </li>`;
+    if (phone) {
+      html += `<div class="text-gray-700 mt-1">📞 ${escapeHtml(phone)}</div>`;
     }
 
-    async function runLookup() {
-      const zip = zipInput.value.trim();
-      if (!isZip(zip)) {
-        alert("Please enter a valid 5-digit ZIP.");
-        return;
-      }
-      listEl.innerHTML = `<li class="text-gray-500">Loading…</li>`;
-      try {
-        const res = await fetch(\`\${BACKEND_BASE}/ask\`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ address: zip })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "Lookup failed.");
-        const officials = data.officials || [];
-        if (!officials.length) {
-          listEl.innerHTML = `<li class="text-gray-500">No officials found.</li>`;
-          return;
-        }
-        listEl.innerHTML = officials.map(officialRow).join("");
-      } catch (err) {
-        console.error(err);
-        listEl.innerHTML = `<li class="text-red-600">Error: ${err.message}</li>`;
-      }
+    html += `</li>`;
+    return html;
+  }
+
+  // Fetch and render officials
+  async function run() {
+    const zip = (zipInput.value || "").trim();
+    if (!/^\d{5}$/.test(zip)) {
+      alert("Enter a 5-digit ZIP");
+      return;
     }
 
-    function generateEmail() {
-      const subject = encodeURIComponent("Constituent Inquiry");
-      const body    = encodeURIComponent(
-        `Hello,\n\nI am a constituent in ZIP ${zipInput.value.trim()} and would like to share my concerns...\n\nThank you,\n[Your Name]`
-      );
-      window.location.href = \`mailto:?subject=\${subject}&body=\${body}\`;
+    listEl.innerHTML = `<li class="text-gray-500">Loading...</li>`;
+
+    try {
+      const r = await fetch(`${BACKEND_BASE}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: zip })
+      });
+
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.detail || "Lookup failed");
+
+      listEl.innerHTML = (data.officials || [])
+        .map(officialRow)
+        .join("") || `<li class="text-gray-500">No officials found.</li>`;
+    } catch (e) {
+      console.error("API error:", e);
+      listEl.innerHTML = `<li class="text-red-500">Error: ${e.message}</li>`;
     }
+  }
 
-    searchBtn.addEventListener("click", runLookup);
-    zipInput.addEventListener("keydown", (e) => { if (e.key === "Enter") runLookup(); });
-    emailBtn.addEventListener("click", generateEmail);
+  // Wire up events
+  if (searchBtn) searchBtn.addEventListener("click", run);
+  if (zipInput) {
+    zipInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") run();
+    });
+  }
 
-    // preload demo ZIP
-    zipInput.value = "62704";
-    runLookup();
-  </script>
-</body>
-</html>
+  // Optional: auto-run if prefilled
+  if (zipInput && /^\d{5}$/.test(zipInput.value)) {
+    run();
+  }
+</script>
