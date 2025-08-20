@@ -7,255 +7,56 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>EagleReach</h1>
-  <p id="subtitle">Enter your ZIP code to find local civic information and resources.</p>
+  <!-- Navbar -->
+  <nav>
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+  </nav>
 
-  <!-- Search controls -->
-  <div id="controls">
-    <input id="zipInput" type="text" inputmode="numeric" maxlength="5" placeholder="ZIP code (e.g., 62704)" />
-    <button id="searchBtn" type="button">Search</button>
-    <button id="clearBtn" type="button" title="Clear recent ZIP history">Clear History</button>
-  </div>
+  <!-- Hero Section -->
+  <main id="home" class="wrap">
+    <h1>Welcome to EagleReach</h1>
+    <p>Your civic engagement AI assistant for the United States 🇺🇸</p>
 
-  <!-- Recent ZIP chips -->
-  <div id="recent">
-    <div class="label">Recent</div>
-    <div id="recentZips"></div>
-  </div>
-
-  <!-- Cards -->
-  <div id="cards">
-    <div class="card">
-      <h2>Upcoming Election</h2>
-      <p><strong>Type</strong><br />General Election</p>
-      <p><strong>Date</strong><br />November 4, 2025</p>
+    <div class="section">
+      <input type="text" id="zipInput" placeholder="Enter your U.S. ZIP code" />
+      <button onclick="fetchOfficials()">Find Officials</button>
     </div>
 
-    <div class="card">
-      <h2>Elected Representatives</h2>
-      <ul id="officialsList"></ul>
-      <button id="emailBtn" type="button">Generate Email</button>
-    </div>
+    <ul id="officialsList"></ul>
+  </main>
 
-    <div class="card">
-      <h2>City Council Minutes</h2>
-      <p>
-        A new public park on Riverside Drive received final approval, and the city's budget for the next
-        fiscal year was passed, including investments in road safety and 311 responsiveness.
-      </p>
-    </div>
+  <!-- About Section -->
+  <section id="about" class="wrap section card">
+    <h2>About EagleReach</h2>
+    <p>
+      EagleReach is a civic engagement assistant powered by AI, designed exclusively for
+      U.S. citizens to connect quickly with their local, state, and federal representatives.
+    </p>
+    <p>
+      <strong>Creator:</strong> Vikesh Sagar Bairam – with 8+ years of
+      expertise across <em>Generative AI, Cloud Engineering, Data Engineering,
+      DevOps, AI/ML, Account Management, and Sales Engineering</em>.
+    </p>
+    <p>
+      Academic background includes a <em>Bachelor’s in Psychology</em>, a
+      <em>Bachelor’s in Computers</em>, and a <em>Master’s in Information Systems
+      and Management from the University of Illinois, Springfield</em>.
+    </p>
+    <p>
+      Professional journey includes impactful roles at <strong>Jabil (USA)</strong>
+      and <strong>Surfaces by Pacific</strong>, driven by a passion for technology,
+      problem-solving, and meaningful civic impact.
+    </p>
+  </section>
 
-    <div class="card">
-      <h2>Report an Issue</h2>
-      <p>You can report issues—potholes, outages, trash pickup—via your city’s 311 services.</p>
-    </div>
-  </div>
+  <!-- Footer -->
+  <footer>
+    © 2025 EagleReach by Vikesh Sagar Bairam. All rights reserved.
+  </footer>
 
-  <p id="footer-note">Built for civic engagement. Data via Congress Legislators + Census.</p>
-
-  <script>
-    // ===== Config =====
-    const BACKEND_BASE = "https://eaglereach-1.onrender.com";
-
-    // ===== DOM =====
-    const zipInput   = document.getElementById("zipInput");
-    const searchBtn  = document.getElementById("searchBtn");
-    const emailBtn   = document.getElementById("emailBtn");
-    const listEl     = document.getElementById("officialsList");
-    const recentWrap = document.getElementById("recentZips");
-    const clearBtn   = document.getElementById("clearBtn");
-
-    // ===== State =====
-    let lastOfficials = [];
-    const RECENT_KEY   = "eaglereach_recent_zips";
-    const RECENT_LIMIT = 6;
-
-    // ===== Utils =====
-    const isZip = v => /^\d{5}$/.test((v || "").trim());
-    const esc = s => String(s || "")
-      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-
-    const prettyUrl = (u) => {
-      try {
-        const url = new URL(u.startsWith("http") ? u : "https://" + u);
-        const host = url.hostname.replace(/^www\./, "");
-        const path = url.pathname.replace(/\/$/, "");
-        return path && path !== "/" ? host + path : host;
-      } catch { return u; }
-    };
-
-    // ===== Recent ZIPs =====
-    function loadRecents() {
-      try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); }
-      catch { return []; }
-    }
-    function saveRecent(zip) {
-      if (!isZip(zip)) return;
-      const r = loadRecents().filter(z => z !== zip);
-      r.unshift(zip);
-      if (r.length > RECENT_LIMIT) r.length = RECENT_LIMIT;
-      localStorage.setItem(RECENT_KEY, JSON.stringify(r));
-      renderRecents();
-    }
-    function clearRecents() {
-      localStorage.removeItem(RECENT_KEY);
-      renderRecents();
-    }
-    function renderRecents() {
-      recentWrap.innerHTML = "";
-      const r = loadRecents();
-      r.forEach(zip => {
-        const b = document.createElement("button");
-        b.className = "chip";
-        b.textContent = zip;
-        b.addEventListener("click", () => { zipInput.value = zip; run(); });
-        recentWrap.appendChild(b);
-      });
-    }
-
-    // ===== Rendering =====
-    const setListLoading = (msg = "Loading…") => {
-      listEl.innerHTML = `<li class="muted">${esc(msg)}</li>`;
-    };
-    const setListError = (msg) => {
-      listEl.innerHTML = `<li class="error">Error: ${esc(msg)}</li>`;
-    };
-    const setListEmpty = () => {
-      listEl.innerHTML = `<li class="muted">No officials found.</li>`;
-    };
-
-    function officialRow(o) {
-      const office = o?.office || "Official";
-      const name   = o?.name || "N/A";
-      const url    = (o?.urls && o.urls[0]) || "";
-      const phone  = (o?.phones && o.phones[0]) || "";
-
-      let html = `<li class="official">
-        <div class="name">${esc(name)} — <span class="office">${esc(office)}</span></div>`;
-      if (url) {
-        const href = url.startsWith("http") ? url : `https://${url}`;
-        html += `<a class="site" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(prettyUrl(href))}</a>`;
-      }
-      if (phone) {
-        html += `<div class="phone">📞 ${esc(phone)}</div>`;
-      }
-      html += `</li>`;
-      return html;
-    }
-
-    function renderOfficials(list) {
-      if (!list || !list.length) { setListEmpty(); return; }
-      listEl.innerHTML = list.map(officialRow).join("");
-    }
-
-    // ===== Fetch with timeout & robust errors =====
-    async function askBackend(zip, timeoutMs = 15000) {
-      const ac = new AbortController();
-      const timer = setTimeout(() => ac.abort(), timeoutMs);
-      try {
-        const r = await fetch(`${BACKEND_BASE}/ask`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ address: zip }),
-          signal: ac.signal
-        });
-        const text = await r.text();
-        let data;
-        try { data = JSON.parse(text); }
-        catch { throw new Error(`Bad JSON from API: ${text.slice(0,200)}…`); }
-        if (!r.ok) throw new Error(data?.detail || `HTTP ${r.status}`);
-        return data;
-      } finally {
-        clearTimeout(timer);
-      }
-    }
-
-    // Wakes the Render app (no‑cors so it never blocks UI)
-    function warmBackend() {
-      fetch(BACKEND_BASE + "/", { method: "GET", mode: "no-cors" }).catch(()=>{});
-    }
-
-    // ===== Run search with auto‑retry for cold starts =====
-    async function run() {
-      const zip = (zipInput.value || "").trim();
-      if (!isZip(zip)) { setListError("Please enter a valid 5-digit ZIP."); return; }
-
-      setListLoading("Loading…");
-      try {
-        // first try (15s)
-        const data = await askBackend(zip, 15000);
-        lastOfficials = data?.officials || [];
-        renderOfficials(lastOfficials);
-        saveRecent(zip);
-        return;
-      } catch (e) {
-        console.warn("First attempt failed:", e);
-        if (e.name === "AbortError" || /aborted|timed out/i.test(e.message || "")) {
-          setListLoading("Waking the server… this can take up to a minute the first time. Retrying…");
-          warmBackend();
-          try {
-            const data = await askBackend(zip, 60000); // retry up to 60s
-            lastOfficials = data?.officials || [];
-            renderOfficials(lastOfficials);
-            saveRecent(zip);
-            return;
-          } catch (e2) {
-            console.error("Second attempt failed:", e2);
-            setListError("Still timing out. Please click Search again in ~20 seconds.");
-            return;
-          }
-        }
-        setListError(e.message || "Lookup failed.");
-      }
-    }
-
-    // ===== Email draft =====
-    function salutationFor(o) {
-      const office = (o?.office || "").toLowerCase();
-      if (office.includes("senator")) return "Senator";
-      if (office.includes("representative")) return "Representative";
-      return "Official";
-    }
-    function generateEmail() {
-      const zip = (zipInput.value || "").trim();
-      const names = (lastOfficials || [])
-        .map(o => `${salutationFor(o)} ${o.name || ""}`.trim())
-        .filter(Boolean)
-        .join(", ");
-
-      const linkLines = (lastOfficials || []).map(o => {
-        const url   = (o?.urls && o.urls[0]) || "";
-        const phone = (o?.phones && o.phones[0]) || "";
-        const parts = [`- ${o?.name || "Unknown"} — ${o?.office || "Official"}`];
-        if (url)   parts.push(url);
-        if (phone) parts.push(`Phone: ${phone}`);
-        return parts.join(" — ");
-      }).join("\n");
-
-      const subject = encodeURIComponent(`Constituent message from ZIP ${zip}`);
-      const body = encodeURIComponent(
-        `Dear ${names || "Representative"},\n\n` +
-        `I am a constituent in ZIP ${zip}. I am writing regarding [your topic/issue].\n` +
-        `[Add 2–3 sentences of context and a clear request here.]\n\n` +
-        `Helpful links and contacts:\n${linkLines || "- (links will appear here after a lookup)"}\n\n` +
-        `Thank you for your service.\n\n` +
-        `[Your Name]\n[Street/Neighborhood, ${zip}]\n[Your contact info]`
-      );
-      window.location.href = `mailto:?subject=${subject}&body=${body}`;
-    }
-
-    // ===== Wire‑up =====
-    if (searchBtn) searchBtn.addEventListener("click", run);
-    if (zipInput)  zipInput.addEventListener("keydown", e => { if (e.key === "Enter") run(); });
-    if (emailBtn)  emailBtn.addEventListener("click", generateEmail);
-    if (clearBtn)  clearBtn.addEventListener("click", clearRecents);
-
-    // Prefill, render, warm
-    if (zipInput && !zipInput.value) zipInput.value = "62704";
-    renderRecents();
-    warmBackend();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
-
