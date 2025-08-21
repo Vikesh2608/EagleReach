@@ -9,7 +9,7 @@
 <body class="bg-gray-100 text-gray-900 min-h-screen">
 
   <!-- Top Nav -->
-  <nav class="w-full py-4">
+  <nav class="w-full py-4 bg-white/80 backdrop-blur border-b">
     <div class="max-w-5xl mx-auto flex items-center justify-between px-4">
       <a href="#home" class="font-semibold text-lg hover:opacity-90 flex items-center gap-2">
         <span class="text-2xl">🇺🇸</span>
@@ -19,18 +19,17 @@
         <a href="#home" class="text-sm text-gray-700 hover:text-blue-700">Home</a>
         <button id="aboutBtn"   class="text-sm text-gray-700 hover:text-blue-700">About</button>
         <button id="contactBtn" class="text-sm text-gray-700 hover:text-blue-700">Contact</button>
-        <button id="feedbackBtn" class="text-sm text-gray-700 hover:text-blue-700">Feedback</button>
       </div>
     </div>
   </nav>
 
   <!-- Header -->
   <header id="home" class="max-w-5xl mx-auto text-center px-4">
-    <h1 class="text-4xl font-bold flex items-center justify-center gap-3">
+    <h1 class="text-4xl font-bold flex items-center justify-center gap-3 mt-6">
       <span class="text-3xl">🇺🇸</span> <span>EagleReach</span>
     </h1>
     <p class="text-gray-600 mt-2">
-      Enter your ZIP code to find local civic information and resources for the United States.
+      Enter your ZIP code to see upcoming elections and your elected representatives.
     </p>
   </header>
 
@@ -54,7 +53,7 @@
     <!-- Upcoming Election -->
     <section class="bg-white rounded-2xl shadow p-5">
       <h2 class="text-xl font-semibold mb-3">Upcoming Election</h2>
-      <div id="electionCard" class="text-gray-800">
+      <div class="text-gray-800">
         <p><span class="font-semibold">Type:</span> General Election</p>
         <p><span class="font-semibold">Date:</span> <span id="electionDate">—</span></p>
       </div>
@@ -72,22 +71,39 @@
       <ul id="officialsList" class="mt-4 space-y-3"></ul>
     </section>
 
-    <!-- Extra cards -->
+    <!-- Local Updates -->
     <section class="bg-white rounded-2xl shadow p-5 md:col-span-1">
-      <h3 class="font-semibold mb-2">City Council Minutes</h3>
+      <h3 class="font-semibold mb-2">Local Updates</h3>
       <p class="text-gray-600 text-sm">
-        We’ll add direct links to your city’s council minutes soon.
-        For now, check your city or county website.
+        Latest news and updates for your area.
       </p>
+      <div class="mt-3 flex gap-3">
+        <a id="newsBtn" target="_blank" rel="noopener"
+           class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+           href="https://news.google.com/">Open Local News</a>
+        <a id="govPortalBtn" target="_blank" rel="noopener"
+           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50"
+           href="https://www.usa.gov/">USA.gov</a>
+      </div>
     </section>
 
+    <!-- Raise a Concern -->
     <section class="bg-white rounded-2xl shadow p-5 md:col-span-1">
-      <h3 class="font-semibold mb-2">Report an Issue</h3>
+      <h3 class="font-semibold mb-2">Raise a Concern</h3>
       <p class="text-gray-600 text-sm">
-        Find services like pothole reporting, trash, and safety on your city portal,
-        or visit <a class="text-blue-600 hover:underline" target="_blank"
-        href="https://www.usa.gov/">USA.gov</a>.
+        Report city issues (311), contact your city hall, or write to your representatives.
       </p>
+      <div class="mt-3 flex gap-3 flex-wrap">
+        <a id="city311Btn" target="_blank" rel="noopener"
+           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50"
+           href="https://www.google.com/search?q=311+city+services">Find 311 Services</a>
+        <a id="cityHallBtn" target="_blank" rel="noopener"
+           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50"
+           href="https://www.google.com/search?q=city+hall+contact">City Hall Contact</a>
+        <a id="writeRepBtn" target="_blank" rel="noopener"
+           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50"
+           href="#home">Write Your Reps</a>
+      </div>
     </section>
 
   </main>
@@ -103,9 +119,9 @@
       <button data-close="about" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800">✕</button>
       <h2 class="text-2xl font-bold mb-2">About EagleReach</h2>
       <p class="text-gray-700 mb-3">
-        <strong>EagleReach</strong> is an AI‑powered civic engagement assistant built
-        exclusively for people in the United States. It helps residents quickly find and contact
-        their local, state, and federal representatives, see upcoming elections, and access official resources—fast.
+        <strong>EagleReach</strong> is an AI‑powered civic engagement assistant for the United States.
+        It helps residents quickly find and contact their local, state, and federal representatives,
+        see upcoming elections, and access official resources—fast.
       </p>
       <h3 class="text-lg font-semibold mt-4 mb-1">Vision</h3>
       <blockquote class="italic text-gray-700 border-l-4 border-blue-500 pl-3">
@@ -115,8 +131,7 @@
       <p class="text-gray-700">
         <strong>Vikesh Sagar Bairam</strong> — Generative AI, Cloud & Data Engineering, DevOps.
         MS in Information Systems & Management (University of Illinois Springfield).
-        Built with a simple goal: empower every U.S. resident—from students to seniors,
-        from community leaders to CEOs—to connect and be heard.
+        Built to empower everyone—from students to seniors, from community leaders to CEOs—to connect and be heard.
       </p>
       <p class="text-xs text-gray-500 mt-4">© 2025 EagleReach by Vikesh Sagar Bairam.</p>
     </div>
@@ -126,45 +141,21 @@
   <div id="contactModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
     <div class="bg-white max-w-md w-[92%] rounded-2xl shadow-xl p-6 relative">
       <button data-close="contact" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800">✕</button>
-      <h2 class="text-2xl font-bold mb-3">Connect</h2>
+      <h2 class="text-2xl font-bold mb-3">Contact</h2>
       <div class="space-y-3">
         <a class="block border rounded-lg p-3 hover:bg-gray-50"
+           href="mailto:vikebairam@gmail.com?subject=EagleReach%20Inquiry">
+          ✉️ Email — vikebairam@gmail.com
+        </a>
+        <a class="block border rounded-lg p-3 hover:bg-gray-50"
            href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank" rel="noopener">
-          🔗 LinkedIn — @vikesh-bairam-219769258
+          🔗 LinkedIn — vikesh-bairam-219769258
         </a>
         <a class="block border rounded-lg p-3 hover:bg-gray-50"
            href="https://github.com/Vikesh2608" target="_blank" rel="noopener">
           💻 GitHub — @Vikesh2608
         </a>
-        <a class="block border rounded-lg p-3 hover:bg-gray-50"
-           href="mailto:vikebairam@gmail.com?subject=EagleReach%20Inquiry">
-          ✉️ Email — vikebairam@gmail.com
-        </a>
       </div>
-      <p class="text-xs text-gray-500 mt-4">(Contact links are recommended for credibility and collaboration.)</p>
-    </div>
-  </div>
-
-  <!-- Feedback Modal (opens prefilled GitHub Issue) -->
-  <div id="feedbackModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white max-w-xl w-[92%] rounded-2xl shadow-xl p-6 relative">
-      <button data-close="feedback" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800">✕</button>
-      <h2 class="text-2xl font-bold mb-3">Feedback / Comments</h2>
-      <p class="text-gray-700 mb-3">
-        Share ideas or report issues. This opens a pre‑filled
-        <strong>GitHub Issue</strong> in the EagleReach repository (you can edit before posting).
-      </p>
-      <textarea id="fbText" rows="6"
-        class="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="Your comment, feature request, or bug report..."></textarea>
-      <div class="mt-3 flex gap-3">
-        <button id="postIssueBtn"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Post on GitHub</button>
-        <button data-close="feedback" class="px-4 py-2 rounded-lg border">Cancel</button>
-      </div>
-      <p class="text-xs text-gray-500 mt-2">
-        (Using GitHub Issues/Discussions is recommended so you can moderate and track feedback publicly.)
-      </p>
     </div>
   </div>
 
@@ -172,7 +163,6 @@
   <script>
     // ---------- CONFIG ----------
     const BACKEND_BASE = "https://eaglereach-1.onrender.com";
-    const GH_REPO = "Vikesh2608/EagleReach";
 
     // ---------- ELEMENTS ----------
     const zipInput   = document.getElementById("zipInput");
@@ -181,15 +171,17 @@
     const msgEl      = document.getElementById("msg");
     const electionDateEl = document.getElementById("electionDate");
 
-    // Modals
     const aboutBtn = document.getElementById("aboutBtn");
     const contactBtn = document.getElementById("contactBtn");
-    const feedbackBtn = document.getElementById("feedbackBtn");
     const aboutModal = document.getElementById("aboutModal");
     const contactModal = document.getElementById("contactModal");
-    const feedbackModal = document.getElementById("feedbackModal");
-    const fbText = document.getElementById("fbText");
-    const postIssueBtn = document.getElementById("postIssueBtn");
+
+    const newsBtn = document.getElementById("newsBtn");
+    const govPortalBtn = document.getElementById("govPortalBtn");
+    const city311Btn = document.getElementById("city311Btn");
+    const cityHallBtn = document.getElementById("cityHallBtn");
+    const writeRepBtn = document.getElementById("writeRepBtn");
+    const emailBtn = document.getElementById("emailBtn");
 
     // ---------- HELPERS ----------
     function setMsg(t, cls="text-gray-600"){ msgEl.className="mt-2 text-sm "+cls; msgEl.textContent=t; }
@@ -229,6 +221,15 @@
     }
     function formatDate(d){ return d ? d.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}) : "—"; }
 
+    function setZipDependentLinks(zip){
+      if(!zip) return;
+      newsBtn.href = `https://news.google.com/search?q=${encodeURIComponent(zip)}&hl=en-US&gl=US&ceid=US:en`;
+      govPortalBtn.href = `https://www.usa.gov/`;
+      city311Btn.href = `https://www.google.com/search?q=${encodeURIComponent(zip)}+311+city+services`;
+      cityHallBtn.href = `https://www.google.com/search?q=${encodeURIComponent(zip)}+city+hall+contact`;
+      writeRepBtn.href = "#home";
+    }
+
     async function run(){
       const zip=(zipInput.value||"").trim();
       if(!/^\d{5}$/.test(zip)){ setMsg("Please enter a valid 5‑digit US ZIP.","text-red-600"); return; }
@@ -237,8 +238,10 @@
         const res=await fetch(`${BACKEND_BASE}/officials?zip=${encodeURIComponent(zip)}`,{headers:{Accept:"application/json"}});
         const txt=await res.text();
         if(!res.ok) throw new Error(`API ${res.status}: ${txt}`);
-        renderOfficials(JSON.parse(txt));
+        const data = JSON.parse(txt);
+        renderOfficials(data);
         setMsg(`Showing results for ${zip}`);
+        setZipDependentLinks(zip);
       }catch(e){
         console.error(e);
         setMsg((e?.message||"Fetch failed")+" (see DevTools → Network)","text-red-600");
@@ -247,34 +250,19 @@
     window.run = run;
     zipInput.addEventListener("keydown", e => { if(e.key==="Enter") run(); });
 
-    // Open/close modals
+    // About / Contact modals
     const openModal  = (el)=>{ el.classList.remove("hidden"); el.classList.add("flex"); };
     const closeModal = (el)=>{ el.classList.add("hidden"); el.classList.remove("flex"); };
-
     aboutBtn.addEventListener("click",   ()=>openModal(aboutModal));
     contactBtn.addEventListener("click", ()=>openModal(contactModal));
-    feedbackBtn.addEventListener("click",()=>openModal(feedbackModal));
-
-    document.querySelectorAll('[data-close="about"]').forEach(b=>b.addEventListener("click",()=>closeModal(aboutModal)));
-    document.querySelectorAll('[data-close="contact"]').forEach(b=>b.addEventListener("click",()=>closeModal(contactModal)));
-    document.querySelectorAll('[data-close="feedback"]').forEach(b=>b.addEventListener("click",()=>closeModal(feedbackModal)));
-
-    ;[aboutModal, contactModal, feedbackModal].forEach(m=>{
+    [aboutModal, contactModal].forEach(m=>{
       m.addEventListener("click",(e)=>{ if(e.target===m) closeModal(m); });
     });
-
-    // Post feedback as prefilled GitHub Issue
-    postIssueBtn.addEventListener("click", ()=>{
-      const text = (fbText.value||"").trim();
-      const zip = (zipInput.value||"").trim();
-      const title = encodeURIComponent(`[Feedback] ${zip ? "ZIP "+zip+" — " : ""}${text.slice(0,60) || "General feedback"}`);
-      const body = encodeURIComponent(`${text}\n\n---\nFrom: EagleReach web app\nZIP: ${zip || "n/a"}`);
-      const url = `https://github.com/${GH_REPO}/issues/new?title=${title}&body=${body}`;
-      window.open(url, "_blank");
-    });
+    document.querySelectorAll('[data-close="about"]').forEach(b=>b.addEventListener("click",()=>closeModal(aboutModal)));
+    document.querySelectorAll('[data-close="contact"]').forEach(b=>b.addEventListener("click",()=>closeModal(contactModal)));
 
     // Generate Email
-    document.getElementById("emailBtn").addEventListener("click", () => {
+    emailBtn.addEventListener("click", () => {
       const cards = listEl.querySelectorAll("li");
       const emails = [];
       cards.forEach(li=>{
