@@ -1,10 +1,9 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-import httpx
-import asyncio
-import urllib.parse as _u
+import httpx, asyncio, datetime
+from typing import Optional
 
-app = FastAPI()
+app = FastAPI(title="EagleReach Backend (Open Data)")
 
 # Allow GitHub Pages + local dev
 ALLOWED = [
@@ -20,20 +19,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Open-data sources (no API keys)
 ZIPPOP = "https://api.zippopotam.us/us"
 FCC = "https://geo.fcc.gov/api/census/block/find"
 GOVTRACK = "https://www.govtrack.us/api/v2"
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 
+def _esc(s): return (s or "").strip()
+
 @app.get("/health")
 def health():
-    return {"ok": True, "sources": ["zippopotam.us", "FCC Census Block", "GovTrack", "Wikidata"]}
-
-def _esc(s):
-    return (s or "").strip()
+    return {
+        "ok": True,
+        "backend_version": "1.0.0-open-data",
+        "sources": ["zippopotam.us", "FCC Census Block", "GovTrack", "Wikidata"],
+    }
 
 async def fetch_zip(zip_code:str):
-    """ZIP -> {state_abbr, state_name, place_name, lat, lon} via Zippopotam.us"""
+    """ZIP -> {state_abbr, state_name, place_name, lat, lon}"""
     url = f"{ZIPPOP}/{_esc(zip_code)}"
     async with httpx.AsyncClient(timeout=15) as client:
         r = await client.get(url)
@@ -51,28 +54,23 @@ async def fetch_zip(zip_code:str):
         }
 
 async def fetch_cd(lat:float, lon:float):
-    """lat/lon -> congressional district number via FCC"""
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "format": "json",
-        "showall": "false",
-    }
+    """lat/lon -> congressional district number (string)"""
+    params = {"latitude": lat, "longitude": lon, "format": "json", "showall": "false"}
     async with httpx.AsyncClient(timeout=15) as client:
         r = await client.get(FCC, params=params)
         r.raise_for_status()
         j = r.json()
-        cd = j.get("County", {}).get("FIPS")  # not used
         cd_obj = j.get("CongressionalDistrict")
-        num = None
+        num: Optional[str] = None
         if isinstance(cd_obj, dict):
-            num = _esc(cd_obj.get("FIPS") or cd_obj.get("code") or cd_obj.get("name") or "")
-            # FCC returns numeric string like "13" in "code"
             num = _esc(cd_obj.get("code") or "").lstrip("0") or None
         return {"district": num}
 
+def fallback_search_url(name:str, state_abbr:str, office:str):
+    q = f"{name} {state_abbr} {office} official site"
+    return f"https://www.google.com/search?q={httpx.QueryParams({'q': q})['q']}"
+
 async def fetch_senators(state_abbr:str):
-    """State -> current U.S. Senators via GovTrack"""
     url = f"{GOVTRACK}/role"
     params = {"current": "true", "role_type": "senator", "state": state_abbr.upper()}
     async with httpx.AsyncClient(timeout=20) as client:
@@ -82,27 +80,24 @@ async def fetch_senators(state_abbr:str):
         rows = []
         for it in j.get("objects", []):
             p = it.get("person", {})
+            name = p.get("name") or p.get("name_long")
+            website = it.get("website") or p.get("link")
+            if not website:
+                website = fallback_search_url(name, state_abbr, "United States Senator")
             rows.append({
-                "name": p.get("name") or p.get("name_long"),
+                "name": name,
                 "office": "United States Senator",
                 "party": it.get("party"),
                 "phones": [it.get("phone")] if it.get("phone") else [],
-                "emails": [],  # GovTrack doesn't give public emails
-                "urls": [it.get("website")] if it.get("website") else [p.get("link")] if p.get("link") else [],
+                "emails": [],
+                "urls": [website] if website else [],
             })
         return rows
 
-async def fetch_rep(state_abbr:str, district:str|None):
-    """State+District -> current U.S. Representative via GovTrack"""
-    if not district:
-        return []
+async def fetch_rep(state_abbr:str, district: Optional[str]):
+    if not district: return []
     url = f"{GOVTRACK}/role"
-    params = {
-        "current": "true",
-        "role_type": "representative",
-        "state": state_abbr.upper(),
-        "district": district,
-    }
+    params = {"current": "true", "role_type": "representative", "state": state_abbr.upper(), "district": district}
     async with httpx.AsyncClient(timeout=20) as client:
         r = await client.get(url, params=params)
         r.raise_for_status()
@@ -110,25 +105,27 @@ async def fetch_rep(state_abbr:str, district:str|None):
         rows = []
         for it in j.get("objects", []):
             p = it.get("person", {})
+            name = p.get("name") or p.get("name_long")
+            website = it.get("website") or p.get("link")
+            if not website:
+                website = fallback_search_url(name, state_abbr, f"United States Representative CD {district}")
             rows.append({
-                "name": p.get("name") or p.get("name_long"),
+                "name": name,
                 "office": f"United States Representative (CD {district})",
                 "party": it.get("party"),
                 "phones": [it.get("phone")] if it.get("phone") else [],
                 "emails": [],
-                "urls": [it.get("website")] if it.get("website") else [p.get("link")] if p.get("link") else [],
+                "urls": [website] if website else [],
             })
         return rows
 
 async def fetch_mayor(place_name:str, state_name:str):
     """
-    Best-effort: current mayor via Wikidata (city + state).
-    Returns at most one item; if no result, returns [].
+    Best-effort Mayor from Wikidata. If no website in Wikidata, add a
+    Google 'official site' search link. Returns 0..1 row.
     """
-    city = _esc(place_name)
-    st  = _esc(state_name)
-    if not city or not st:
-        return []
+    city = _esc(place_name); st = _esc(state_name)
+    if not city or not st: return []
     q = f"""
     SELECT ?personLabel ?website WHERE {{
       ?city rdfs:label "{city}"@en ;
@@ -151,6 +148,7 @@ async def fetch_mayor(place_name:str, state_name:str):
             return []
         name = b[0].get("personLabel", {}).get("value")
         site = b[0].get("website", {}).get("value")
+        url = site or fallback_search_url(name, st, "Mayor")
         if not name:
             return []
         return [{
@@ -159,11 +157,10 @@ async def fetch_mayor(place_name:str, state_name:str):
             "party": None,
             "phones": [],
             "emails": [],
-            "urls": [site] if site else [],
+            "urls": [url] if url else [],
         }]
 
 def normalize(rows):
-    """Ensure consistent schema and order: Senators, Rep, Mayor, then others."""
     def w(row):
         off = (row.get("office") or "").lower()
         if "united states senator" in off: return 0
@@ -174,33 +171,18 @@ def normalize(rows):
 
 @app.get("/officials")
 async def officials(zip: str = Query(..., min_length=5, max_length=10)):
-    """
-    Open-data pipeline:
-    - ZIP -> (state_abbr, state_name, place_name, lat, lon) via Zippopotam.us
-    - lat/lon -> congressional district via FCC
-    - GovTrack -> US Senators & US Representative (live)
-    - Wikidata -> Mayor (best-effort)
-    """
-    try:
-        z = await fetch_zip(zip)
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(502, f"ZIP lookup failed: {e}")
-
+    z = await fetch_zip(zip)
     state_abbr, state_name, place = z["state_abbr"], z["state_name"], z["place_name"]
     lat, lon = z["lat"], z["lon"]
 
-    # Fetch CD + officials concurrently
-    cd_task = asyncio.create_task(fetch_cd(lat, lon))
-    sens_task = asyncio.create_task(fetch_senators(state_abbr))
+    cd_task    = asyncio.create_task(fetch_cd(lat, lon))
+    senate_task= asyncio.create_task(fetch_senators(state_abbr))
     mayor_task = asyncio.create_task(fetch_mayor(place, state_name))
 
     cd = await cd_task
     district = cd.get("district")
-
-    rep_rows = await fetch_rep(state_abbr, district)
-    sen_rows, mayor_rows = await asyncio.gather(sens_task, mayor_task)
+    rep_rows  = await fetch_rep(state_abbr, district)
+    sen_rows, mayor_rows = await asyncio.gather(senate_task, mayor_task)
 
     rows = normalize(sen_rows + rep_rows + mayor_rows)
 
@@ -210,10 +192,11 @@ async def officials(zip: str = Query(..., min_length=5, max_length=10)):
         "place": place,
         "district": district,
         "officials": rows,
+        "generated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
         "sources": {
             "zip": "zippopotam.us",
             "district": "FCC Census Block",
             "congress": "GovTrack",
-            "mayor": "Wikidata (best-effort)",
+            "mayor": "Wikidata (best-effort, with search fallback)"
         }
     }
