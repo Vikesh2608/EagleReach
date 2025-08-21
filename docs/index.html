@@ -2,61 +2,86 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EagleReach</title>
-  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <!-- Navbar -->
-  <nav>
-    <ul>
-      <li><a href="#home">Home</a></li>
-      <li><a href="#about">About</a></li>
+<body class="bg-gray-100 text-gray-900">
+  <nav class="w-full py-4">
+    <ul class="flex justify-center gap-6 text-sm">
+      <li><a class="text-blue-700 hover:underline" href="#home">Home</a></li>
+      <li><a class="text-blue-700 hover:underline" href="#about">About</a></li>
     </ul>
   </nav>
 
-  <!-- Hero Section -->
-  <main id="home" class="wrap">
-    <h1>Welcome to EagleReach</h1>
-    <p>Your civic engagement AI assistant for the United States 🇺🇸</p>
+  <header id="home" class="max-w-4xl mx-auto text-center mt-4">
+    <h1 class="text-3xl font-semibold">US Welcome to EagleReach</h1>
+    <p class="text-gray-600 mt-2">Your civic engagement AI assistant for the United States</p>
+  </header>
 
-    <div class="section">
-      <input type="text" id="zipInput" placeholder="Enter your U.S. ZIP code" />
-      <button onclick="fetchOfficials()">Find Officials</button>
+  <section class="max-w-xl mx-auto mt-6 px-4">
+    <div class="flex gap-2 mt-4">
+      <input id="zipInput" type="text" inputmode="numeric" maxlength="5"
+             placeholder="ZIP code (e.g., 62704)"
+             class="border p-2 rounded w-full"/>
+      <button id="searchBtn" type="button"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+        Find Officials
+      </button>
     </div>
-
-    <ul id="officialsList"></ul>
-  </main>
-
-  <!-- About Section -->
-  <section id="about" class="wrap section card">
-    <h2>About EagleReach</h2>
-    <p>
-      EagleReach is a civic engagement assistant powered by AI, designed exclusively for
-      U.S. citizens to connect quickly with their local, state, and federal representatives.
-    </p>
-    <p>
-      <strong>Creator:</strong> Vikesh Sagar Bairam – with 8+ years of
-      expertise across <em>Generative AI, Cloud Engineering, Data Engineering,
-      DevOps, AI/ML, Account Management, and Sales Engineering</em>.
-    </p>
-    <p>
-      Academic background includes a <em>Bachelor’s in Psychology</em>, a
-      <em>Bachelor’s in Computers</em>, and a <em>Master’s in Information Systems
-      and Management from the University of Illinois, Springfield</em>.
-    </p>
-    <p>
-      Professional journey includes impactful roles at <strong>Jabil (USA)</strong>
-      and <strong>Surfaces by Pacific</strong>, driven by a passion for technology,
-      problem-solving, and meaningful civic impact.
-    </p>
+    <ul id="officialsList" class="mt-4 space-y-2"></ul>
   </section>
 
-  <!-- Footer -->
-  <footer>
-    © 2025 EagleReach by Vikesh Sagar Bairam. All rights reserved.
-  </footer>
+  <section id="about" class="max-w-3xl mx-auto mt-10 px-4">
+    <div class="bg-white shadow rounded-2xl p-6">
+      <h2 class="text-xl font-semibold text-center mb-3">About EagleReach</h2>
+      <p class="mb-3">
+        EagleReach is a civic engagement assistant powered by AI, designed exclusively for
+        U.S. citizens to connect quickly with their local, state, and federal representatives.
+      </p>
+      <p class="mb-3"><strong>Creator:</strong> Vikesh Sagar Bairam.</p>
+      <p class="text-sm text-gray-600">© 2025 EagleReach by Vikesh Sagar Bairam. All rights reserved.</p>
+    </div>
+  </section>
 
-  <script src="script.js"></script>
-</body>
-</html>
+  <script>
+    const BACKEND_BASE = "https://eaglereach-1.onrender.com";
+
+    const zipInput  = document.getElementById("zipInput");
+    const searchBtn = document.getElementById("searchBtn");
+    const listEl    = document.getElementById("officialsList");
+
+    function escapeHtml(s=""){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+    function asLink(url){ if(!url) return ""; const d=url.replace(/^https?:\/\//i,"");
+      return `<a class="text-blue-600 hover:underline break-all" href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(d)}</a>`;}
+
+    function officialRow(o={}){
+      const name=o.name||"N/A", office=o.office||"Official", party=o.party?` (${o.party})`:"";
+      const phone=(o.phones&&o.phones[0])||"", email=(o.emails&&o.emails[0])||"", url=(o.urls&&o.urls[0])||"";
+      let h=`<li class="border border-gray-200 rounded-2xl p-4 bg-white"><p class="font-semibold">${escapeHtml(name)}${party}</p><p class="text-gray-600">${escapeHtml(office)}</p>`;
+      if(url)   h+=`<p class="mt-1">${asLink(url)}</p>`;
+      if(phone) h+=`<p class="text-gray-700 mt-1">📞 ${escapeHtml(phone)}</p>`;
+      if(email) h+=`<p class="text-gray-700 mt-1">✉️ ${escapeHtml(email)}</p>`;
+      return h+`</li>`;
+    }
+
+    function renderOfficials(data){
+      const officials = Array.isArray(data?.officials)?data.officials:[];
+      listEl.innerHTML = officials.length ? officials.map(officialRow).join("") :
+        `<li class="text-gray-600">No officials found.</li>`;
+    }
+
+    async function run(){
+      const zip=(zipInput.value||"").trim();
+      if(!/^\d{5}$/.test(zip)){ alert("Please enter a valid 5-digit US ZIP."); return; }
+      searchBtn.disabled=true; listEl.innerHTML=`<li class="text-gray-500">Loading…</li>`;
+      try{
+        const res=await fetch(`${BACKEND_BASE}/officials?zip=${encodeURIComponent(zip)}`,{headers:{"Accept":"application/json"}});
+        if(!res.ok){ throw new Error(`API ${res.status}: ${await res.text().catch(()=> "")}`); }
+        renderOfficials(await res.json());
+      }catch(e){ console.error(e); listEl.innerHTML=`<li class="text-red-600">Unable to fetch officials. See DevTools → Network.</li>`; }
+      finally{ searchBtn.disabled=false; }
+    }
+
+    searchBtn.addEventListener("click", run);
+
