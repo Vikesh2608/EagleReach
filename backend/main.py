@@ -322,9 +322,10 @@ async def quakes(zip: str = Query(..., min_length=5, max_length=10)):
         cache_set(ck, res, 300)
         return res
 
-# ---------- NEW: BMV/DMV ----------
-@app.get("/bmv")
-async def bmv(zip: str = Query(..., min_length=5, max_length=10), radius_km: float = 25.0):
+# ---------- NEW: BMV/DMV   (Overpass)
+NO @app.get("/bmv")
+
+
     z = await fetch_zip(zip)
     lat, lon = z["lat"], z["lon"]
     # Overpass Q: DMV/BMV/vehicle registration offices
@@ -387,3 +388,87 @@ async def bmv(zip: str = Query(..., min_length=5, max_length=10), radius_km: flo
         res = {"zip": zip, "location": {"lat": lat, "lon": lon}, "radius_km": radius_km, "offices": out[:20], "count": len(out)}
         cache_set(ck, res, 600)
         return res
+
+
+@app.get("/bmv")
+async def bmv_endpoint(zip: str, radius_km: float = 25.0):
+    """
+    Public endpoint for BMV/DMV offices near a ZIP.
+    Wraps the Overpass worker so we never 500 the client.
+    """
+    try:
+        data = await fetch_bmv(zip=zip, radius_km=radius_km)
+        if not isinstance(data, dict):
+            data = {}
+        offices = data.get("offices") or []
+        count = data.get("count") or len(offices)
+        return {
+            "zip": zip,
+            "location": data.get("location"),
+            "radius_km": radius_km,
+            "offices": offices,
+            "count": count,
+            "sources": ["OpenStreetMap Overpass"]
+        }
+    except Exception as e:
+        print(f"/bmv error for zip={zip}: {e}")
+        return {
+            "zip": zip,
+            "offices": [],
+            "count": 0,
+            "error": "BMV/DMV service temporarily unavailable",
+            "fallback": f"https://www.google.com/maps/search/DMV+near+{zip}"
+        }
+
+
+# --- Weather (Open‑Meteo) ----------------------------------------------------
+# No API key. Docs: https://open-meteo.com/
+@app.get("/weather")
+async def get_weather(zip: str):
+    """
+    Return a 7-day simple forecast for the ZIP using Open‑Meteo.
+    """
+    try:
+        z = await fetch_zip(zip)   # uses your existing ZIP resolver (lat, lon, state, place)
+        lat, lon = z["lat"], z["lon"]
+        url = (
+            "https://api.open-meteo.com/v1/forecast"
+            f"?latitude={lat}&longitude={lon}"
+            "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+            "&forecast_days=7&timezone=auto"
+        )
+        async with httpx.AsyncClient(timeout=15, headers={"Accept":"application/json","User-Agent":"EagleReach/1.0"}) as client:
+            r = await client.get(url)
+            r.raise_for_status()
+            j = r.json()
+
+        daily = j.get("daily", {})
+        out = []
+        times = daily.get("time", [])
+        tmax  = daily.get("temperature_2m_max", [])
+        tmin  = daily.get("temperature_2m_min", [])
+        ppop  = daily.get("precipitation_probability_max", [])
+        for i in range(min(len(times), len(tmax), len(tmin), len(ppop))):
+            out.append({
+                "date":        times[i],
+                "tmax_c":      tmax[i],
+                "tmin_c":      tmin[i],
+                "precip_pct":  ppop[i]
+            })
+        return {
+            "zip": zip,
+            "place": z.get("place_name"),
+            "state": z.get("state_abbr"),
+            "lat": lat, "lon": lon,
+            "days": out,
+            "updated_at": datetime.utcnow().isoformat(timespec="seconds")+"Z",
+            "source": "Open‑Meteo"
+        }
+    except Exception as e:
+        print(f"/weather error for zip={zip}: {e}")
+        return {
+            "zip": zip,
+            "days": [],
+            "error": "Weather temporarily unavailable"
+        }
+# trigger redeploy Thu Aug 21 09:45:26 EDT 2025
