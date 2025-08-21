@@ -471,4 +471,4 @@ async def get_weather(zip: str):
             "days": [],
             "error": "Weather temporarily unavailable"
         }
-# trigger redeploy Thu Aug 21 09:45:26 EDT 2025
+
