@@ -1,157 +1,176 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>EagleReach</title>
+  <!-- Tailwind (dark mode via class) -->
+  <script>
+    window.tailwind = window.tailwind || {};
+    tailwind.config = { darkMode: 'class' };
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen">
+<body class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen">
 
   <!-- Top Nav -->
-  <nav class="w-full py-4 bg-white/80 backdrop-blur border-b">
+  <nav class="w-full py-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur border-b border-gray-200 dark:border-gray-700">
     <div class="max-w-5xl mx-auto flex items-center justify-between px-4">
       <a href="#home" class="font-semibold text-lg hover:opacity-90 flex items-center gap-2">
         <span class="text-2xl">🇺🇸</span>
         <span>EagleReach</span>
       </a>
-      <div class="flex items-center gap-6">
-        <a href="#home" class="text-sm text-gray-700 hover:text-blue-700">Home</a>
-        <button id="aboutBtn"   class="text-sm text-gray-700 hover:text-blue-700">About</button>
-        <button id="contactBtn" class="text-sm text-gray-700 hover:text-blue-700">Contact</button>
+      <div class="flex items-center gap-4">
+        <a href="#home" class="text-sm text-gray-700 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-300">Home</a>
+        <button id="aboutBtn"   class="text-sm text-gray-700 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-300">About</button>
+        <button id="contactBtn" class="text-sm text-gray-700 dark:text-gray-200 hover:text-blue-700 dark:hover:text-blue-300">Contact</button>
+        <button id="themeBtn"   class="text-sm border px-2 py-1 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
+          🌙/☀️
+        </button>
       </div>
     </div>
   </nav>
 
   <!-- Header -->
-  <header id="home" class="max-w-5xl mx-auto text-center px-4">
-    <h1 class="text-4xl font-bold flex items-center justify-center gap-3 mt-6">
-      <span class="text-3xl">🇺🇸</span> <span>EagleReach</span>
+  <header id="home" class="max-w-5xl mx-auto text-center px-4 mt-6">
+    <h1 class="text-4xl font-bold flex items-center justify-center gap-3">
+      <span class="text-3xl">🇺🇸</span> <span>US EagleReach</span>
     </h1>
-    <p class="text-gray-600 mt-2">
+    <p class="text-gray-600 dark:text-gray-300 mt-2">
       Enter your ZIP code to see upcoming elections and your elected representatives.
     </p>
   </header>
 
-  <!-- Search Bar -->
-  <section class="max-w-3xl mx-auto mt-6 px-4">
+  <!-- Search -->
+  <section class="max-w-3xl mx-auto mt-6 px-4" aria-label="ZIP search">
     <div class="flex items-center gap-3">
-      <input id="zipInput" maxlength="5" inputmode="numeric"
+      <input id="zipInput" maxlength="5" inputmode="numeric" aria-label="ZIP code"
              placeholder="62704"
-             class="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500" />
+             class="border rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"/>
       <button id="searchBtn" onclick="run()"
               class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg">
         Search
       </button>
     </div>
-    <div id="msg" class="mt-2 text-sm text-gray-600"></div>
+    <div class="flex items-center gap-2 mt-2">
+      <button id="shareBtn" class="text-sm border px-3 py-1 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
+        Copy Share Link
+      </button>
+      <span id="msg" class="text-sm text-gray-600 dark:text-gray-300"></span>
+    </div>
   </section>
 
-  <!-- Results Grid -->
+  <!-- Results -->
   <main class="max-w-5xl mx-auto mt-8 px-4 grid md:grid-cols-2 gap-6">
 
     <!-- Upcoming Election -->
-    <section class="bg-white rounded-2xl shadow p-5">
+    <section class="bg-white dark:bg-gray-800 rounded-2xl shadow p-5">
       <h2 class="text-xl font-semibold mb-3">Upcoming Election</h2>
-      <div class="text-gray-800">
+      <div class="text-gray-800 dark:text-gray-200">
         <p><span class="font-semibold">Type:</span> General Election</p>
         <p><span class="font-semibold">Date:</span> <span id="electionDate">—</span></p>
       </div>
     </section>
 
     <!-- Representatives -->
-    <section class="bg-white rounded-2xl shadow p-5">
-      <div class="flex items-center justify-between">
+    <section class="bg-white dark:bg-gray-800 rounded-2xl shadow p-5">
+      <div class="flex items-center justify-between gap-3">
         <h2 class="text-xl font-semibold">Elected Representatives</h2>
-        <button id="emailBtn"
-                class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-2 rounded-md">
-          Generate Email
-        </button>
+        <div class="flex gap-2">
+          <button id="exportCsvBtn"
+                  class="border px-3 py-2 rounded-md text-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+            Export CSV
+          </button>
+          <button id="copyEmailsBtn"
+                  class="border px-3 py-2 rounded-md text-sm hover:bg-gray-50 dark:hover:bg-gray-700">
+            Copy Emails
+          </button>
+          <button id="emailBtn"
+                  class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-2 rounded-md">
+            Generate Email
+          </button>
+        </div>
       </div>
       <ul id="officialsList" class="mt-4 space-y-3"></ul>
     </section>
 
     <!-- Local Updates -->
-    <section class="bg-white rounded-2xl shadow p-5 md:col-span-1">
+    <section class="bg-white dark:bg-gray-800 rounded-2xl shadow p-5 md:col-span-1">
       <h3 class="font-semibold mb-2">Local Updates</h3>
-      <p class="text-gray-600 text-sm">
-        Latest news and updates for your area.
-      </p>
+      <p class="text-gray-600 dark:text-gray-300 text-sm">Latest news and updates for your area.</p>
       <div class="mt-3 flex gap-3">
         <a id="newsBtn" target="_blank" rel="noopener"
            class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
            href="https://news.google.com/">Open Local News</a>
         <a id="govPortalBtn" target="_blank" rel="noopener"
-           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50"
+           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
            href="https://www.usa.gov/">USA.gov</a>
       </div>
     </section>
 
     <!-- Raise a Concern -->
-    <section class="bg-white rounded-2xl shadow p-5 md:col-span-1">
+    <section class="bg-white dark:bg-gray-800 rounded-2xl shadow p-5 md:col-span-1">
       <h3 class="font-semibold mb-2">Raise a Concern</h3>
-      <p class="text-gray-600 text-sm">
+      <p class="text-gray-600 dark:text-gray-300 text-sm">
         Report city issues (311), contact your city hall, or write to your representatives.
       </p>
       <div class="mt-3 flex gap-3 flex-wrap">
         <a id="city311Btn" target="_blank" rel="noopener"
-           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50"
+           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
            href="https://www.google.com/search?q=311+city+services">Find 311 Services</a>
         <a id="cityHallBtn" target="_blank" rel="noopener"
-           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50"
+           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
            href="https://www.google.com/search?q=city+hall+contact">City Hall Contact</a>
         <a id="writeRepBtn" target="_blank" rel="noopener"
-           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50"
+           class="inline-block border px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
            href="#home">Write Your Reps</a>
       </div>
     </section>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="max-w-5xl mx-auto px-4 py-10 text-center text-sm text-gray-500">
+  <footer class="max-w-5xl mx-auto px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
     © 2025 EagleReach by Vikesh Sagar Bairam. All rights reserved.
   </footer>
 
   <!-- About Modal -->
   <div id="aboutModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white max-w-2xl w-[92%] md:w-[700px] rounded-2xl shadow-xl p-6 relative">
-      <button data-close="about" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800">✕</button>
+    <div class="bg-white dark:bg-gray-800 max-w-2xl w-[92%] md:w-[700px] rounded-2xl shadow-xl p-6 relative">
+      <button data-close="about" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800 dark:hover:text-white">✕</button>
       <h2 class="text-2xl font-bold mb-2">About EagleReach</h2>
-      <p class="text-gray-700 mb-3">
+      <p class="text-gray-700 dark:text-gray-300 mb-3">
         <strong>EagleReach</strong> is an AI‑powered civic engagement assistant for the United States.
         It helps residents quickly find and contact their local, state, and federal representatives,
         see upcoming elections, and access official resources—fast.
       </p>
       <h3 class="text-lg font-semibold mt-4 mb-1">Vision</h3>
-      <blockquote class="italic text-gray-700 border-l-4 border-blue-500 pl-3">
+      <blockquote class="italic text-gray-700 dark:text-gray-300 border-l-4 border-blue-500 pl-3">
         “A stronger nation is one where every resident can reach their government in seconds.”
       </blockquote>
       <h3 class="text-lg font-semibold mt-4 mb-1">Created by</h3>
-      <p class="text-gray-700">
-        <strong>Vikesh Sagar Bairam</strong> — Generative AI, Cloud & Data Engineering, DevOps.
+      <p class="text-gray-700 dark:text-gray-300">
+        <strong>Vikesh Sagar Bairam</strong> — Generative AI, Cloud & Data Engineering, DevOps.<br/>
         MS in Information Systems & Management (University of Illinois Springfield).
-        Built to empower everyone—from students to seniors, from community leaders to CEOs—to connect and be heard.
       </p>
-      <p class="text-xs text-gray-500 mt-4">© 2025 EagleReach by Vikesh Sagar Bairam.</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-4">© 2025 EagleReach by Vikesh Sagar Bairam.</p>
     </div>
   </div>
 
   <!-- Contact Modal -->
   <div id="contactModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white max-w-md w-[92%] rounded-2xl shadow-xl p-6 relative">
-      <button data-close="contact" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800">✕</button>
+    <div class="bg-white dark:bg-gray-800 max-w-md w-[92%] rounded-2xl shadow-xl p-6 relative">
+      <button data-close="contact" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800 dark:hover:text-white">✕</button>
       <h2 class="text-2xl font-bold mb-3">Contact</h2>
       <div class="space-y-3">
-        <a class="block border rounded-lg p-3 hover:bg-gray-50"
+        <a class="block border rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700"
            href="mailto:vikebairam@gmail.com?subject=EagleReach%20Inquiry">
           ✉️ Email — vikebairam@gmail.com
         </a>
-        <a class="block border rounded-lg p-3 hover:bg-gray-50"
+        <a class="block border rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700"
            href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank" rel="noopener">
           🔗 LinkedIn — vikesh-bairam-219769258
         </a>
-        <a class="block border rounded-lg p-3 hover:bg-gray-50"
+        <a class="block border rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-gray-700"
            href="https://github.com/Vikesh2608" target="_blank" rel="noopener">
           💻 GitHub — @Vikesh2608
         </a>
@@ -159,53 +178,50 @@
     </div>
   </div>
 
-  <!-- Script -->
   <script>
-    // ---------- CONFIG ----------
+    // -------- CONFIG --------
     const BACKEND_BASE = "https://eaglereach-1.onrender.com";
 
-    // ---------- ELEMENTS ----------
+    // -------- DOM --------
     const zipInput   = document.getElementById("zipInput");
     const searchBtn  = document.getElementById("searchBtn");
     const listEl     = document.getElementById("officialsList");
     const msgEl      = document.getElementById("msg");
     const electionDateEl = document.getElementById("electionDate");
-
     const aboutBtn = document.getElementById("aboutBtn");
     const contactBtn = document.getElementById("contactBtn");
     const aboutModal = document.getElementById("aboutModal");
     const contactModal = document.getElementById("contactModal");
-
     const newsBtn = document.getElementById("newsBtn");
-    const govPortalBtn = document.getElementById("govPortalBtn");
     const city311Btn = document.getElementById("city311Btn");
     const cityHallBtn = document.getElementById("cityHallBtn");
     const writeRepBtn = document.getElementById("writeRepBtn");
     const emailBtn = document.getElementById("emailBtn");
+    const copyEmailsBtn = document.getElementById("copyEmailsBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const themeBtn = document.getElementById("themeBtn");
+    const shareBtn = document.getElementById("shareBtn");
 
-    // ---------- HELPERS ----------
-    function setMsg(t, cls="text-gray-600"){ msgEl.className="mt-2 text-sm "+cls; msgEl.textContent=t; }
-    function escapeHtml(s=""){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-    function asLink(url){ if(!url) return ""; const d=url.replace(/^https?:\/\//i,"");
-      return `<a class="text-blue-600 hover:underline break-all" href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(d)}</a>`; }
+    // -------- Helpers --------
+    function setMsg(t, cls="text-gray-600 dark:text-gray-300"){ msgEl.className="text-sm "+cls; msgEl.textContent=t; }
+    const esc = (s="") => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    const link = (url) => `<a class="text-blue-600 dark:text-blue-300 hover:underline break-all" href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\//,''))}</a>`;
 
-    function officialRow(o={}){
+    function row(o={}){
       const name=o.name||"N/A", office=o.office||"Official", party=o.party?` — ${o.party}`:"";
-      const phone=(o.phones&&o.phones[0])||"", email=(o.emails&&o.emails[0])||"", url=(o.urls&&o.urls[0])||"";
-      let h=`
-        <li class="border rounded-xl p-4 bg-white">
-          <p class="font-semibold">${escapeHtml(name)} — <span class="text-gray-600">${escapeHtml(office)}</span>${escapeHtml(party)}</p>
-          ${url? `<p class="mt-1">${asLink(url)}</p>`:""}
-          ${phone? `<p class="text-gray-700 mt-1">📞 ${escapeHtml(phone)}</p>`:""}
-          ${email? `<p class="text-gray-700 mt-1">✉️ ${escapeHtml(email)}</p>`:""}
-        </li>`;
-      return h;
+      const url=(o.urls&&o.urls[0])||"", phone=(o.phones&&o.phones[0])||"", email=(o.emails&&o.emails[0])||"";
+      return `<li class="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-white dark:bg-gray-800">
+        <p class="font-semibold">${esc(name)} — <span class="text-gray-600 dark:text-gray-300">${esc(office)}</span>${esc(party)}</p>
+        ${url?   `<p class="mt-1">🔗 ${link(url)}</p>`:""}
+        ${phone? `<p class="mt-1">📞 ${esc(phone)}</p>`:""}
+        ${email? `<p class="mt-1">✉️ ${esc(email)}</p>`:""}
+      </li>`;
     }
 
     function renderOfficials(data){
       const officials = Array.isArray(data?.officials)?data.officials:[];
-      listEl.innerHTML = officials.length ? officials.map(officialRow).join("")
-        : `<li class="text-gray-600">No officials found for this ZIP.</li>`;
+      listEl.innerHTML = officials.length ? officials.map(row).join("")
+        : `<li class="text-gray-600 dark:text-gray-300">No officials found for this ZIP.</li>`;
     }
 
     function nextGeneralElectionDate(){
@@ -214,73 +230,157 @@
         const nov1 = new Date(y, 10, 1);
         const dow = nov1.getDay();
         const firstMon = new Date(y,10, (dow===1?1: ((8 - dow) % 7)));
-        const firstTueAfterMon = new Date(firstMon); firstTueAfterMon.setDate(firstMon.getDate()+1);
-        if (firstTueAfterMon > now) return firstTueAfterMon;
+        const tue = new Date(firstMon); tue.setDate(firstMon.getDate()+1);
+        if (tue > now) return tue;
       }
       return null;
     }
-    function formatDate(d){ return d ? d.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}) : "—"; }
+    const fmt = d => d ? d.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}) : "—";
 
-    function setZipDependentLinks(zip){
+    function setZipLinks(zip){
       if(!zip) return;
       newsBtn.href = `https://news.google.com/search?q=${encodeURIComponent(zip)}&hl=en-US&gl=US&ceid=US:en`;
-      govPortalBtn.href = `https://www.usa.gov/`;
-      city311Btn.href = `https://www.google.com/search?q=${encodeURIComponent(zip)}+311+city+services`;
+      city311Btn.href  = `https://www.google.com/search?q=${encodeURIComponent(zip)}+311+city+services`;
       cityHallBtn.href = `https://www.google.com/search?q=${encodeURIComponent(zip)}+city+hall+contact`;
       writeRepBtn.href = "#home";
+    }
+
+    // CSV Export
+    function toCsv(rows){
+      return rows.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(",")).join("\n");
+    }
+
+    // Email helpers
+    function collectEmails(){
+      const emails = [];
+      listEl.querySelectorAll("li").forEach(li=>{
+        const m = li.textContent.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig);
+        if(m) emails.push(...m);
+      });
+      return [...new Set(emails)];
     }
 
     async function run(){
       const zip=(zipInput.value||"").trim();
       if(!/^\d{5}$/.test(zip)){ setMsg("Please enter a valid 5‑digit US ZIP.","text-red-600"); return; }
-      searchBtn.disabled=true; setMsg("Loading…","text-gray-500"); listEl.innerHTML="";
+      searchBtn.disabled=true; setMsg("Loading…","text-gray-500 dark:text-gray-300"); listEl.innerHTML="";
       try{
-        const res=await fetch(`${BACKEND_BASE}/officials?zip=${encodeURIComponent(zip)}`,{headers:{Accept:"application/json"}});
-        const txt=await res.text();
-        if(!res.ok) throw new Error(`API ${res.status}: ${txt}`);
-        const data = JSON.parse(txt);
+        const r=await fetch(`${BACKEND_BASE}/officials?zip=${encodeURIComponent(zip)}`,{headers:{Accept:"application/json"}});
+        const t=await r.text();
+        if(!r.ok) throw new Error(`API ${r.status}: ${t}`);
+        const data = JSON.parse(t);
         renderOfficials(data);
         setMsg(`Showing results for ${zip}`);
-        setZipDependentLinks(zip);
+        setZipLinks(zip);
+        // remember last zip
+        try{ localStorage.setItem("eagle_zip", zip); }catch{}
+        // update URL (shareable)
+        const url = new URL(window.location.href);
+        url.searchParams.set("zip", zip);
+        history.replaceState(null,"",url.toString());
       }catch(e){
-        console.error(e);
-        setMsg((e?.message||"Fetch failed")+" (see DevTools → Network)","text-red-600");
+        console.error(e); setMsg((e?.message||"Fetch failed")+" (see DevTools → Network)","text-red-600");
       }finally{ searchBtn.disabled=false; }
     }
     window.run = run;
+
+    // Enter key
     zipInput.addEventListener("keydown", e => { if(e.key==="Enter") run(); });
 
-    // About / Contact modals
-    const openModal  = (el)=>{ el.classList.remove("hidden"); el.classList.add("flex"); };
-    const closeModal = (el)=>{ el.classList.add("hidden"); el.classList.remove("flex"); };
-    aboutBtn.addEventListener("click",   ()=>openModal(aboutModal));
-    contactBtn.addEventListener("click", ()=>openModal(contactModal));
-    [aboutModal, contactModal].forEach(m=>{
-      m.addEventListener("click",(e)=>{ if(e.target===m) closeModal(m); });
+    // Theme toggle (persist)
+    function setTheme(theme){
+      if(theme==="dark"){ document.documentElement.classList.add("dark"); }
+      else{ document.documentElement.classList.remove("dark"); }
+      try{ localStorage.setItem("eagle_theme", theme); }catch{}
+    }
+    themeBtn.addEventListener("click", ()=>{
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "light" : "dark");
     });
-    document.querySelectorAll('[data-close="about"]').forEach(b=>b.addEventListener("click",()=>closeModal(aboutModal)));
-    document.querySelectorAll('[data-close="contact"]').forEach(b=>b.addEventListener("click",()=>closeModal(contactModal)));
+    // apply saved theme
+    try{
+      const savedTheme = localStorage.getItem("eagle_theme");
+      if(savedTheme){ setTheme(savedTheme); }
+    }catch{}
+
+    // Share link
+    shareBtn.addEventListener("click", async ()=>{
+      const zip=(zipInput.value||"").trim();
+      const url = new URL(window.location.href);
+      if(/^\d{5}$/.test(zip)) url.searchParams.set("zip", zip);
+      await navigator.clipboard.writeText(url.toString());
+      setMsg("Share link copied to clipboard");
+    });
 
     // Generate Email
     emailBtn.addEventListener("click", () => {
-      const cards = listEl.querySelectorAll("li");
-      const emails = [];
-      cards.forEach(li=>{
-        const t = li.textContent;
-        const match = t.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig);
-        if(match) emails.push(...match);
-      });
+      const emails = collectEmails();
       if(!emails.length){ alert("No public emails available for these officials."); return; }
-      const unique = [...new Set(emails)].slice(0,10);
       const zip = (zipInput.value||"").trim();
       const subject = encodeURIComponent(`Constituent inquiry from ZIP ${zip}`);
       const body = encodeURIComponent(`Dear Representative,\n\nI am a constituent from ZIP ${zip}. [Write your message here]\n\nThank you,\n[Your Name]`);
-      window.location.href = `mailto:${unique.join(",")}?subject=${subject}&body=${body}`;
+      window.location.href = `mailto:${emails.slice(0,10).join(",")}?subject=${subject}&body=${body}`;
+    });
+    copyEmailsBtn.addEventListener("click", async ()=>{
+      const emails = collectEmails();
+      if(!emails.length){ alert("No public emails available."); return; }
+      await navigator.clipboard.writeText(emails.join(", "));
+      setMsg(`Copied ${emails.length} email(s) to clipboard`);
     });
 
-    // Warmup backend & set election date
+    // Export CSV
+    exportCsvBtn.addEventListener("click", ()=>{
+      const rows = [["Name","Office","Party","Phone","Email","Website"]];
+      listEl.querySelectorAll("li").forEach(li=>{
+        const name  = (li.querySelector("p.font-semibold")?.childNodes[0]?.textContent || "").trim();
+        const office = (li.querySelector("p.font-semibold span")?.textContent || "").trim();
+        const all = li.textContent;
+        const partyMatch = all.match(/—\s([A-Za-z]+)\s*$/); // best-effort
+        const party = partyMatch ? partyMatch[1] : "";
+        const phone = (all.match(/📞\s([^\n]+)/) || [,""])[1].trim();
+        const email = (all.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i) || [,""])[1];
+        const website = (li.querySelector("a")?.href || "");
+        rows.push([name, office, party, phone, email, website]);
+      });
+      const csv = toCsv(rows);
+      const blob = new Blob([csv], {type:"text/csv"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "eagle_reach_officials.csv";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    // About / Contact modals
+    const open = el => { el.classList.remove("hidden"); el.classList.add("flex"); };
+    const close = el => { el.classList.add("hidden"); el.classList.remove("flex"); };
+    aboutBtn.addEventListener("click", () => open(aboutModal));
+    contactBtn.addEventListener("click", () => open(contactModal));
+    [aboutModal, contactModal].forEach(m => m.addEventListener("click", e => { if(e.target===m) close(m); }));
+    document.querySelectorAll('[data-close="about"]').forEach(b=>b.addEventListener("click",()=>close(aboutModal)));
+    document.querySelectorAll('[data-close="contact"]').forEach(b=>b.addEventListener("click",()=>close(contactModal)));
+
+    // Warmup & election date
     fetch(`${BACKEND_BASE}/health`).catch(()=>{});
-    electionDateEl.textContent = formatDate(nextGeneralElectionDate());
+    electionDateEl.textContent = fmt(nextGeneralElectionDate());
+
+    // Auto-load zip from URL or last used
+    (function bootstrap(){
+      const url = new URL(window.location.href);
+      const zipQ = url.searchParams.get("zip");
+      let initialZip = "";
+      if(/^\d{5}$/.test(zipQ||"")) initialZip = zipQ;
+      else{
+        try{
+          const last = localStorage.getItem("eagle_zip");
+          if(/^\d{5}$/.test(last||"")) initialZip = last;
+        }catch{}
+      }
+      if(initialZip){
+        zipInput.value = initialZip;
+        run();
+      }
+    })();
   </script>
 </body>
 </html>
