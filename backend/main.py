@@ -421,6 +421,7 @@ async def bmv_endpoint(zip: str, radius_km: float = 25.0):
         }
 
 
+
 # --- Weather (Open‑Meteo) ----------------------------------------------------
 # No API key. Docs: https://open-meteo.com/
 @app.get("/weather")
