@@ -1,4 +1,3 @@
-cat > frontend/index.html <<'HTML'
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
@@ -6,28 +5,30 @@ cat > frontend/index.html <<'HTML'
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>EagleReach</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>.flag{font-size:1.6rem;line-height:1}</style>
+  <style>
+    .flag{font-size:1.6rem;line-height:1}
+    #err,.error-banner{display:none!important}
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-900 min-h-screen">
   <nav class="w-full py-3 bg-white/90 backdrop-blur border-b">
     <div class="max-w-6xl mx-auto flex items-center justify-between px-4">
-      <a href="#top" class="font-semibold text-lg hover:opacity-90 flex items-center gap-2">
+      <span class="font-semibold text-lg flex items-center gap-2">
         <span class="flag">🇺🇸</span><span>EagleReach</span>
-      </a>
+      </span>
       <div class="flex items-center gap-6">
-        <a href="#top" class="text-sm text-gray-700 hover:text-blue-700">Home</a>
+        <!-- Home removed -->
         <button id="aboutBtn" class="text-sm text-gray-700 hover:text-blue-700">About</button>
         <button id="contactBtn" class="text-sm text-gray-700 hover:text-blue-700">Contact</button>
       </div>
     </div>
   </nav>
-  <div id="top"></div>
 
   <header class="max-w-6xl mx-auto text-center px-4 mt-6">
     <h1 class="text-4xl font-bold flex items-center justify-center gap-3">
       <span class="flag">🇺🇸</span><span>US EagleReach</span>
     </h1>
-    <p class="text-gray-600 mt-2">Enter your ZIP code to see representatives, live local info, BMV/DMV offices, and upcoming elections.</p>
+    <p class="text-gray-600 mt-2">Enter your ZIP to view officials, city updates, elections, weather, and nearby BMV/DMV offices.</p>
   </header>
 
   <section class="max-w-3xl mx-auto mt-6 px-4" aria-label="ZIP search">
@@ -47,7 +48,7 @@ cat > frontend/index.html <<'HTML'
   </section>
 
   <main class="max-w-6xl mx-auto mt-8 px-4 grid lg:grid-cols-3 gap-6">
-    <!-- LEFT COLUMN -->
+    <!-- LEFT -->
     <div class="space-y-6">
       <section class="bg-white rounded-2xl shadow p-5">
         <div class="flex items-center justify-between">
@@ -60,52 +61,47 @@ cat > frontend/index.html <<'HTML'
         </div>
         <p class="text-xs text-gray-500 mt-1">Updated at <span id="updatedAt">—</span></p>
         <ul id="officialsList" class="mt-4 space-y-3"></ul>
-        <p class="text-xs text-gray-500 mt-3">Sources: GovTrack (Congress), Wikidata (Mayor), FCC, Zippopotam.</p>
+        <p class="text-xs text-gray-500 mt-3">Sources: GovTrack (Congress), Wikidata (Mayor).</p>
       </section>
 
+      <!-- CITY UPDATES -->
       <section class="bg-white rounded-2xl shadow p-5">
-        <h3 class="font-semibold mb-2">Raise a Concern</h3>
-        <p class="text-gray-600 text-sm">Report issues to your city or officials. These templates open your mail app with a prefilled message.</p>
-        <div class="mt-3 flex gap-3 flex-wrap">
-          <button data-issue="Pothole on my street" class="border px-3 py-2 rounded hover:bg-gray-50">Report Pothole</button>
-          <button data-issue="Trash collection missed" class="border px-3 py-2 rounded hover:bg-gray-50">Missed Trash</button>
-          <button data-issue="Streetlight not working" class="border px-3 py-2 rounded hover:bg-gray-50">Streetlight Out</button>
-          <button data-issue="Public safety concern" class="border px-3 py-2 rounded hover:bg-gray-50">Safety Concern</button>
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold">City Updates</h2>
+          <button id="cityUpdateEmail" class="text-sm border px-3 py-2 rounded-md hover:bg-gray-50">Submit an Update</button>
         </div>
+        <ul id="cityUpdatesList" class="mt-3 space-y-3"></ul>
+        <p id="noCityUpdates" class="text-gray-500 text-sm hidden">No city updates yet.</p>
+        <p class="text-xs text-gray-500 mt-2">Officials can email an update; the maintainer will post it.</p>
       </section>
     </div>
 
-    <!-- MIDDLE COLUMN -->
+    <!-- MIDDLE -->
     <div class="space-y-6">
+      <!-- ELECTIONS -->
       <section class="bg-white rounded-2xl shadow p-5">
-        <h2 class="text-xl font-semibold mb-2">Live in Your Area</h2>
-        <div>
-          <h4 class="font-medium">⚠️ Alerts</h4>
-          <ul id="alertsList" class="mt-2 space-y-2 text-sm"></ul>
-          <p id="noAlerts" class="text-gray-500 text-sm hidden">No active alerts.</p>
-        </div>
-        <div class="mt-4">
-          <h4 class="font-medium">🌎 Recent Earthquakes (200 km)</h4>
-          <ul id="quakesList" class="mt-2 space-y-2 text-sm"></ul>
-          <p id="noQuakes" class="text-gray-500 text-sm hidden">No significant earthquakes in the last 7 days.</p>
+        <h2 class="text-xl font-semibold mb-2">Elections</h2>
+        <div id="electionsBox" class="text-sm text-gray-800">
+          <div class="text-gray-500">Loading election info…</div>
         </div>
       </section>
 
+      <!-- WEATHER -->
       <section class="bg-white rounded-2xl shadow p-5">
-        <h2 class="text-xl font-semibold mb-2">Upcoming Elections</h2>
-        <div class="text-gray-800">
-          <p><span class="font-semibold">Next Federal:</span> <span id="electionDate">—</span></p>
-          <p class="text-sm text-gray-600 mt-1">State primary dates coming soon (open data, state SoS sources).</p>
+        <h2 class="text-xl font-semibold mb-2">Weather Forecast</h2>
+        <div id="weatherCard" class="space-y-2 text-sm text-gray-700">
+          <div class="text-gray-500">Loading weather…</div>
         </div>
+        <div class="text-xs text-gray-400 mt-2" id="weatherStamp"></div>
       </section>
     </div>
 
-    <!-- RIGHT COLUMN -->
+    <!-- RIGHT -->
     <div class="space-y-6">
       <section class="bg-white rounded-2xl shadow p-5">
         <h2 class="text-xl font-semibold mb-2">BMV/DMV Near You</h2>
         <ul id="bmvList" class="space-y-3"></ul>
-        <p id="noBmv" class="text-gray-500 text-sm hidden">No nearby BMV/DMV offices found within 25 km.</p>
+        <p id="bmvEmpty" class="text-gray-500 text-sm hidden"></p>
       </section>
 
       <section class="bg-white rounded-2xl shadow p-5">
@@ -127,11 +123,10 @@ cat > frontend/index.html <<'HTML'
     <div class="bg-white max-w-2xl w-[92%] md:w-[700px] rounded-2xl shadow-xl p-6 relative">
       <button data-close="about" class="absolute right-3 top-3 text-gray-500 hover:text-gray-800">✕</button>
       <h2 class="text-2xl font-bold mb-3">About EagleReach</h2>
-      <p class="text-gray-700 mb-2">EagleReach is an <strong>AI‑powered civic engagement platform</strong> I created to help U.S. residents reach their government in seconds. Enter your ZIP to find your representatives, see live local information, locate nearby BMV/DMV offices, and raise concerns like potholes or trash issues.</p>
+      <p class="text-gray-700 mb-2">EagleReach is an <strong>AI‑powered civic engagement platform</strong> created to help U.S. residents reach their government in seconds. Enter your ZIP to find your representatives, see city updates & elections, weather, and nearby BMV/DMV offices.</p>
       <blockquote class="italic text-gray-700 border-l-4 border-blue-500 pl-3 my-3">“Government of the people, by the people, for the people, shall not perish from the Earth.” — Abraham Lincoln</blockquote>
-      <h3 class="font-semibold mt-4 mb-1">About Me</h3>
-      <p class="text-gray-700">I’m <strong>Vikesh Sagar Bairam</strong> — <em>AI/ML & Data Engineer | DevOps Specialist | Research Professional | Creator of EagleReach</em>. Master’s in Information Systems & Management (AI/ML, Generative AI); dual Bachelor’s in Psychology and Computer Science. Currently at Jabil; previously Surfaces by Pacific.</p>
-      <p class="text-xs text-gray-500 mt-4">Open data sources: GovTrack, FCC, Zippopotam, Wikidata, NWS, USGS, OpenStreetMap.</p>
+      <h3 class="font-semibold mt-4 mb-1">About the Creator</h3>
+      <p class="text-gray-700">I’m <strong>Vikesh Sagar Bairam</strong> — <em>AI/ML & Data Engineer | DevOps Specialist | Research Professional | Creator of EagleReach</em>.</p>
     </div>
   </div>
 
@@ -150,35 +145,37 @@ cat > frontend/index.html <<'HTML'
 
   <script>
     const BACKEND_BASE = "https://eaglereach-1.onrender.com";
-    const zipInput = document.getElementById("zipInput");
-    const searchBtn = document.getElementById("searchBtn");
-    const locBtn = document.getElementById("locBtn");
-    const listEl = document.getElementById("officialsList");
-    const msgEl = document.getElementById("msg");
-    const aboutBtn = document.getElementById("aboutBtn");
-    const contactBtn = document.getElementById("contactBtn");
-    const aboutModal = document.getElementById("aboutModal");
-    const contactModal = document.getElementById("contactModal");
-    const historyEl = document.getElementById("history");
-    const clearHistBtn = document.getElementById("clearHistBtn");
-    const shareBtn = document.getElementById("shareBtn");
-    const newsBtn = document.getElementById("newsBtn");
-    const electionDateEl = document.getElementById("electionDate");
-    const updatedAtEl = document.getElementById("updatedAt");
-    const copyEmailsBtn = document.getElementById("copyEmailsBtn");
-    const copyTextBtn = document.getElementById("copyTextBtn");
-    const emailBtn = document.getElementById("emailBtn");
-    const alertsList = document.getElementById("alertsList");
-    const quakesList = document.getElementById("quakesList");
-    const bmvList = document.getElementById("bmvList");
-    const noAlerts = document.getElementById("noAlerts");
-    const noQuakes = document.getElementById("noQuakes");
-    const noBmv = document.getElementById("noBmv");
+    const $ = (id)=>document.getElementById(id);
+    const zipInput=$("zipInput"), searchBtn=$("searchBtn"), locBtn=$("locBtn"), msgEl=$("msg");
+    const officialsList=$("officialsList"), updatedAt=$("updatedAt");
+    const historyEl=$("history"), clearHistBtn=$("clearHistBtn"), shareBtn=$("shareBtn");
+    const weatherCard=$("weatherCard"), weatherStamp=$("weatherStamp");
+    const bmvList=$("bmvList"), bmvEmpty=$("bmvEmpty");
+    const cityList=$("cityUpdatesList"), noCity=$("noCityUpdates"), cityEmailBtn=$("cityUpdateEmail");
+    const electionsBox=$("electionsBox");
+    const aboutBtn=$("aboutBtn"), contactBtn=$("contactBtn");
+    const aboutModal=$("aboutModal"), contactModal=$("contactModal");
 
     function setMsg(t, cls="text-gray-600"){ msgEl.className="text-sm "+cls; msgEl.textContent=t; }
-    const esc = (s="") => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    const link = (url) => `<a class="text-blue-600 hover:underline break-all" href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\//,''))}</a>`;
+    const esc = (s="") => String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    const link = (url, txt) => `<a class="text-blue-600 hover:underline break-all" href="${esc(url)}" target="_blank" rel="noopener">${esc(txt||url.replace(/^https?:\/\//,''))}</a>`;
 
+    // ---------- History ----------
+    function getHistory(){ try{return JSON.parse(localStorage.getItem("zip_history")||"[]")}catch{return[]} }
+    function setHistory(a){ try{localStorage.setItem("zip_history",JSON.stringify(a.slice(0,5)))}catch{} }
+    function pushHistory(zip,label){ let h=getHistory().filter(z=>z!==zip); h.unshift(zip); setHistory(h); renderHistory(label); }
+    function renderHistory(label){
+      const h=getHistory();
+      historyEl.innerHTML=h.map(z=>`<button class="text-xs border px-2 py-1 rounded hover:bg-gray-50" data-zip="${esc(z)}">${esc(z)}${label&&z===h[0]?" — "+esc(label):""}</button>`).join("");
+      historyEl.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{zipInput.value=b.dataset.zip; run()}));
+    }
+    clearHistBtn.addEventListener("click",()=>{ setHistory([]); renderHistory(); });
+    shareBtn.addEventListener("click", async ()=>{
+      const u=new URL(location.href); const z=(zipInput.value||"").trim(); if(/^\d{5}$/.test(z)) u.searchParams.set("zip",z);
+      try{ await navigator.clipboard.writeText(u.toString()); setMsg("Share link copied.","text-green-700"); }catch{ setMsg("Could not copy link.","text-red-600"); }
+    });
+
+    // ---------- Officials ----------
     function row(o={}){
       const name=o.name||"N/A", office=o.office||"Official", party=o.party?` — ${o.party}`:"";
       const url=(o.urls&&o.urls[0])||"", phone=(o.phones&&o.phones[0])||"", email=(o.emails&&o.emails[0])||"";
@@ -189,41 +186,131 @@ cat > frontend/index.html <<'HTML'
         ${email? `<p class="mt-1">✉️ ${esc(email)}</p>`:""}
       </li>`;
     }
-
     function renderOfficials(data){
       const officials = Array.isArray(data?.officials)?data.officials:[];
-      listEl.innerHTML = officials.length ? officials.map(row).join("")
+      officialsList.innerHTML = officials.length ? officials.map(row).join("")
         : `<li class="text-gray-600">No officials found for this ZIP.</li>`;
-      updatedAtEl.textContent = data?.generated_at || "—";
+      updatedAt.textContent = data?.generated_at || "—";
     }
 
-    function nextGeneralElectionDate(){
-      const now=new Date();
-      for(let y=now.getFullYear(); y<=now.getFullYear()+1; y++){
-        const nov1=new Date(y,10,1); const dow=nov1.getDay();
-        const firstMon=new Date(y,10,(dow===1?1:((8-dow)%7))); const tue=new Date(firstMon); tue.setDate(firstMon.getDate()+1);
-        if(tue>now) return tue;
-      } return null;
+    // ---------- Elections ----------
+    async function fetchElections(zip){
+      try{
+        const r = await fetch(`${BACKEND_BASE}/elections?zip=${encodeURIComponent(zip)}`);
+        if(!r.ok) throw new Error(`/elections ${r.status}`);
+        return await r.json();
+      }catch{ return null; }
     }
-    const fmt=d=>d?d.toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}):"—";
-
-    function getHistory(){ try{return JSON.parse(localStorage.getItem("zip_history")||"[]")}catch{return[]} }
-    function setHistory(a){ try{localStorage.setItem("zip_history",JSON.stringify(a.slice(0,5)))}catch{} }
-    function pushHistory(zip,label){ let h=getHistory().filter(z=>z!==zip); h.unshift(zip); setHistory(h); renderHistory(label); }
-    function renderHistory(label){
-      const h=getHistory();
-      historyEl.innerHTML=h.map(z=>`<button class="text-xs border px-2 py-1 rounded hover:bg-gray-50" data-zip="${esc(z)}">${esc(z)}${label&&z===h[0]?" — "+esc(label):""}</button>`).join("");
-      historyEl.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{zipInput.value=b.dataset.zip; run()}));
+    function renderElections(data){
+      if(!data){
+        electionsBox.innerHTML = `<div class="text-gray-500">Election info unavailable.</div>`;
+        return;
+      }
+      const d = data.next_federal_general ? new Date(data.next_federal_general).toLocaleDateString() : "—";
+      const statePortal = data.where_to_vote?.state_portal;
+      const voteGov = data.where_to_vote?.vote_gov;
+      const search = data.where_to_vote?.lookup_search;
+      electionsBox.innerHTML = `
+        <div><span class="font-semibold">Next Federal General:</span> ${esc(d)}</div>
+        <div class="mt-1">Where to vote: 
+          ${statePortal ? `<span> ${link(statePortal, "State portal")}</span>` : ""}
+          ${voteGov ? `<span> • ${link(voteGov, "vote.gov")}</span>` : ""}
+          ${search ? `<span> • ${link(search, "Find polling place")}</span>` : ""}
+        </div>`;
     }
-    clearHistBtn.addEventListener("click",()=>{ setHistory([]); renderHistory(); });
 
-    shareBtn.addEventListener("click", async ()=>{
-      const url=new URL(location.href);
+    // ---------- Weather ----------
+    async function fetchWeather(zip){
+      try{
+        const r = await fetch(`${BACKEND_BASE}/weather?zip=${encodeURIComponent(zip)}`);
+        if(!r.ok) throw new Error(`/weather ${r.status}`);
+        return await r.json();
+      }catch{ return null; }
+    }
+    function renderWeather(data){
+      if(!data || !data.days || !data.days.length){
+        weatherCard.innerHTML = `<div class="text-gray-500">Weather unavailable right now.</div>`;
+        weatherStamp.textContent = "";
+        return;
+      }
+      const rows = data.days.map(d=>{
+        const tmaxF = Math.round((d.tmax_c * 9/5) + 32);
+        const tminF = Math.round((d.tmin_c * 9/5) + 32);
+        return `<div class="flex items-center justify-between">
+          <div class="w-28">${esc(d.date)}</div>
+          <div class="w-24">High ${tmaxF}°F</div>
+          <div class="w-24">Low ${tminF}°F</div>
+          <div class="w-28">Rain ${d.precip_pct ?? 0}%</div>
+        </div>`;
+      }).join("");
+      weatherCard.innerHTML = rows;
+      weatherStamp.textContent = `Updated ${data.updated_at} • Source: Open‑Meteo`;
+    }
+
+    // ---------- BMV/DMV ----------
+    async function fetchBMV(zip){
+      try{
+        const r = await fetch(`${BACKEND_BASE}/bmv?zip=${encodeURIComponent(zip)}&radius_km=25`);
+        if(!r.ok) throw new Error(`/bmv ${r.status}`);
+        return await r.json();
+      }catch{ return null; }
+    }
+    function renderBmv(data){
+      const arr = data?.offices || [];
+      if(!arr.length){
+        bmvList.innerHTML = "";
+        bmvEmpty.classList.remove("hidden");
+        bmvEmpty.innerHTML = data?.fallback
+          ? `No nearby offices. ${link(data.fallback, "Search on Google Maps")}`
+          : `No nearby BMV/DMV offices found within 25 km.`;
+        return;
+      }
+      bmvEmpty.classList.add("hidden");
+      bmvList.innerHTML = arr.map(o=>{
+        const lines = [
+          `<div class="font-medium">${esc(o.name || "DMV/BMV Office")}</div>`,
+          o.address ? `<div>${esc(o.address)}</div>` : "",
+          o.locality ? `<div>${esc(o.locality)}</div>` : "",
+          o.website ? `<div>${link(o.website)}</div>` : "",
+          o.phone ? `<div>☎ ${esc(o.phone)}</div>` : "",
+          `<div class="text-xs text-gray-500">~ ${o.distance_km} km • ${link(o.maps, "Open in Maps")}</div>`
+        ].join("");
+        return `<li class="py-2 border-b last:border-0">${lines}</li>`;
+      }).join("");
+    }
+
+    // ---------- City Updates ----------
+    async function fetchCityUpdates(zip){
+      try{
+        const r = await fetch(`${BACKEND_BASE}/city-updates?zip=${encodeURIComponent(zip)}`);
+        if(!r.ok) throw new Error(`/city-updates ${r.status}`);
+        return await r.json();
+      }catch{ return null; }
+    }
+    function renderCityUpdates(data){
+      const arr = data?.updates || [];
+      if(!arr.length){
+        cityList.innerHTML = "";
+        noCity.classList.remove("hidden");
+        return;
+      }
+      noCity.classList.add("hidden");
+      cityList.innerHTML = arr.map(u=>{
+        return `<li class="border rounded-xl p-3">
+          <div class="font-medium">${esc(u.title)}</div>
+          <div class="text-sm mt-1">${esc(u.body)}</div>
+          <div class="text-xs text-gray-500 mt-1">${esc(u.ts)} — ${esc(u.place)}, ${esc(u.state)}</div>
+        </li>`;
+      }).join("");
+    }
+    cityEmailBtn.addEventListener("click", ()=>{
       const zip=(zipInput.value||"").trim();
-      if(/^\d{5}$/.test(zip)) url.searchParams.set("zip",zip);
-      try{ await navigator.clipboard.writeText(url.toString()); setMsg("Share link copied.","text-green-700"); }catch{ setMsg("Could not copy link.","text-red-600"); }
+      const subj = encodeURIComponent(`City Update for ZIP ${zip}`);
+      const body = encodeURIComponent(`Title: \n\nDetails:\n\n(Please include timeline, location, links)`);
+      location.href = `mailto:vikebairam@gmail.com?subject=${subj}&body=${body}`;
     });
 
+    // ---------- Geolocation ZIP ----------
     async function detectZip(){
       setMsg("Detecting your ZIP…","text-gray-500");
       try{
@@ -244,75 +331,22 @@ cat > frontend/index.html <<'HTML'
     }
     locBtn.addEventListener("click", detectZip);
 
-    async function fetchJSON(url){
-      const r = await fetch(url, {headers:{Accept:"application/json"}});
-      const t = await r.text();
-      if(!r.ok) throw new Error(`API ${r.status}: ${t}`);
-      return JSON.parse(t);
-    }
-
-    function renderAlerts(data){
-      const arr = data?.alerts || [];
-      if(!arr.length){ alertsList.innerHTML=""; noAlerts.classList.remove("hidden"); return; }
-      noAlerts.classList.add("hidden");
-      alertsList.innerHTML = arr.slice(0,6).map(a=>
-        `<li class="border rounded p-2">
-          <p class="font-medium">${esc(a.title||"Alert")}</p>
-          <p class="text-xs text-gray-600">${esc(a.severity||"")}${a.expires?` • until ${esc(new Date(a.expires).toLocaleString())}`:""}</p>
-          ${a.link?`<p class="text-sm mt-1">${link(a.link)}</p>`:""}
-        </li>`
-      ).join("");
-    }
-
-    function renderQuakes(data){
-      const arr = data?.quakes || [];
-      if(!arr.length){ quakesList.innerHTML=""; noQuakes.classList.remove("hidden"); return; }
-      noQuakes.classList.add("hidden");
-      quakesList.innerHTML = arr.slice(0,6).map(q=>
-        `<li class="border rounded p-2">
-          <p class="font-medium">M${esc(q.magnitude)} — ${esc(q.place||"Nearby")}</p>
-          <p class="text-xs text-gray-600">${q.time?esc(new Date(q.time).toLocaleString()):""}${q.distance_km!=null?` • ${q.distance_km} km away`:""}</p>
-          ${q.url?`<p class="text-sm mt-1">${link(q.url)}</p>`:""}
-        </li>`
-      ).join("");
-    }
-
-    function renderBmv(data){
-      const arr = data?.offices || [];
-      if(!arr.length){ bmvList.innerHTML=""; noBmv.classList.remove("hidden"); return; }
-      noBmv.classList.add("hidden");
-      bmvList.innerHTML = arr.slice(0,6).map(b=>
-        `<li class="border rounded-xl p-3">
-          <p class="font-medium">${esc(b.name)}${b.distance_km!=null?` — <span class="text-gray-600">${b.distance_km} km</span>`:""}</p>
-          ${b.address||b.locality?`<p class="text-sm">${esc([b.address,b.locality].filter(Boolean).join(", "))}</p>`:""}
-          ${b.website?`<p class="text-sm mt-1">🔗 ${link(b.website)}</p>`:""}
-          ${b.phone?`<p class="text-sm">📞 ${esc(b.phone)}</p>`:""}
-          ${b.opening_hours?`<p class="text-xs text-gray-600">Hours: ${esc(b.opening_hours)}</p>`:""}
-          <div class="mt-2 flex gap-2">
-            <a class="text-sm border px-2 py-1 rounded hover:bg-gray-50" target="_blank" rel="noopener" href="${esc(b.maps)}">Open in Maps</a>
-            ${b.website? `<a class="text-sm border px-2 py-1 rounded hover:bg-gray-50" target="_blank" rel="noopener" href="${esc(b.website)}">Website</a>`:""}
-          </div>
-        </li>`
-      ).join("");
-    }
-
+    // ---------- Utilities ----------
     function collectEmails(){
-      const emails=[]; listEl.querySelectorAll("li").forEach(li=>{
+      const emails=[]; officialsList.querySelectorAll("li").forEach(li=>{
         const m=li.textContent.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/ig);
         if(m) emails.push(...m);
       });
       return [...new Set(emails)];
     }
-
-    copyEmailsBtn.addEventListener("click", async ()=>{
+    $("copyEmailsBtn").addEventListener("click", async ()=>{
       const uniq=collectEmails();
       if(!uniq.length){ setMsg("No public emails available to copy.","text-gray-600"); return; }
       try{ await navigator.clipboard.writeText(uniq.join(", ")); setMsg("Emails copied.","text-green-700"); }catch{}
     });
-
-    copyTextBtn.addEventListener("click", async ()=>{
+    $("copyTextBtn").addEventListener("click", async ()=>{
       const lines=[];
-      listEl.querySelectorAll("li").forEach(li=>{
+      officialsList.querySelectorAll("li").forEach(li=>{
         const name=li.querySelector("p.font-semibold")?.textContent?.trim()||"";
         const url=li.querySelector("a")?.href||"";
         const phone=(li.textContent.match(/📞\s*([^\n]+)/)||[])[1]||"";
@@ -321,8 +355,7 @@ cat > frontend/index.html <<'HTML'
       });
       try{ await navigator.clipboard.writeText(lines.join("\n")); setMsg("Officials copied.","text-green-700"); }catch{ setMsg("Copy failed.","text-red-600"); }
     });
-
-    emailBtn.addEventListener("click",()=>{
+    $("emailBtn").addEventListener("click",()=>{
       const uniq=collectEmails();
       const zip=(zipInput.value||"").trim();
       const subject=encodeURIComponent(`Constituent inquiry from ZIP ${zip}`);
@@ -332,16 +365,38 @@ cat > frontend/index.html <<'HTML'
       location.href=`mailto:${to}?subject=${subject}&body=${body}`;
     });
 
-    document.querySelectorAll('[data-issue]').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const issue = btn.getAttribute('data-issue');
-        const zip=(zipInput.value||"").trim();
-        const subject=encodeURIComponent(`${issue} — ZIP ${zip}`);
-        const body=encodeURIComponent(`${issue}\n\nLocation ZIP: ${zip}\nDetails: [describe the exact location / cross street]\nPhotos: [attach if available]\n\nThank you for your help,\n[Your Name]\n[Your Contact]`);
-        location.href=`mailto:?subject=${subject}&body=${body}`;
-      });
-    });
+    // ---------- Run ----------
+    async function run(){
+      const zip=(zipInput.value||"").trim();
+      if(!/^\d{5}$/.test(zip)){ setMsg("Please enter a valid 5‑digit US ZIP.","text-red-600"); return; }
+      searchBtn.disabled=true; setMsg("Loading…","text-gray-500");
+      try{
+        const officials = await (await fetch(`${BACKEND_BASE}/officials?zip=${encodeURIComponent(zip)}`)).json();
+        renderOfficials(officials);
+        const label = `${officials.place}, ${officials.state?.abbr||""}`.trim();
+        pushHistory(zip,label);
 
+        const [el, w, b, cu] = await Promise.all([
+          fetchElections(zip),
+          fetchWeather(zip),
+          fetchBMV(zip),
+          fetchCityUpdates(zip),
+        ]);
+        renderElections(el);
+        renderWeather(w);
+        renderBmv(b);
+        renderCityUpdates(cu);
+
+        const url=new URL(location.href); url.searchParams.set("zip",zip); history.replaceState(null,"",url.toString());
+        setMsg(`Showing results for ${zip}`);
+      }catch(e){ console.error(e); setMsg("One or more services failed (see console).","text-red-600"); }
+      finally{ searchBtn.disabled=false; }
+    }
+
+    searchBtn.addEventListener("click", run);
+    zipInput.addEventListener("keydown", e=>{ if(e.key==="Enter") run(); });
+
+    // Modals
     const open = el=>{el.classList.remove("hidden");el.classList.add("flex")};
     const close= el=>{el.classList.add("hidden");el.classList.remove("flex")};
     aboutBtn.addEventListener("click",()=>open(aboutModal));
@@ -350,42 +405,8 @@ cat > frontend/index.html <<'HTML'
     document.querySelectorAll('[data-close="about"]').forEach(b=>b.addEventListener("click",()=>close(aboutModal)));
     document.querySelectorAll('[data-close="contact"]').forEach(b=>b.addEventListener("click",()=>close(contactModal)));
 
-    function setZipLinks(zip){
-      if(!zip) return;
-      newsBtn.href=`https://news.google.com/search?q=${encodeURIComponent(zip)}&hl=en-US&gl=US&ceid=US:en`;
-    }
-
-    async function run(){
-      const zip=(zipInput.value||"").trim();
-      if(!/^\d{5}$/.test(zip)){ setMsg("Please enter a valid 5‑digit US ZIP.","text-red-600"); return; }
-      searchBtn.disabled=true; setMsg("Loading…","text-gray-500");
-      try{
-        const officials = await fetchJSON(`${BACKEND_BASE}/officials?zip=${encodeURIComponent(zip)}`);
-        renderOfficials(officials); setZipLinks(zip);
-        const label = `${officials.place}, ${officials.state?.abbr||""}`.trim();
-        pushHistory(zip,label);
-
-        const [alerts, quakes, bmv] = await Promise.all([
-          fetchJSON(`${BACKEND_BASE}/alerts?zip=${encodeURIComponent(zip)}`),
-          fetchJSON(`${BACKEND_BASE}/quakes?zip=${encodeURIComponent(zip)}`),
-          fetchJSON(`${BACKEND_BASE}/bmv?zip=${encodeURIComponent(zip)}&radius_km=25`),
-        ]);
-        renderAlerts(alerts);
-        renderQuakes(quakes);
-        renderBmv(bmv);
-
-        const url=new URL(location.href); url.searchParams.set("zip",zip); history.replaceState(null,"",url.toString());
-        setMsg(`Showing results for ${zip}`);
-      }catch(e){ console.error(e); setMsg((e?.message||"Fetch failed")+" (see DevTools → Network)","text-red-600"); }
-      finally{ searchBtn.disabled=false; }
-    }
-
-    searchBtn.addEventListener("click", run);
-    zipInput.addEventListener("keydown", e=>{ if(e.key==="Enter") run(); });
-
-    const d=nextGeneralElectionDate(); electionDateEl.textContent = fmt(d);
-
-    (function bootstrap(){
+    // Bootstrap from URL
+    (function init(){
       const z=new URL(location.href).searchParams.get("zip");
       if(/^\d{5}$/.test(z||"")){ zipInput.value=z; run(); }
       else { renderHistory(); }
@@ -393,4 +414,3 @@ cat > frontend/index.html <<'HTML'
   </script>
 </body>
 </html>
-HTML
