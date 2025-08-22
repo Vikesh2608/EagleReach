@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Header
 from fastapi.middleware.cors import CORSMiddleware
-import httpx, asyncio, datetime, time, math, json
-from typing import Optional, Dict, Any, Tuple
+import httpx, asyncio, datetime, time, math, os
+from typing import Optional, Dict, Any, Tuple, List
 
 app = FastAPI(title="EagleReach Backend (Open Data)")
 
@@ -24,11 +24,10 @@ ZIPPOP = "https://api.zippopotam.us/us"
 FCC = "https://geo.fcc.gov/api/census/block/find"
 GOVTRACK = "https://www.govtrack.us/api/v2"
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
-NWS_ALERTS = "https://api.weather.gov/alerts/active"
-USGS = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 OVERPASS = "https://overpass-api.de/api/interpreter"
+OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 
-UA = {"User-Agent": "EagleReach/1.1 (contact: vikebairam@gmail.com)"}
+UA = {"User-Agent": "EagleReach/1.3 (contact: vikebairam@gmail.com)"}
 
 def _esc(s): return (s or "").strip()
 
@@ -55,10 +54,14 @@ def haversine_km(lat1, lon1, lat2, lon2):
 def health():
     return {
         "ok": True,
-        "backend_version": "1.1.0-open-data",
-        "sources": ["zippopotam.us", "FCC Census Block", "GovTrack", "Wikidata", "NWS", "USGS", "OpenStreetMap Overpass"],
+        "backend_version": "1.3.0-open-data",
+        "sources": [
+            "zippopotam.us", "FCC Census Block", "GovTrack",
+            "Wikidata", "OpenStreetMap Overpass", "Open‑Meteo",
+        ],
     }
 
+# ---------------- ZIP + districts + officials ----------------
 async def fetch_zip(zip_code:str):
     """ZIP -> {state_abbr, state_name, place_name, lat, lon}"""
     url = f"{ZIPPOP}/{_esc(zip_code)}"
@@ -102,7 +105,8 @@ async def fetch_cd(lat:float, lon:float):
 
 def fallback_search_url(name:str, state_abbr:str, office:str):
     q = f"{name} {state_abbr} {office} official site"
-    return f"https://www.google.com/search?q={httpx.QueryParams({'q': q})['q']}"
+    # simple safe encoder for q param
+    return f"https://www.google.com/search?q=" + httpx.QueryParams({"q": q}).get("q")
 
 async def fetch_senators(state_abbr:str):
     url = f"{GOVTRACK}/role"
@@ -162,10 +166,7 @@ async def fetch_rep(state_abbr:str, district: Optional[str]):
         return rows
 
 async def fetch_mayor(place_name:str, state_name:str):
-    """
-    Best-effort Mayor from Wikidata. If no website, add a
-    Google 'official site' search link. Returns 0..1 row.
-    """
+    """Best-effort Mayor from Wikidata. Returns 0..1 row with website or search fallback."""
     city = _esc(place_name); st = _esc(state_name)
     if not city or not st: return []
     q = f"""
@@ -186,19 +187,16 @@ async def fetch_mayor(place_name:str, state_name:str):
     async with httpx.AsyncClient(timeout=20, headers={**UA, "Accept":"application/sparql-results+json"}) as client:
         r = await client.get(WIKIDATA_SPARQL, params={"query": q})
         if r.status_code != 200:
-            cache_set(ck, [], 600)
-            return []
+            cache_set(ck, [], 600); return []
         j = r.json()
         b = j.get("results", {}).get("bindings", [])
         if not b:
-            cache_set(ck, [], 600)
-            return []
+            cache_set(ck, [], 600); return []
         name = b[0].get("personLabel", {}).get("value")
         site = b[0].get("website", {}).get("value")
         url = site or fallback_search_url(name, st, "Mayor")
         if not name:
-            cache_set(ck, [], 600)
-            return []
+            cache_set(ck, [], 600); return []
         out = [{
             "name": name,
             "office": "Mayor",
@@ -252,83 +250,10 @@ async def officials(zip: str = Query(..., min_length=5, max_length=10)):
         }
     }
 
-# ---------- NEW: Live alerts ----------
-@app.get("/alerts")
-async def alerts(zip: str = Query(..., min_length=5, max_length=10)):
+# ---------------- BMV / DMV (Overpass) ----------------
+async def fetch_bmv(zip: str, radius_km: float = 25.0):
     z = await fetch_zip(zip)
     lat, lon = z["lat"], z["lon"]
-    params = {"point": f"{lat},{lon}"}
-    ck = f"alerts:{lat:.4f},{lon:.4f}"
-    c = cache_get(ck)
-    if c: return c
-    async with httpx.AsyncClient(timeout=20, headers={**UA, "Accept":"application/geo+json"}) as client:
-        r = await client.get(NWS_ALERTS, params=params)
-        r.raise_for_status()
-        j = r.json()
-        out = []
-        for f in j.get("features", []):
-            p = f.get("properties", {}) or {}
-            out.append({
-                "title": p.get("headline") or p.get("event"),
-                "severity": p.get("severity"),
-                "effective": p.get("effective"),
-                "expires": p.get("expires"),
-                "area": p.get("areaDesc"),
-                "link": (p.get("uri") or p.get("@id")),
-                "sender": p.get("senderName"),
-            })
-        res = {"zip": zip, "location": {"lat": lat, "lon": lon}, "alerts": out, "count": len(out)}
-        cache_set(ck, res, 300)
-        return res
-
-# ---------- NEW: Earthquakes ----------
-@app.get("/quakes")
-async def quakes(zip: str = Query(..., min_length=5, max_length=10)):
-    z = await fetch_zip(zip)
-    lat, lon = z["lat"], z["lon"]
-    # last 7 days
-    start = (datetime.datetime.utcnow() - datetime.timedelta(days=7)).date().isoformat()
-    params = {
-        "format": "geojson",
-        "latitude": lat, "longitude": lon,
-        "maxradiuskm": 200,
-        "starttime": start,
-        "orderby": "time",
-    }
-    ck = f"quakes:{lat:.4f},{lon:.4f}"
-    c = cache_get(ck)
-    if c: return c
-    async with httpx.AsyncClient(timeout=20, headers=UA) as client:
-        r = await client.get(USGS, params=params)
-        r.raise_for_status()
-        j = r.json()
-        out = []
-        for f in j.get("features", []):
-            props = f.get("properties", {}) or {}
-            geom = f.get("geometry", {}) or {}
-            coords = geom.get("coordinates") or [None, None]
-            qlon, qlat = coords[0], coords[1]
-            dist = None
-            if isinstance(qlat, (int, float)) and isinstance(qlon, (int, float)):
-                dist = round(haversine_km(lat, lon, qlat, qlon), 1)
-            out.append({
-                "magnitude": props.get("mag"),
-                "place": props.get("place"),
-                "time": datetime.datetime.utcfromtimestamp(props.get("time", 0)/1000).isoformat(timespec="seconds")+"Z" if props.get("time") else None,
-                "url": props.get("url"),
-                "distance_km": dist
-            })
-        res = {"zip": zip, "location": {"lat": lat, "lon": lon}, "quakes": out[:20], "count": len(out)}
-        cache_set(ck, res, 300)
-        return res
-
-# ---------- NEW: BMV/DMV   (Overpass)
-NO @app.get("/bmv")
-
-
-    z = await fetch_zip(zip)
-    lat, lon = z["lat"], z["lon"]
-    # Overpass Q: DMV/BMV/vehicle registration offices
     q = f"""
     [out:json][timeout:25];
     (
@@ -339,7 +264,7 @@ NO @app.get("/bmv")
       way(around:{int(radius_km*1000)},{lat},{lon})[name~"DMV|BMV|Department of Motor Vehicles|Bureau of Motor Vehicles", i];
       relation(around:{int(radius_km*1000)},{lat},{lon})[name~"DMV|BMV|Department of Motor Vehicles|Bureau of Motor Vehicles", i];
     );
-    out center tags 30;
+    out center tags;
     """
     ck = f"bmv:{lat:.4f},{lon:.4f}:{radius_km}"
     c = cache_get(ck)
@@ -348,58 +273,56 @@ NO @app.get("/bmv")
         r = await client.post(OVERPASS, data={"data": q})
         r.raise_for_status()
         j = r.json()
-        out = []
-        for el in j.get("elements", []):
-            tags = el.get("tags", {}) or {}
-            # position
-            if el.get("type") == "node":
-                el_lat, el_lon = el.get("lat"), el.get("lon")
-            else:
-                c0 = el.get("center") or {}
-                el_lat, el_lon = c0.get("lat"), c0.get("lon")
-            if el_lat is None or el_lon is None:
-                continue
-            # address & info
-            num = tags.get("addr:housenumber", "")
-            street = tags.get("addr:street", "")
-            city = tags.get("addr:city", "")
-            state = tags.get("addr:state", "")
-            pc = tags.get("addr:postcode", "")
-            address = " ".join([_esc(num), _esc(street)]).strip()
-            locality = ", ".join([x for x in [_esc(city), _esc(state), _esc(pc)] if x])
-            phone = tags.get("phone") or tags.get("contact:phone") or ""
-            website = tags.get("website") or tags.get("contact:website") or ""
-            hours = tags.get("opening_hours") or ""
-            name = tags.get("name") or "DMV / BMV Office"
-            dist = round(haversine_km(lat, lon, el_lat, el_lon), 1)
-            out.append({
-                "name": name,
-                "address": address,
-                "locality": locality,
-                "phone": phone,
-                "website": website,
-                "opening_hours": hours,
-                "lat": el_lat,
-                "lon": el_lon,
-                "distance_km": dist,
-                "maps": f"https://www.google.com/maps/search/?api=1&query={el_lat},{el_lon}"
-            })
-        out.sort(key=lambda x: (x["distance_km"] if x["distance_km"] is not None else 1e9))
-        res = {"zip": zip, "location": {"lat": lat, "lon": lon}, "radius_km": radius_km, "offices": out[:20], "count": len(out)}
-        cache_set(ck, res, 600)
-        return res
-
+    out=[]
+    for el in j.get("elements", []):
+        tags = el.get("tags", {}) or {}
+        if el.get("type") == "node":
+            el_lat, el_lon = el.get("lat"), el.get("lon")
+        else:
+            c0 = el.get("center") or {}
+            el_lat, el_lon = c0.get("lat"), c0.get("lon")
+        if el_lat is None or el_lon is None:
+            continue
+        num    = tags.get("addr:housenumber", "")
+        street = tags.get("addr:street", "")
+        city   = tags.get("addr:city", "")
+        state  = tags.get("addr:state", "")
+        pc     = tags.get("addr:postcode", "")
+        address  = " ".join([_esc(num), _esc(street)]).strip()
+        locality = ", ".join([x for x in [_esc(city), _esc(state), _esc(pc)] if x])
+        phone   = tags.get("phone") or tags.get("contact:phone") or ""
+        website = tags.get("website") or tags.get("contact:website") or ""
+        hours   = tags.get("opening_hours") or ""
+        name    = tags.get("name") or "DMV / BMV Office"
+        dist = round(haversine_km(lat, lon, el_lat, el_lon), 1)
+        out.append({
+            "name": name,
+            "address": address,
+            "locality": locality,
+            "phone": phone,
+            "website": website,
+            "opening_hours": hours,
+            "lat": el_lat,
+            "lon": el_lon,
+            "distance_km": dist,
+            "maps": f"https://www.google.com/maps/search/?api=1&query={el_lat},{el_lon}",
+        })
+    out.sort(key=lambda x: (x["distance_km"] if x["distance_km"] is not None else 1e9))
+    res = {
+        "zip": zip,
+        "location": {"lat": lat, "lon": lon},
+        "radius_km": radius_km,
+        "offices": out[:20],
+        "count": len(out),
+    }
+    cache_set(ck, res, 600)
+    return res
 
 @app.get("/bmv")
 async def bmv_endpoint(zip: str, radius_km: float = 25.0):
-    """
-    Public endpoint for BMV/DMV offices near a ZIP.
-    Wraps the Overpass worker so we never 500 the client.
-    """
     try:
         data = await fetch_bmv(zip=zip, radius_km=radius_km)
-        if not isinstance(data, dict):
-            data = {}
+        if not isinstance(data, dict): data = {}
         offices = data.get("offices") or []
         count = data.get("count") or len(offices)
         return {
@@ -408,7 +331,7 @@ async def bmv_endpoint(zip: str, radius_km: float = 25.0):
             "radius_km": radius_km,
             "offices": offices,
             "count": count,
-            "sources": ["OpenStreetMap Overpass"]
+            "sources": ["OpenStreetMap Overpass"],
         }
     except Exception as e:
         print(f"/bmv error for zip={zip}: {e}")
@@ -417,44 +340,35 @@ async def bmv_endpoint(zip: str, radius_km: float = 25.0):
             "offices": [],
             "count": 0,
             "error": "BMV/DMV service temporarily unavailable",
-            "fallback": f"https://www.google.com/maps/search/DMV+near+{zip}"
+            "fallback": f"https://www.google.com/maps/search/DMV+near+{zip}",
         }
 
-
-
-# --- Weather (Open‑Meteo) ----------------------------------------------------
-# No API key. Docs: https://open-meteo.com/
+# ---------------- Weather (Open‑Meteo) ----------------
 @app.get("/weather")
 async def get_weather(zip: str):
-    """
-    Return a 7-day simple forecast for the ZIP using Open‑Meteo.
-    """
     try:
-        z = await fetch_zip(zip)   # uses your existing ZIP resolver (lat, lon, state, place)
+        z = await fetch_zip(zip)
         lat, lon = z["lat"], z["lon"]
         url = (
-            "https://api.open-meteo.com/v1/forecast"
-            f"?latitude={lat}&longitude={lon}"
+            f"{OPEN_METEO}?latitude={lat}&longitude={lon}"
             "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max"
             "&forecast_days=7&timezone=auto"
         )
-        async with httpx.AsyncClient(timeout=15, headers={"Accept":"application/json","User-Agent":"EagleReach/1.0"}) as client:
-            r = await client.get(url)
-            r.raise_for_status()
+        async with httpx.AsyncClient(timeout=15, headers={**UA, "Accept":"application/json"}) as client:
+            r = await client.get(url); r.raise_for_status()
             j = r.json()
-
         daily = j.get("daily", {})
-        out = []
+        out: List[Dict[str, Any]] = []
         times = daily.get("time", [])
         tmax  = daily.get("temperature_2m_max", [])
         tmin  = daily.get("temperature_2m_min", [])
         ppop  = daily.get("precipitation_probability_max", [])
         for i in range(min(len(times), len(tmax), len(tmin), len(ppop))):
             out.append({
-                "date":        times[i],
-                "tmax_c":      tmax[i],
-                "tmin_c":      tmin[i],
-                "precip_pct":  ppop[i]
+                "date":       times[i],
+                "tmax_c":     tmax[i],
+                "tmin_c":     tmin[i],
+                "precip_pct": ppop[i],
             })
         return {
             "zip": zip,
@@ -462,14 +376,90 @@ async def get_weather(zip: str):
             "state": z.get("state_abbr"),
             "lat": lat, "lon": lon,
             "days": out,
-            "updated_at": datetime.utcnow().isoformat(timespec="seconds")+"Z",
-            "source": "Open‑Meteo"
+            "updated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+            "source": "Open‑Meteo",
         }
     except Exception as e:
         print(f"/weather error for zip={zip}: {e}")
-        return {
-            "zip": zip,
-            "days": [],
-            "error": "Weather temporarily unavailable"
-        }
+        return {"zip": zip, "days": [], "error": "Weather temporarily unavailable"}
 
+# ---------------- City Updates (per ZIP) ----------------
+# NOTE: In-memory only right now (ephemeral). For production, use a database.
+_CITY_UPDATES: Dict[str, List[Dict[str, Any]]] = {}
+CITY_UPDATES_TOKEN = os.getenv("CITY_UPDATES_TOKEN", "")
+
+@app.get("/city-updates")
+async def get_city_updates(zip: str = Query(..., min_length=5, max_length=10)):
+    z = await fetch_zip(zip)  # validate ZIP and resolve city/state
+    arr = _CITY_UPDATES.get(zip, [])
+    return {
+        "zip": zip,
+        "place": z["place_name"],
+        "state": z["state_abbr"],
+        "updates": sorted(arr, key=lambda x: x.get("ts",""), reverse=True),
+        "count": len(arr),
+    }
+
+@app.post("/city-updates")
+async def post_city_update(
+    zip: str = Query(..., min_length=5, max_length=10),
+    title: str = Query(..., min_length=3, max_length=140),
+    body: str = Query(..., min_length=3, max_length=2000),
+    x_api_key: Optional[str] = Header(None)
+):
+    if not CITY_UPDATES_TOKEN:
+        raise HTTPException(403, "City updates write API is disabled on this server.")
+    if (x_api_key or "") != CITY_UPDATES_TOKEN:
+        raise HTTPException(401, "Unauthorized: invalid X-API-Key.")
+    z = await fetch_zip(zip)
+    item = {
+        "title": title.strip(),
+        "body": body.strip(),
+        "ts": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "place": z["place_name"],
+        "state": z["state_abbr"],
+    }
+    _CITY_UPDATES.setdefault(zip, []).append(item)
+    return {"ok": True, "created": item}
+
+# ---------------- Elections (date + where to vote) ----------------
+STATE_PORTALS = {
+    "CA": "https://www.sos.ca.gov/elections",
+    "TX": "https://www.votetexas.gov/",
+    "FL": "https://dos.myflorida.com/elections/",
+    "NY": "https://www.elections.ny.gov/",
+    "IL": "https://www.elections.il.gov/",
+    "OH": "https://www.ohiosos.gov/elections/",
+    "PA": "https://www.vote.pa.gov/",
+}
+def next_federal_general(ref: Optional[datetime.date] = None) -> Optional[datetime.date]:
+    """U.S. general election: Tuesday after the first Monday in November."""
+    if ref is None:
+        ref = datetime.date.today()
+    year = ref.year
+    for y in (year, year + 1):
+        nov1 = datetime.date(y, 11, 1)
+        first_monday = nov1 + datetime.timedelta((0 - nov1.weekday()) % 7)
+        election_day = first_monday + datetime.timedelta(days=1)  # Tuesday
+        if election_day > ref:
+            return election_day
+    return None
+
+@app.get("/elections")
+async def elections(zip: str = Query(..., min_length=5, max_length=10)):
+    z = await fetch_zip(zip)
+    state = z["state_abbr"]
+    d = next_federal_general()
+    portal = STATE_PORTALS.get(state) or f"https://www.vote.gov/register/{state.lower()}/"
+    search = f"https://www.google.com/search?q=polling+place+near+{zip}"
+    return {
+        "zip": zip,
+        "place": z["place_name"],
+        "state": state,
+        "next_federal_general": d.isoformat() if d else None,
+        "where_to_vote": {
+            "state_portal": portal,
+            "vote_gov": "https://www.vote.gov/",
+            "lookup_search": search
+        }
+    }
