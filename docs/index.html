@@ -3,455 +3,417 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>EagleReach — Civic Assistant</title>
-  <meta name="description" content="EagleReach: a free, open‑source civic assistant for U.S. residents."/>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='52' x='6' font-size='56'%3E🦅%3C/text%3E%3C/svg%3E"/>
+  <title>US EagleReach</title>
+  <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .hero { background: linear-gradient(120deg,#0a2540 0%,#123a60 60%,#192e4d 100%); position:relative; color:#fff; }
-    .hero::after{ content:""; position:absolute; inset:0;
-      background: radial-gradient(1200px 500px at 80% -50%, rgba(255,255,255,.10), transparent 60%),
-                  radial-gradient(800px 400px at 10% -30%, rgba(255,255,255,.08), transparent 60%); pointer-events:none; }
-    .card { @apply bg-white/90 backdrop-blur shadow rounded-2xl border border-slate-200; }
-    .card h3{ @apply text-lg font-semibold text-slate-800; }
-    .muted{ @apply text-slate-500; }
-    .btn{ @apply inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50; }
-    .btn-primary{ @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700; }
-    .pill{ @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium border border-slate-300 bg-white; }
-    .link{ @apply text-blue-700 hover:underline; }
-    .kpi{ @apply text-sm text-slate-600; }
-    .divider{ width:1px; background-color:rgba(100,116,139,.35); }
-    @media (prefers-color-scheme: dark){
-      body{ background:#0b1220; color:#e5e7eb; }
-      .card{ @apply bg-slate-900/60 text-slate-100 border-slate-700; }
-      .card h3{ @apply text-slate-100; }
-      .muted{ @apply text-slate-400; }
-      .btn{ @apply bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700; }
-      .btn-primary{ @apply bg-blue-600 border-blue-600 hover:bg-blue-700 text-white; }
-      .link{ @apply text-blue-400; }
-      .divider{ background-color:rgba(100,116,139,.5); }
-    }
+    .hero { background: linear-gradient(90deg, #0b3b82 0%, #133b6b 55%, #0f2447 100%); }
+    .muted { color: rgb(100,116,139); }
+    .btn { border:1px solid rgb(226,232,240); padding:.45rem .8rem; border-radius:.75rem; }
+    .btn:hover { background: rgba(0,0,0,.03); }
+    .btn-primary { background:#2563eb; color:#fff; padding:.55rem .9rem; border-radius:.75rem; }
+    .btn-primary:hover { filter:brightness(.95); }
+    .card { background:#fff; border:1px solid rgb(226,232,240); border-radius:1rem; box-shadow:0 3px 8px rgba(0,0,0,.05); }
+    .chip { background:rgb(241,245,249); color:rgb(51,65,85); font-size:.75rem; padding:.2rem .5rem; border-radius:.5rem; }
+    dialog::backdrop { background: rgba(0,0,0,.45); }
+    .link { color:#2563eb; }
+    .link:hover { text-decoration: underline; }
   </style>
 </head>
-<body class="min-h-screen">
-  <!-- Header -->
-  <header class="hero">
-    <div class="max-w-6xl mx-auto px-4 py-6 relative">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="text-3xl">🦅</span><span class="text-2xl">🇺🇸</span>
-          <div>
-            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">EagleReach</h1>
-            <p class="text-sm text-slate-200">Open‑source civic assistant for U.S. residents</p>
-          </div>
+<body class="bg-slate-50 text-slate-900">
+
+  <!-- Top Bar -->
+  <header class="hero text-white">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl">🇺🇸</div>
+        <div>
+          <div class="text-2xl font-semibold tracking-tight">US EagleReach</div>
+          <div class="text-xs opacity-80">“Government of the people, by the people, for the people, shall not perish from the earth.” — Abraham Lincoln</div>
         </div>
-        <nav class="flex items-center gap-2">
-          <button id="aboutBtn" class="btn">About</button>
-          <a href="#contact" class="btn">Contact</a>
-        </nav>
       </div>
-      <div class="mt-6">
-        <blockquote class="text-slate-200 italic max-w-3xl">
-          “Government of the people, by the people, for the people, shall not perish from the Earth.”
-          <span class="not-italic">— Abraham Lincoln</span>
-        </blockquote>
-      </div>
+      <nav class="flex items-center gap-2">
+        <button id="aboutBtn" class="btn">About</button>
+        <button id="fbOpenBtn" class="btn">Feedback</button>
+        <a href="#contact" class="btn">Contact</a>
+      </nav>
     </div>
   </header>
 
-  <!-- Controls -->
-  <section class="max-w-6xl mx-auto px-4 py-5">
-    <div class="card p-4">
-      <div class="flex flex-col lg:flex-row items-stretch gap-3">
-        <input id="zipInput" type="text" inputmode="numeric" maxlength="10" placeholder="Enter ZIP (e.g., 62704)"
-               class="w-full lg:w-72 rounded-xl border border-slate-300 px-4 py-2"/>
-        <div class="flex items-center gap-3 flex-wrap">
-          <button id="locBtn" class="btn" title="Use my location">📍 Use my location</button>
-          <span class="pill">OR</span>
-          <div class="divider h-6 hidden lg:block"></div>
-          <button id="goBtn" class="btn-primary">Search</button>
-          <button id="shareBtn" class="btn">🔗 Copy share link</button>
-          <button id="clearBtn" class="btn">🧹 Clear history</button>
+  <main class="max-w-6xl mx-auto px-4 pt-6 pb-16">
+    <!-- Search / controls -->
+    <section class="card p-4 mb-4">
+      <p class="muted mb-2">Enter your ZIP code to see representatives, weather & traffic, and upcoming elections.</p>
+      <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+        <input id="zipInput" class="rounded-xl border border-slate-300 px-3 py-2 w-full md:w-72" inputmode="numeric" maxlength="10" placeholder="ZIP code (e.g., 62704)"/>
+        <div class="flex items-center gap-2">
+          <button id="useLocBtn" class="btn" title="Use my location">Use my location</button>
+          <span title="divider" aria-hidden="true">·</span>
+          <button id="searchBtn" class="btn-primary">Search</button>
+          <button id="copyLinkBtn" class="btn">Copy Share Link</button>
+          <button id="clearBtn" class="btn">Clear history</button>
         </div>
       </div>
-      <div id="history" class="mt-3 text-sm muted"></div>
-      <div id="status" class="mt-2 text-sm"></div>
-    </div>
-  </section>
+      <div id="status" class="text-sm mt-2 muted"></div>
+      <div id="history" class="mt-2 flex flex-wrap gap-2"></div>
+    </section>
 
-  <!-- Grid: Left col is main flow; Right col has smaller cards -->
-  <main class="max-w-6xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-5">
-    <!-- LEFT COLUMN -->
-    <div class="lg:col-span-2 space-y-5">
+    <!-- Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- Officials -->
-      <section class="card p-4">
-        <div class="flex items-center justify-between">
-          <h3>Elected Representatives</h3>
-          <div class="flex gap-2">
-            <button id="copyOfficialsBtn" class="pill">Copy Officials</button>
-            <button id="genEmailBtn" class="pill">Generate Email</button>
+      <div class="card p-4 lg:col-span-2">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-semibold">Elected Representatives</h2>
+          <div class="flex items-center gap-2">
+            <button id="copyEmailsBtn" class="btn text-sm">Copy Emails</button>
+            <button id="copyOfficialsBtn" class="btn text-sm">Copy Officials</button>
           </div>
         </div>
-        <div id="officialsMeta" class="kpi mt-1"></div>
-        <div id="officialsList" class="mt-3 space-y-3"></div>
-      </section>
+        <div id="officialsList" class="space-y-3"></div>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <span class="chip">GovTrack (Congress)</span>
+          <span class="chip">FCC</span>
+          <span class="chip">Wikidata (Mayor)</span>
+          <span class="chip">Zippopotam (ZIP)</span>
+        </div>
+      </div>
 
-      <!-- Voter Info (moved directly under reps) -->
-      <section class="card p-4">
-        <h3 class="mb-2">Voter Info &amp; Education</h3>
-        <div id="voterBlock" class="space-y-2 text-sm"></div>
-      </section>
+      <!-- Weather -->
+      <div class="card p-4">
+        <h2 class="font-semibold mb-2">Weather (7‑day)</h2>
+        <div id="weatherList" class="space-y-2 text-sm"></div>
+        <div class="mt-2"><span class="chip">Open‑Meteo</span></div>
+      </div>
+
+      <!-- Voter Info & Education -->
+      <div class="card p-4 lg:col-span-2">
+        <h2 class="font-semibold mb-2">Voter Info &amp; Education</h2>
+        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-2">
+          <a id="voteGov" target="_blank" class="btn text-center">Register to Vote (vote.gov)</a>
+          <a id="eacDir" target="_blank" class="btn text-center">Find Election Office (EAC)</a>
+          <a id="absentee" target="_blank" class="btn text-center">Absentee / Mail Voting</a>
+        </div>
+        <p class="muted text-sm mt-2">Know the rules, deadlines, and your election officials before every election.</p>
+      </div>
+
+      <!-- News -->
+      <div class="card p-4">
+        <h2 class="font-semibold mb-2">News</h2>
+        <div class="grid grid-cols-1 gap-2">
+          <a id="newsLocal" target="_blank" class="btn text-left">Local News</a>
+          <a id="newsUS" target="_blank" class="btn text-left">National (US) News</a>
+          <a id="newsWorld" target="_blank" class="btn text-left">International News</a>
+        </div>
+      </div>
 
       <!-- Upcoming Elections -->
-      <section class="card p-4">
-        <h3 class="mb-2">Upcoming Elections</h3>
-        <div class="text-sm" id="elexBlock">
-          <ul class="list-disc pl-5 space-y-1">
-            <li><strong>Federal general elections:</strong> Tuesday, November in even-numbered years.</li>
-            <li><strong>Primaries & local elections:</strong> Dates vary by state/county — see links in “Voter Info”.</li>
-          </ul>
-          <p class="muted mt-2">Use the official links above for state‑specific calendars, polling info, and ID rules.</p>
-        </div>
-      </section>
+      <div class="card p-4">
+        <h2 class="font-semibold mb-1">Upcoming Elections</h2>
+        <div class="text-sm"><span class="muted">Next Federal:</span> November 3, 2025</div>
+        <p class="muted text-sm mt-2">State primary dates coming soon (open data, state SoS sources).</p>
+      </div>
 
-      <!-- City Updates -->
-      <section class="card p-4">
-        <h3 class="">City Updates</h3>
-        <div id="cityList" class="mt-2 space-y-2 text-sm"></div>
-      </section>
+      <!-- Traffic -->
+      <div class="card p-4">
+        <h2 class="font-semibold mb-2">Traffic</h2>
+        <p class="muted text-sm">Open live traffic for your area in Google Maps.</p>
+        <a id="trafficBtn" class="btn mt-2 inline-block" target="_blank">Open Traffic Map</a>
+      </div>
+    </section>
 
-      <!-- News (under City Updates) -->
-      <section class="card p-4">
-        <div class="flex items-center justify-between">
-          <h3>News</h3>
-          <span class="muted text-xs">Links open Google News</span>
-        </div>
-        <div id="newsButtons" class="mt-2 flex flex-wrap gap-2"></div>
-        <div id="newsList" class="mt-3 space-y-1 text-sm"></div>
-      </section>
-
-      <!-- Feedback / Comments -->
-      <section class="card p-4">
-        <div class="flex items-center justify-between">
-          <h3>Feedback &amp; Comments</h3>
-          <span class="muted text-xs">Share your thoughts</span>
-        </div>
-        <form id="fbForm" class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input required id="fbName" class="rounded-xl border border-slate-300 px-3 py-2" placeholder="Your name"/>
-          <input required id="fbEmail" type="email" class="rounded-xl border border-slate-300 px-3 py-2" placeholder="Email"/>
-          <div class="md:col-span-3 flex gap-2">
-            <textarea required id="fbMsg" class="flex-1 rounded-xl border border-slate-300 px-3 py-2" rows="3" placeholder="Write your feedback..."></textarea>
-            <button class="btn-primary shrink-0">Send</button>
-          </div>
-        </form>
-        <div id="fbStatus" class="mt-2 text-sm"></div>
-        <div id="fbList" class="mt-4 space-y-2"></div>
-      </section>
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="space-y-5">
-      <!-- Weather -->
-      <section class="card p-4">
-        <h3 class="mb-2">Weather (7‑day)</h3>
-        <div id="weatherList" class="space-y-2 text-sm"></div>
-        <div id="weatherMeta" class="kpi mt-2"></div>
-      </section>
-
-      <!-- Roadworks -->
-      <section class="card p-4">
-        <h3 class="mb-2">Roadworks near you</h3>
-        <div id="roadList" class="space-y-2 text-sm"></div>
-        <div id="roadMeta" class="kpi mt-2"></div>
-      </section>
-
-      <!-- Emergency & Help -->
-      <section class="card p-4">
-        <h3 class="mb-2">Emergency &amp; Help</h3>
-        <ul class="text-sm space-y-1">
-          <li>🚨 <a class="link" href="tel:911">Call 911</a></li>
-          <li>🧠 <a class="link" href="tel:988">988 Suicide &amp; Crisis Lifeline</a></li>
-          <li>☣️ <a class="link" href="tel:18002221222">Poison Control (1‑800‑222‑1222)</a></li>
-          <li>🤝 <a class="link" href="tel:211">211 Community Services</a></li>
-          <li>👮 Non‑emergency police (search): <span id="nonEmergencyLink"></span></li>
-          <li>🛠️ City 311 online (search): <span id="sr311Link"></span></li>
+    <!-- About & Contact -->
+    <section id="contact" class="mt-10 grid lg:grid-cols-2 gap-6">
+      <div class="card p-5">
+        <h3 class="text-lg font-semibold mb-2">About EagleReach</h3>
+        <p class="text-sm">
+          EagleReach is a public, open‑source civic assistant that connects U.S. residents with their elected officials,
+          reliable voter information, local weather & traffic—fast and free. Built to make civic access clear, trustworthy,
+          and easy for everyone.
+        </p>
+        <ul class="text-sm mt-3 list-disc ml-5">
+          <li>No logins, no ads, no tracking—just facts.</li>
+          <li>Open data only (GovTrack, FCC, Wikidata, Open‑Meteo).</li>
+          <li>AI‑assisted design choices focused on clarity and accessibility.</li>
         </ul>
-      </section>
-    </div>
+
+        <h4 class="font-semibold mt-5">Founder</h4>
+        <p class="text-sm">
+          <strong>Vikesh Sagar Bairam — AI/ML & Data Engineer · DevOps Specialist · Generative AI Research Professional</strong><br/>
+          Master’s in Information Systems &amp; Management (University of Illinois Springfield). Dual Bachelor’s in Psychology and Computer Science.
+          Currently at Jabil; previously at Surfaces by Pacific.
+        </p>
+        <p class="text-sm mt-2 italic">
+          I’m a solutions architect at heart—building EagleReach because every resident deserves simple, trustworthy access
+          to government. My goal is to turn complex public data into clear, humane tools that strengthen democracy and everyday life.
+        </p>
+      </div>
+
+      <div class="card p-5">
+        <h3 class="text-lg font-semibold mb-2">Contact</h3>
+        <p class="text-sm">
+          LinkedIn: <a class="link" href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank">Vikesh Bairam</a> ·
+          GitHub: <a class="link" href="https://github.com/Vikesh2608" target="_blank">Vikesh2608</a> ·
+          Email: <a class="link" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a>
+        </p>
+        <h4 class="font-semibold mt-5">Emergency & City Services</h4>
+        <ul class="text-sm list-disc ml-5">
+          <li>911 (life‑threatening emergencies)</li>
+          <li>311 (city services & non‑emergency help)</li>
+          <li>Local police non‑emergency: see your city website</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer class="muted text-xs text-center mt-12">
+      © 2025 EagleReach by Vikesh Sagar Bairam. All rights reserved.
+    </footer>
   </main>
 
-  <!-- About Modal -->
+  <!-- About dialog (small quick card) -->
   <dialog id="aboutDlg" class="rounded-2xl p-0 w-[min(800px,92vw)]">
-    <div class="p-5 card !bg-white dark:!bg-slate-900">
+    <div class="p-5 card !bg-white">
       <div class="flex items-start justify-between">
-        <h3 class="text-xl font-bold">About</h3>
-        <button id="aboutClose" class="btn">Close</button>
+        <h3 class="text-xl font-bold">About EagleReach</h3>
+        <button id="aboutCloseBtn" class="btn">Close</button>
       </div>
-      <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <p class="mt-3 text-sm">
+        EagleReach is a community‑minded, open‑source project helping residents quickly find officials, voter info,
+        weather, traffic, and election dates—all from trusted, public sources.
+      </p>
+    </div>
+  </dialog>
+
+  <!-- Feedback dialog -->
+  <dialog id="fbDlg" class="rounded-2xl p-0 w-[min(800px,92vw)]">
+    <div class="p-5 card !bg-white">
+      <div class="flex items-start justify-between">
+        <h3 class="text-xl font-bold">Feedback &amp; Comments</h3>
+        <button id="fbCloseBtn" class="btn">Close</button>
+      </div>
+
+      <form id="fbForm" class="mt-4 space-y-3">
         <div>
-          <h4 class="font-semibold">About EagleReach</h4>
-          <p class="mt-2 text-sm">
-            EagleReach is a public, open‑source civic assistant that connects U.S. residents with
-            elected officials, <strong>voter information</strong>, city service updates (where available),
-            weather forecasts, and roadwork/traffic context — all by ZIP code. The mission is to make
-            civic access fast, trustworthy, and free for everyone.
-          </p>
-          <blockquote class="mt-3 text-sm italic">
-            “Government of the people, by the people, for the people, shall not perish from the Earth.”
-            <span class="not-italic">— Abraham Lincoln</span>
-          </blockquote>
-          <p class="mt-2 text-sm">
-            Benefits: one‑stop access to your representatives; authoritative voter links; quick actions to raise
-            local concerns; and a privacy‑respecting, ad‑free experience built entirely on open data.
-          </p>
+          <div class="text-sm mb-1">Your rating</div>
+          <div class="flex gap-2 text-2xl" id="fbStars" aria-label="Rate from 1 to 5">
+            <button type="button" data-v="1">⭐</button>
+            <button type="button" data-v="2">⭐</button>
+            <button type="button" data-v="3">⭐</button>
+            <button type="button" data-v="4">⭐</button>
+            <button type="button" data-v="5">⭐</button>
+          </div>
+          <input type="hidden" id="fbRating" value="5"/>
         </div>
-        <div>
-          <h4 class="font-semibold">About the Founder</h4>
-          <p class="mt-2 text-sm">
-            <strong>Vikesh Sagar Bairam — Founder of EagleReach · AI/ML &amp; Generative AI Engineer · Data Engineer · DevOps Specialist · Research Professional</strong>
-          </p>
-          <p class="text-sm mt-2">
-            <strong>Education:</strong> Master’s in Information Systems &amp; Management (University of Illinois, Springfield);
-            Bachelor’s in Psychology; Bachelor’s in Computer Science.
-          </p>
-          <p class="text-sm mt-1">
-            <strong>Experience:</strong> Currently at Jabil; previously at Surfaces by Pacific.
-          </p>
-          <p class="text-sm mt-2">
-            <strong>Contact:</strong>
-            <a class="link" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a> ·
-            <a class="link" href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank">LinkedIn</a> ·
-            <a class="link" href="https://github.com/Vikesh2608" target="_blank">GitHub</a>
-          </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input required id="fbName" class="rounded-xl border border-slate-300 px-3 py-2" placeholder="Your name"/>
+          <input required id="fbEmail" type="email" class="rounded-xl border border-slate-300 px-3 py-2" placeholder="Email"/>
         </div>
+        <!-- Honeypot -->
+        <input id="fbCompany" name="company" class="hidden" tabindex="-1" autocomplete="off"/>
+        <textarea required id="fbMsg" class="w-full rounded-xl border border-slate-300 px-3 py-2" rows="4" placeholder="Write your feedback..."></textarea>
+        <div class="flex items-center gap-2">
+          <button class="btn-primary">Send</button>
+          <div id="fbStatus" class="text-sm muted"></div>
+        </div>
+      </form>
+
+      <div class="mt-6">
+        <h4 class="font-semibold mb-2">Recent feedback</h4>
+        <div id="fbList" class="space-y-2"></div>
       </div>
     </div>
   </dialog>
 
-  <!-- Contact -->
-  <footer id="contact" class="border-t border-slate-200 dark:border-slate-800">
-    <div class="max-w-6xl mx-auto px-4 py-8 text-sm">
-      <div>
-        <strong>Contact:</strong>
-        <a class="link" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a> ·
-        <a class="link" href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank">LinkedIn</a> ·
-        <a class="link" href="https://github.com/Vikesh2608" target="_blank">GitHub</a>
-      </div>
-      <div class="mt-2 muted">© <span id="year"></span> EagleReach. Built open‑source.</div>
-    </div>
-  </footer>
-
-  <!-- App Script -->
   <script>
-    const BACKEND_BASE = "https://eaglereach-1.onrender.com"; // <- your Render base
+    // ----- CONFIG -----
+    const BACKEND_BASE = "https://eaglereach-1.onrender.com"; // change if your Render URL differs
+    const $ = (s,el=document)=>el.querySelector(s);
+    const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+    const enc = encodeURIComponent;
 
-    // Utilities
-    const $ = s => document.querySelector(s);
-    function telHref(raw){ return `tel:${(raw||'').replace(/[^\d+]/g,'')}`; }
-    function prettyPhone(raw){ if(!raw) return ""; const d=raw.replace(/[^\d]/g,''); return d.length===10?`(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`:raw; }
-    async function fetchJSON(u){ const r=await fetch(u,{headers:{"Accept":"application/json"}}); if(!r.ok) throw new Error(`${r.status} ${r.statusText}`); return r.json(); }
-    function setStatus(msg, kind="info"){ const el=$("#status"); el.textContent=msg||""; el.className="mt-2 text-sm "+(kind==="error"?"text-red-600":"muted"); }
-    function qsParam(name,value){ const url=new URL(location.href); url.searchParams.set(name,value); history.replaceState({}, "", url.toString()); }
-
-    // History
-    const HISTORY_KEY="eaglereach_zip_history";
-    function loadHistory(){ try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]"); }catch{ return []; } }
-    function saveHistory(z){ if(!z)return; const arr=loadHistory().filter(x=>x!==z); arr.unshift(z); localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0,5))); renderHistory(); }
-    function renderHistory(){ const arr=loadHistory(); $("#history").innerHTML = arr.length?("Recent ZIPs: "+arr.map(z=>`<button class="pill mr-1 my-1" onclick="useZip('${z}')">${z}</button>`).join(" ")):""; }
-    window.useZip = z => { $("#zipInput").value=z; run(); };
-
-    // Geolocation → ZIP
-    async function locateMe(){
-      try{
-        setStatus("Locating…");
-        const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:12000}));
-        const {latitude:lat,longitude:lon}=pos.coords;
-        const rg=await fetchJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-        const zip=rg.postcode || rg.localityInfo?.administrative?.find(x=>/postcode/i.test(x.description))?.name;
-        if(!zip) throw new Error("ZIP not found for your location");
-        $("#zipInput").value=zip; setStatus(`Using detected ZIP ${zip}`); run();
-      }catch(e){ console.error(e); setStatus(`Could not get your location: ${e.message}`,"error"); }
+    // ----- Helpers -----
+    async function fetchJSON(u){
+      const r = await fetch(u, {headers: {"Accept":"application/json"}});
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    }
+    function setStatus(t){ $("#status").textContent=t||""; }
+    function telLink(n){
+      const digits=(n||"").replace(/[^\d+]/g,"");
+      return digits ? `<a class="link" href="tel:${digits}">${n}</a>` : (n||"");
     }
 
-    // Renderers
-    function renderOfficials(data){
-      $("#officialsMeta").textContent = data.place ? `${data.place}, ${data.state?.abbr||""} • CD: ${data.district||"N/A"} • Updated ${new Date(data.generated_at).toLocaleString()}`:"";
+    // ----- History -----
+    function getHistory(){
+      try{ return JSON.parse(localStorage.getItem("zipHistory")||"[]"); }catch{return []}
+    }
+    function setHistory(arr){
+      localStorage.setItem("zipHistory", JSON.stringify(arr.slice(-5)));
+      renderHistory();
+    }
+    function addToHistory(z){
+      const h=getHistory().filter(x=>x!==z); h.push(z); setHistory(h);
+    }
+    function renderHistory(){
+      const h=getHistory(); const el=$("#history"); el.innerHTML="";
+      h.slice().reverse().forEach(z=>{
+        const b=document.createElement("button");
+        b.className="btn text-sm"; b.textContent=z;
+        b.onclick=()=>{ $("#zipInput").value=z; run(); };
+        el.appendChild(b);
+      });
+    }
+
+    // ----- Officials -----
+    async function loadOfficials(zip){
+      const data = await fetchJSON(`${BACKEND_BASE}/officials?zip=${enc(zip)}`);
       const list=$("#officialsList"); list.innerHTML="";
       (data.officials||[]).forEach(o=>{
-        const phones=(o.phones||[]).map(p=>`<a class="link" href="${telHref(p)}">${prettyPhone(p)}</a>`).join(" · ");
-        const urls=(o.urls||[]).slice(0,1).map(u=>`<a class="link" href="${u}" target="_blank">Official Site</a>`).join("");
-        const party=o.party?` · ${o.party}`:"";
+        const phones = (o.phones||[]).map(telLink).join(", ");
+        const urls=(o.urls||[]).map(u=>`<a class="link" target="_blank" href="${u}">${u.replace(/^https?:\/\//,"")}</a>`).join("<br>");
         const div=document.createElement("div");
-        div.className="p-3 rounded-xl border border-slate-200 dark:border-slate-700";
-        div.innerHTML=`<div class="font-semibold">${o.name}</div>
-                       <div class="text-sm muted">${o.office}${party}</div>
-                       <div class="text-sm mt-1">${phones||""}${urls?" · "+urls:""}</div>`;
+        div.className="border border-slate-200 rounded-xl p-3";
+        div.innerHTML = `
+          <div class="font-medium">${o.name} — ${o.office}${o.party?` — <span class="muted">${o.party}</span>`:""}</div>
+          <div class="text-sm mt-1">${urls||""}</div>
+          ${phones?`<div class="text-sm mt-1">${phones}</div>`:""}
+        `;
         list.appendChild(div);
       });
-      // Emergency links depend on city/state
-      updateEmergencyLinks(data.place, data.state?.abbr);
+      // News + voter links
+      const city=data.place, state=data.state?.abbr;
+      $("#newsLocal").href = `https://news.google.com/search?q=${enc(city+", "+state)}&hl=en-US&gl=US&ceid=US:en`;
+      $("#newsUS").href    = "https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqYjJvU0FtVnVLQUFQAQ?hl=en-US&gl=US&ceid=US:en";
+      $("#newsWorld").href = "https://news.google.com/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en";
+      $("#voteGov").href   = "https://www.vote.gov/";
+      $("#eacDir").href    = "https://www.eac.gov/voters/election-office-contact-information";
+      $("#absentee").href  = "https://www.vote.gov/absentee-voting/";
+      // traffic
+      $("#trafficBtn").href = `https://www.google.com/maps/@?api=1&map_action=map&center=${data.location.lat},${data.location.lon}&zoom=12&layer=traffic`;
     }
 
-    function renderWeather(data){
-      const wrap=$("#weatherList"), meta=$("#weatherMeta"); wrap.innerHTML="";
+    // ----- Weather -----
+    async function loadWeather(zip){
+      const data = await fetchJSON(`${BACKEND_BASE}/weather?zip=${enc(zip)}`);
+      const list=$("#weatherList"); list.innerHTML="";
       (data.days||[]).forEach(d=>{
-        const el=document.createElement("div");
-        el.className="flex items-center justify-between border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2";
-        el.innerHTML=`<div class="text-sm">${d.date}</div>
-                      <div class="text-sm">${d.icon||""} ${d.condition||""}</div>
-                      <div class="text-sm">${Math.round(d.tmin_c)}° / ${Math.round(d.tmax_c)}°C</div>
-                      <div class="text-xs muted">Precip: ${d.precip_pct ?? "—"}%</div>`;
-        wrap.appendChild(el);
-      });
-      meta.textContent = data.updated_at ? `Updated ${new Date(data.updated_at).toLocaleString()} • Source: ${data.source}` : "";
-    }
-
-    function renderRoadworks(data){
-      const wrap=$("#roadList"), meta=$("#roadMeta"); wrap.innerHTML="";
-      (data.items||[]).slice(0,8).forEach(it=>{
-        const map= (it.lat&&it.lon)?` · <a class="link" href="https://maps.google.com/?q=${it.lat},${it.lon}" target="_blank">Map</a>`:"";
-        const el=document.createElement("div");
-        el.className="border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2";
-        el.innerHTML=`<div class="text-sm"><strong>${it.name}</strong> ${it.kind?`· ${it.kind}`:""} ${it.distance_km!=null?`· ${it.distance_km} km`:""} ${map}</div>`;
-        wrap.appendChild(el);
-      });
-      meta.textContent = data.source || "";
-    }
-
-    function renderCityUpdates(data){
-      const list=$("#cityList"); list.innerHTML="";
-      if((data.items||[]).length===0){
-        // Helpful, not “coming soon”
-        const city = encodeURIComponent(current.place||"");
-        const st = encodeURIComponent(current.state||"");
-        list.innerHTML = `<div class="muted">No city feed here yet. Try official notices:
-          <a class="link" target="_blank" href="https://www.google.com/search?q=site:.gov+${city}+${st}+roadwork+OR+notices+OR+construction">Search</a>.
-        </div>`;
-        return;
-      }
-      (data.items||[]).slice(0,8).forEach(i=>{
-        const el=document.createElement("div");
-        el.className="border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2";
-        el.innerHTML=`<div><strong>${i.type||"Update"}</strong> — ${i.detail||i.status||""}</div>
-                      <div class="text-xs muted">${i.address||""} ${i.created?"· "+new Date(i.created).toLocaleString():""}</div>`;
-        list.appendChild(el);
+        const div=document.createElement("div");
+        div.className="border border-slate-200 rounded-xl px-3 py-2";
+        div.innerHTML=`
+          <div class="flex items-center justify-between">
+            <div class="text-sm">${d.date}</div>
+            <div class="text-sm">${d.icon} ${d.summary}</div>
+          </div>
+          <div class="text-xs muted mt-1">High ${d.tmax_c}°C · Low ${d.tmin_c}°C · Precip ${d.precip_pct}%</div>
+        `;
+        list.appendChild(div);
       });
     }
 
-    function renderVoter(data){
-      const b=$("#voterBlock"); const st=data.state?.name||""; const links=data.links||{};
-      b.innerHTML = `
-        <div>State: <strong>${st}</strong></div>
-        <div class="flex flex-col gap-2 mt-2">
-          <a class="btn" target="_blank" href="${links.register}">📝 Register to Vote (Vote.gov)</a>
-          <a class="btn" target="_blank" href="${links.state_office}">🏛️ Your State Election Office</a>
-          <a class="btn" target="_blank" href="${links.how_to_vote}">📘 How to Vote / Rules</a>
-          <a class="btn" target="_blank" href="${links.county_directory}">📇 County Election Contacts</a>
-        </div>`;
-    }
-
-    function renderNewsButtons(city, st){
-      const cityQ = encodeURIComponent(`${city} ${st}`);
-      const localGov = `https://news.google.com/search?q=${encodeURIComponent(city + " " + st + " site:.gov OR site:.us")}`;
-      const national = "https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en";
-      const world = "https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx1YlY4U0FtVnVLQUFQAQ?hl=en-US&gl=US&ceid=US:en";
-      $("#newsButtons").innerHTML = `
-        <a class="btn" target="_blank" href="${localGov}">🏛️ Local (official)</a>
-        <a class="btn" target="_blank" href="${national}">🇺🇸 National</a>
-        <a class="btn" target="_blank" href="${world}">🌍 International</a>`;
-      // Simple list of suggested queries (no scraping)
-      $("#newsList").innerHTML = `
-        <div>Try these queries:</div>
-        <ul class="list-disc pl-5">
-          <li><a class="link" target="_blank" href="https://news.google.com/search?q=${cityQ}+infrastructure">${city} ${st} infrastructure</a></li>
-          <li><a class="link" target="_blank" href="https://news.google.com/search?q=${cityQ}+education">${city} ${st} education</a></li>
-          <li><a class="link" target="_blank" href="https://news.google.com/search?q=${cityQ}+public+safety">${city} ${st} public safety</a></li>
-        </ul>`;
-    }
-
-    function updateEmergencyLinks(place, state){
-      const city = encodeURIComponent(place || "");
-      const st = encodeURIComponent(state || "");
-      $("#nonEmergencyLink").innerHTML = `<a class="link" target="_blank" href="https://www.google.com/search?q=non+emergency+police+${city}+${st}+phone">Find number</a>`;
-      $("#sr311Link").innerHTML = `<a class="link" target="_blank" href="https://www.google.com/search?q=report+311+issue+${city}+${st}">Open 311</a>`;
-      renderNewsButtons(place||"", state||"");
-    }
-
-    // Feedback
+    // ----- Feedback -----
     async function loadFeedback(){
       try{
         const j = await fetchJSON(`${BACKEND_BASE}/feedback?limit=50`);
         const list=$("#fbList"); list.innerHTML="";
         (j.items||[]).forEach(it=>{
+          const stars = "⭐".repeat(Math.max(1, Math.min(5, it.rating || 0)));
           const el=document.createElement("div");
-          el.className="border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2";
-          el.innerHTML=`<div class="text-sm"><strong>${it.name}</strong> <span class="muted">&lt;${it.email}&gt;</span></div>
-                        <div class="text-sm mt-1">${it.message.replace(/[<>&]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[s]))}</div>
+          el.className="border border-slate-200 rounded-lg px-3 py-2";
+          el.innerHTML=`<div class="text-sm"><strong>${it.name}</strong> <span class="muted">&lt;${it.email}&gt;</span> · <span>${stars}</span></div>
+                        <div class="text-sm mt-1">${(it.message||"").replace(/[<>&]/g,s=>({"<":"&lt;",">":"&gt;","&":"&amp;"}[s]))}</div>
                         <div class="text-xs muted mt-1">${new Date(it.created_at).toLocaleString()}</div>`;
           list.appendChild(el);
         });
-      }catch(e){ console.warn("feedback load", e); }
+      }catch(e){}
     }
-
     async function submitFeedback(e){
       e.preventDefault();
+      if ($("#fbCompany").value) { $("#fbStatus").textContent="Thanks!"; return; } // honeypot
       const name=$("#fbName").value.trim();
       const email=$("#fbEmail").value.trim();
       const message=$("#fbMsg").value.trim();
+      const rating=parseInt($("#fbRating").value||"5",10);
       $("#fbStatus").textContent="Sending…";
       try{
         const r = await fetch(`${BACKEND_BASE}/feedback`, {
           method:"POST", headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ name, email, message })
+          body: JSON.stringify({ name, email, message, rating })
         });
         if(!r.ok) throw new Error(`${r.status}`);
         $("#fbName").value=""; $("#fbEmail").value=""; $("#fbMsg").value="";
-        $("#fbStatus").textContent="Thanks for your feedback!";
+        $("#fbStatus").textContent="Thanks!";
         loadFeedback();
       }catch(e){ $("#fbStatus").textContent="Failed to send feedback."; }
     }
 
-    // Main search flow
-    let current = { zip:"", place:"", state:"" };
+    // star picker
+    (()=>{
+      const stars=$("#fbStars").querySelectorAll("button");
+      function paint(n){ stars.forEach((b,i)=>{ b.textContent = i < n ? "⭐" : "☆"; }); }
+      stars.forEach(b=> b.addEventListener("click", ()=>{
+        const v=parseInt(b.dataset.v,10); $("#fbRating").value=String(v); paint(v);
+      }));
+      paint(parseInt($("#fbRating").value,10)||5);
+    })();
+
+    // ----- Run search -----
     async function run(){
-      const zip=($("#zipInput").value||"").trim(); if(!zip){ setStatus("Enter a ZIP to search."); return; }
-      setStatus("Loading…"); qsParam("zip", zip); saveHistory(zip);
+      const z = ($("#zipInput").value||"").trim();
+      if(!/^\d{5}(-\d{4})?$/.test(z)){ setStatus("Please enter a valid 5‑digit US ZIP."); return; }
+      setStatus("Loading…");
       try{
-        const officials = await fetchJSON(`${BACKEND_BASE}/officials?zip=${encodeURIComponent(zip)}`);
-        current = { zip, place: officials.place, state: officials.state?.abbr };
-        renderOfficials(officials);
-        setStatus(`Loaded for ${officials.place}, ${officials.state?.abbr||""}`);
-
-        // Weather
-        try{ renderWeather(await fetchJSON(`${BACKEND_BASE}/weather?zip=${zip}`)); }catch(e){ console.warn(e); }
-
-        // Roadworks
-        try{ renderRoadworks(await fetchJSON(`${BACKEND_BASE}/roadworks?zip=${zip}`)); }catch(e){ console.warn(e); }
-
-        // City Updates
-        try{ renderCityUpdates(await fetchJSON(`${BACKEND_BASE}/city/updates?zip=${zip}`)); }catch(e){ console.warn(e); }
-
-        // Voter info
-        try{ renderVoter(await fetchJSON(`${BACKEND_BASE}/voter?zip=${zip}`)); }catch(e){ console.warn(e); }
-
-      }catch(e){ console.error(e); setStatus(`Fetch error: ${e.message}`, "error"); }
+        await Promise.all([loadOfficials(z), loadWeather(z)]);
+        setStatus(`Showing results for ${z}`);
+        addToHistory(z);
+      }catch(e){ setStatus("Failed to load data."); }
+      const url = new URL(location.href); url.searchParams.set("zip", z); history.replaceState({}, "", url);
     }
 
-    // Buttons and init
-    $("#goBtn").addEventListener("click", run);
-    $("#zipInput").addEventListener("keydown", e=>{ if(e.key==="Enter") run(); });
-    $("#locBtn").addEventListener("click", locateMe);
-    $("#shareBtn").addEventListener("click", async ()=>{ try{ await navigator.clipboard.writeText(location.href); setStatus("Share link copied."); }catch{ setStatus("Copy failed — copy URL manually.","error"); } });
-    $("#clearBtn").addEventListener("click", ()=>{ localStorage.removeItem(HISTORY_KEY); renderHistory(); setStatus("History cleared."); });
+    // ----- Use my location -----
+    async function useMyLocation(){
+      setStatus("Getting your location…");
+      if(!navigator.geolocation){ setStatus("Geolocation not available."); return; }
+      navigator.geolocation.getCurrentPosition(async (pos)=>{
+        try{
+          const {latitude, longitude}=pos.coords||{};
+          const r = await fetchJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          const zip = r.postcode || r.localityInfo?.Informative?.find(x=>x.description==="Postcode")?.name;
+          if(zip){
+            $("#zipInput").value = zip;
+            run();
+          } else {
+            setStatus("Could not determine ZIP from your location.");
+          }
+        }catch(e){ setStatus("Could not determine ZIP from your location."); }
+      }, ()=>setStatus("Location permission denied."));
+    }
+
+    // ----- Events -----
+    $("#searchBtn").addEventListener("click", run);
+    $("#zipInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") run(); });
+    $("#useLocBtn").addEventListener("click", useMyLocation);
+    $("#copyLinkBtn").addEventListener("click", ()=>{
+      const z = ($("#zipInput").value||"").trim();
+      const u = new URL(location.href); if(z) u.searchParams.set("zip", z);
+      navigator.clipboard.writeText(u.toString()); setStatus("Share link copied.");
+    });
+    $("#clearBtn").addEventListener("click", ()=>{ localStorage.removeItem("zipHistory"); renderHistory(); setStatus("History cleared."); });
+
+    // About modal
     $("#aboutBtn").addEventListener("click", ()=>$("#aboutDlg").showModal());
-    $("#aboutClose").addEventListener("click", ()=>$("#aboutDlg").close());
+    $("#aboutCloseBtn").addEventListener("click", ()=>$("#aboutDlg").close());
+
+    // Feedback modal
+    $("#fbOpenBtn").addEventListener("click", ()=>{ $("#fbDlg").showModal(); loadFeedback(); });
+    $("#fbCloseBtn").addEventListener("click", ()=>$("#fbDlg").close());
     $("#fbForm").addEventListener("submit", submitFeedback);
 
-    $("#year").textContent=new Date().getFullYear();
-    renderHistory();
-    loadFeedback();
-
-    const urlZip=new URL(location.href).searchParams.get("zip"); if(urlZip){ $("#zipInput").value=urlZip; run(); }
+    // Init from URL or history
+    (function init(){
+      renderHistory();
+      const params = new URL(location.href).searchParams;
+      const z = params.get("zip");
+      if(z){ $("#zipInput").value=z; run(); }
+    })();
   </script>
 </body>
 </html>
