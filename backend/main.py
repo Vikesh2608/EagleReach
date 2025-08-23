@@ -1,13 +1,12 @@
-# backend/main.py
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr
 from typing import Optional, Dict, Any, Tuple, List
-import httpx, asyncio, time, math
-from datetime import datetime, timedelta
+import httpx, asyncio, datetime, time, math
 
 app = FastAPI(title="EagleReach Backend (Open Data)")
 
+# ---- Allow GitHub Pages + localhost ----
 ALLOWED = [
     "https://vikesh2608.github.io",
     "http://localhost:8000",
@@ -16,24 +15,23 @@ ALLOWED = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- Open-data/3rd-party endpoints -------------------------------------------
-ZIPPOP           = "https://api.zippopotam.us/us"
-FCC              = "https://geo.fcc.gov/api/census/block/find"
-GOVTRACK         = "https://www.govtrack.us/api/v2"
-WIKIDATA_SPARQL  = "https://query.wikidata.org/sparql"
-OVERPASS         = "https://overpass-api.de/api/interpreter"
-NYC_311          = "https://data.cityofnewyork.us/resource/erm2-nwe9.json"
-CHI_311          = "https://data.cityofchicago.org/resource/v6vf-nfxy.json"
-OPEN_METEO       = "https://api.open-meteo.com/v1/forecast"
+# ---- Open-data sources (no API keys) ----
+ZIPPOP = "https://api.zippopotam.us/us"
+FCC = "https://geo.fcc.gov/api/census/block/find"
+GOVTRACK = "https://www.govtrack.us/api/v2"
+WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
+OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
 
-UA = {"User-Agent": "EagleReach/1.4 (contact: vikebairam@gmail.com)"}
+UA = {"User-Agent": "EagleReach/2.0 (contact: vikebairam@gmail.com)"}
 
-# --- Tiny TTL cache -----------------------------------------------------------
+def _esc(s): return (s or "").strip()
+
+# ---- tiny in-memory TTL cache ----
 _cache: Dict[str, Tuple[float, Any]] = {}
 def cache_get(key: str):
     v = _cache.get(key)
@@ -45,8 +43,6 @@ def cache_get(key: str):
 def cache_set(key: str, data: Any, ttl: int = 300):
     _cache[key] = (time.time() + ttl, data)
 
-def _esc(s): return (s or "").strip()
-
 def haversine_km(lat1, lon1, lat2, lon2):
     R=6371.0
     p1=math.radians(lat1); p2=math.radians(lat2)
@@ -54,26 +50,24 @@ def haversine_km(lat1, lon1, lat2, lon2):
     a=math.sin(dphi/2)**2 + math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
     return 2*R*math.asin(math.sqrt(a))
 
-def fallback_search_url(name:str, state_abbr:str, office:str):
-    q = f"{name} {state_abbr} {office} official site"
-    return "https://www.google.com/search?q=" + httpx.QueryParams({"q": q})["q"]
-
 @app.get("/health")
 def health():
     return {
         "ok": True,
-        "backend_version": "1.4.0",
-        "sources": ["zippopotam.us", "FCC", "GovTrack", "Wikidata", "OpenStreetMap Overpass", "Open‑Meteo", "NYC 311", "Chicago 311"]
+        "backend_version": "2.0-open-data",
+        "sources": ["zippopotam.us", "FCC Census Block", "GovTrack", "Wikidata", "Open‑Meteo"],
     }
 
-# ---- ZIP -> lat/lon/place/state ---------------------------------------------
-async def fetch_zip(zip_code: str):
+# ---------- ZIP/Place ----------
+async def fetch_zip(zip_code:str):
+    """ZIP -> {state_abbr, state_name, place_name, lat, lon}"""
     zip_code = _esc(zip_code)
+    url = f"{ZIPPOP}/{zip_code}"
     ck = f"zip:{zip_code}"
     c = cache_get(ck)
     if c: return c
     async with httpx.AsyncClient(timeout=15, headers=UA) as client:
-        r = await client.get(f"{ZIPPOP}/{zip_code}")
+        r = await client.get(url)
         if r.status_code == 404:
             raise HTTPException(404, f"ZIP {zip_code} not found")
         r.raise_for_status()
@@ -89,77 +83,86 @@ async def fetch_zip(zip_code: str):
         cache_set(ck, out, 3600)
         return out
 
-# ---- Congressional District via FCC -----------------------------------------
-async def fetch_cd(lat: float, lon: float):
+async def fetch_cd(lat:float, lon:float):
+    """lat/lon -> congressional district number (string or None)"""
+    params = {"latitude": lat, "longitude": lon, "format": "json", "showall": "false"}
     ck = f"cd:{lat:.4f},{lon:.4f}"
     c = cache_get(ck)
     if c: return c
     async with httpx.AsyncClient(timeout=15, headers=UA) as client:
-        r = await client.get(FCC, params={"latitude":lat,"longitude":lon,"format":"json","showall":"false"})
+        r = await client.get(FCC, params=params)
         r.raise_for_status()
         j = r.json()
-    cd_obj = j.get("CongressionalDistrict")
-    num = None
-    if isinstance(cd_obj, dict):
-        num = _esc(cd_obj.get("code") or "").lstrip("0") or None
-    out = {"district": num}
-    cache_set(ck, out, 3600)
-    return out
+        cd_obj = j.get("CongressionalDistrict")
+        num: Optional[str] = None
+        if isinstance(cd_obj, dict):
+            num = _esc(cd_obj.get("code") or "").lstrip("0") or None
+        out = {"district": num}
+        cache_set(ck, out, 3600)
+        return out
 
-# ---- Congress (GovTrack) ----------------------------------------------------
-async def fetch_senators(state_abbr: str):
+def fallback_search_url(name:str, state_abbr:str, office:str):
+    import urllib.parse as up
+    q = f"{name} {state_abbr} {office} official site"
+    return f"https://www.google.com/search?q={up.quote(q)}"
+
+# ---------- Congress & Mayor ----------
+async def fetch_senators(state_abbr:str):
+    url = f"{GOVTRACK}/role"
+    params = {"current": "true", "role_type": "senator", "state": state_abbr.upper()}
     ck = f"sen:{state_abbr}"
     c = cache_get(ck)
     if c: return c
-    params = {"current":"true","role_type":"senator","state":state_abbr.upper()}
     async with httpx.AsyncClient(timeout=20, headers=UA) as client:
-        r = await client.get(f"{GOVTRACK}/role", params=params)
+        r = await client.get(url, params=params)
         r.raise_for_status()
         j = r.json()
-    rows=[]
-    for it in j.get("objects", []):
-        p = it.get("person", {}) or {}
-        name = p.get("name") or p.get("name_long")
-        website = it.get("website") or p.get("link") or fallback_search_url(name, state_abbr, "United States Senator")
-        rows.append({
-            "name": name,
-            "office": "United States Senator",
-            "party": it.get("party"),
-            "phones": [it.get("phone")] if it.get("phone") else [],
-            "emails": [],
-            "urls": [website] if website else [],
-        })
-    cache_set(ck, rows, 3600)
-    return rows
+        rows = []
+        for it in j.get("objects", []):
+            p = it.get("person", {}) or {}
+            name = p.get("name") or p.get("name_long")
+            website = it.get("website") or p.get("link") or fallback_search_url(name, state_abbr, "United States Senator")
+            phone = it.get("phone")
+            rows.append({
+                "name": name,
+                "office": "United States Senator",
+                "party": it.get("party"),
+                "phones": [phone] if phone else [],
+                "emails": [],
+                "urls": [website] if website else [],
+            })
+        cache_set(ck, rows, 3600)
+        return rows
 
-async def fetch_rep(state_abbr: str, district: Optional[str]):
+async def fetch_rep(state_abbr:str, district: Optional[str]):
     if not district: return []
+    url = f"{GOVTRACK}/role"
+    params = {"current": "true", "role_type": "representative", "state": state_abbr.upper(), "district": district}
     ck = f"rep:{state_abbr}:{district}"
     c = cache_get(ck)
     if c: return c
-    params = {"current":"true","role_type":"representative","state":state_abbr.upper(),"district":district}
     async with httpx.AsyncClient(timeout=20, headers=UA) as client:
-        r = await client.get(f"{GOVTRACK}/role", params=params)
+        r = await client.get(url, params=params)
         r.raise_for_status()
         j = r.json()
-    rows=[]
-    for it in j.get("objects", []):
-        p = it.get("person", {}) or {}
-        name = p.get("name") or p.get("name_long")
-        website = it.get("website") or p.get("link") or fallback_search_url(name, state_abbr, f"United States Representative CD {district}")
-        rows.append({
-            "name": name,
-            "office": f"United States Representative (CD {district})",
-            "party": it.get("party"),
-            "phones": [it.get("phone")] if it.get("phone") else [],
-            "emails": [],
-            "urls": [website] if website else [],
-        })
-    cache_set(ck, rows, 3600)
-    return rows
+        rows = []
+        for it in j.get("objects", []):
+            p = it.get("person", {}) or {}
+            name = p.get("name") or p.get("name_long")
+            website = it.get("website") or p.get("link") or fallback_search_url(name, state_abbr, f"United States Representative CD {district}")
+            phone = it.get("phone")
+            rows.append({
+                "name": name,
+                "office": f"United States Representative (CD {district})",
+                "party": it.get("party"),
+                "phones": [phone] if phone else [],
+                "emails": [],
+                "urls": [website] if website else [],
+            })
+        cache_set(ck, rows, 3600)
+        return rows
 
-# ---- Mayor via Wikidata (best effort) ---------------------------------------
-async def fetch_mayor(place_name: str, state_name: str):
+async def fetch_mayor(place_name:str, state_name:str):
     city = _esc(place_name); st = _esc(state_name)
     if not city or not st: return []
     q = f"""
@@ -182,22 +185,26 @@ async def fetch_mayor(place_name: str, state_name: str):
         if r.status_code != 200:
             cache_set(ck, [], 600); return []
         j = r.json()
-    b = j.get("results", {}).get("bindings", []) or []
-    if not b:
-        cache_set(ck, [], 600); return []
-    name = b[0].get("personLabel", {}).get("value")
-    site = b[0].get("website", {}).get("value")
-    url = site or fallback_search_url(name, st, "Mayor")
-    if not name:
-        cache_set(ck, [], 600); return []
-    out = [{
-        "name": name, "office": "Mayor", "party": None,
-        "phones": [], "emails": [], "urls": [url] if url else []
-    }]
-    cache_set(ck, out, 3600)
-    return out
+        b = j.get("results", {}).get("bindings", []) or []
+        if not b:
+            cache_set(ck, [], 600); return []
+        name = b[0].get("personLabel", {}).get("value")
+        site = b[0].get("website", {}).get("value")
+        url = site or fallback_search_url(name, st, "Mayor")
+        if not name:
+            cache_set(ck, [], 600); return []
+        out = [{
+            "name": name,
+            "office": "Mayor",
+            "party": None,
+            "phones": [],
+            "emails": [],
+            "urls": [url] if url else [],
+        }]
+        cache_set(ck, out, 3600)
+        return out
 
-def normalize(rows: List[Dict[str, Any]]):
+def normalize(rows):
     def w(row):
         off = (row.get("office") or "").lower()
         if "united states senator" in off: return 0
@@ -211,214 +218,126 @@ async def officials(zip: str = Query(..., min_length=5, max_length=10)):
     z = await fetch_zip(zip)
     state_abbr, state_name, place = z["state_abbr"], z["state_name"], z["place_name"]
     lat, lon = z["lat"], z["lon"]
+
     cd_task     = asyncio.create_task(fetch_cd(lat, lon))
-    sen_task    = asyncio.create_task(fetch_senators(state_abbr))
+    senate_task = asyncio.create_task(fetch_senators(state_abbr))
     mayor_task  = asyncio.create_task(fetch_mayor(place, state_name))
+
     cd = await cd_task
     district = cd.get("district")
-    rep_rows = await fetch_rep(state_abbr, district)
-    sen_rows, mayor_rows = await asyncio.gather(sen_task, mayor_task)
+    rep_rows  = await fetch_rep(state_abbr, district)
+    sen_rows, mayor_rows = await asyncio.gather(senate_task, mayor_task)
+
     rows = normalize(sen_rows + rep_rows + mayor_rows)
+
     return {
+        "ok": True,
         "zip": zip,
         "state": {"abbr": state_abbr, "name": state_name},
         "place": place,
         "location": {"lat": lat, "lon": lon},
         "district": district,
         "officials": rows,
-        "generated_at": datetime.utcnow().isoformat(timespec="seconds")+"Z",
+        "generated_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "sources": {
+            "zip": "zippopotam.us",
+            "district": "FCC Census Block",
+            "congress": "GovTrack",
+            "mayor": "Wikidata",
+        }
     }
 
-# ---- Weather (Open‑Meteo) with conditions -----------------------------------
-WEATHER_CODES = {
-  0:"Clear",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",
-  45:"Fog",48:"Depositing rime fog",
-  51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",
-  56:"Freezing drizzle",57:"Freezing drizzle",
-  61:"Light rain",63:"Rain",65:"Heavy rain",
-  66:"Freezing rain",67:"Freezing rain",
-  71:"Light snow",73:"Snow",75:"Heavy snow",
-  77:"Snow grains",
-  80:"Rain showers",81:"Rain showers",82:"Violent rain showers",
-  85:"Snow showers",86:"Heavy snow showers",
-  95:"Thunderstorm",96:"Thunderstorm w/ hail",99:"Thunderstorm w/ hail"
+# ---------- Weather (Open‑Meteo) ----------
+# Weather code mapping (Open‑Meteo doc)
+W_CODE = {
+    0: ("Clear", "☀️"), 1: ("Mainly clear", "🌤️"), 2: ("Partly cloudy", "⛅"),
+    3: ("Overcast", "☁️"), 45: ("Fog", "🌫️"), 48: ("Depositing rime fog", "🌫️"),
+    51: ("Light drizzle", "🌦️"), 53: ("Drizzle", "🌦️"), 55: ("Heavy drizzle", "🌧️"),
+    56: ("Freezing drizzle", "🌧️"), 57: ("Freezing drizzle", "🌧️"),
+    61: ("Light rain", "🌧️"), 63: ("Rain", "🌧️"), 65: ("Heavy rain", "🌧️"),
+    66: ("Freezing rain", "🌧️"), 67: ("Freezing rain", "🌧️"),
+    71: ("Light snow", "🌨️"), 73: ("Snow", "🌨️"), 75: ("Heavy snow", "❄️"),
+    77: ("Snow grains", "🌨️"),
+    80: ("Rain showers", "🌧️"), 81: ("Rain showers", "🌧️"), 82: ("Violent rain showers", "⛈️"),
+    85: ("Snow showers", "🌨️"), 86: ("Heavy snow showers", "❄️"),
+    95: ("Thunderstorm", "⛈️"), 96: ("Thunder + hail", "⛈️"), 99: ("Thunder + hail", "⛈️"),
 }
-def wx_emoji(code:int):
-    if code in (0,1): return "☀️"
-    if code in (2,3): return "☁️"
-    if code in (61,63,65,80,81,82): return "🌧️"
-    if code in (71,73,75,85,86,77): return "❄️"
-    if code in (95,96,99): return "⛈️"
-    if code in (45,48): return "🌫️"
-    if code in (51,53,55): return "🌦️"
-    return "🌤️"
+def code_to_text(code:int):
+    return W_CODE.get(code, ("Weather", "🌤️"))
 
 @app.get("/weather")
-async def weather(zip: str):
-    try:
-        z = await fetch_zip(zip)
-        lat, lon = z["lat"], z["lon"]
-        params = {
-            "latitude": lat, "longitude": lon,
-            "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode",
-            "forecast_days": 7, "timezone": "auto",
-        }
-        async with httpx.AsyncClient(timeout=15, headers={"Accept":"application/json", **UA}) as client:
-            r = await client.get(OPEN_METEO, params=params)
-            r.raise_for_status()
-            j = r.json()
-        daily = j.get("daily", {}) or {}
-        out=[]
-        t, tmax, tmin, ppop, codes = daily.get("time",[]), daily.get("temperature_2m_max",[]), daily.get("temperature_2m_min",[]), daily.get("precipitation_probability_max",[]), daily.get("weathercode",[])
-        n = min(len(t), len(tmax), len(tmin), len(ppop), len(codes))
-        for i in range(n):
-            code = int(codes[i]) if codes[i] is not None else 0
-            out.append({
-                "date": t[i],
-                "tmax_c": tmax[i],
-                "tmin_c": tmin[i],
-                "precip_pct": ppop[i],
-                "code": code,
-                "condition": WEATHER_CODES.get(code, "—"),
-                "icon": wx_emoji(code)
-            })
-        return {
-            "zip": zip, "place": z.get("place_name"), "state": z.get("state_abbr"),
-            "lat": lat, "lon": lon, "days": out,
-            "updated_at": datetime.utcnow().isoformat(timespec="seconds")+"Z",
-            "source": "Open‑Meteo"
-        }
-    except Exception as e:
-        print(f"/weather error {zip}: {e}")
-        return {"zip": zip, "days": [], "error": "Weather temporarily unavailable"}
-
-# ---- Roadworks (OSM) --------------------------------------------------------
-@app.get("/roadworks")
-async def roadworks(zip: str, radius_km: float = 10.0):
+async def get_weather(zip: str = Query(..., min_length=5, max_length=10)):
     z = await fetch_zip(zip)
     lat, lon = z["lat"], z["lon"]
-    q = f"""
-    [out:json][timeout:25];
-    (
-      node(around:{int(radius_km*1000)},{lat},{lon})[highway=construction];
-      way(around:{int(radius_km*1000)},{lat},{lon})[highway=construction];
-      relation(around:{int(radius_km*1000)},{lat},{lon})[highway=construction];
-      way(around:{int(radius_km*1000)},{lat},{lon})[construction];
-      relation(around:{int(radius_km*1000)},{lat},{lon})[construction];
-    );
-    out center tags 50;
-    """
-    async with httpx.AsyncClient(timeout=30, headers={**UA, "Accept":"application/json"}) as client:
-        r = await client.post(OVERPASS, data={"data": q})
+    params = {
+        "latitude": lat, "longitude": lon,
+        "daily": "weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+        "forecast_days": 7,
+        "timezone": "auto",
+    }
+    async with httpx.AsyncClient(timeout=20, headers=UA) as client:
+        r = await client.get(OPEN_METEO, params=params)
         r.raise_for_status()
         j = r.json()
-    items=[]
-    for el in j.get("elements", []):
-        tags = el.get("tags", {}) or {}
-        n = tags.get("name") or tags.get("road") or "Road works"
-        typ = tags.get("construction") or tags.get("highway")
-        when = tags.get("opening_date") or tags.get("start_date") or None
-        center = el.get("center") or {}
-        el_lat = el.get("lat") or center.get("lat")
-        el_lon = el.get("lon") or center.get("lon")
-        dist = None
-        if el_lat is not None and el_lon is not None:
-            dist = round(haversine_km(lat, lon, el_lat, el_lon), 1)
-        items.append({"name": n, "kind": typ, "when": when, "lat": el_lat, "lon": el_lon, "distance_km": dist})
-    items.sort(key=lambda x: (x["distance_km"] if x["distance_km"] is not None else 9e9))
-    return {"zip": zip, "location":{"lat":lat,"lon":lon}, "radius_km": radius_km, "items": items[:30], "count": len(items), "source":"OpenStreetMap Overpass"}
+    daily = j.get("daily", {})
+    times  = daily.get("time", [])
+    maxs   = daily.get("temperature_2m_max", [])
+    mins   = daily.get("temperature_2m_min", [])
+    pops   = daily.get("precipitation_probability_max", [])
+    codes  = daily.get("weathercode", [])
 
-# ---- City Updates (NYC & Chicago 311) ---------------------------------------
-def _since_iso(days: int) -> str:
-    return (datetime.utcnow() - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%S")
-
-@app.get("/city/updates")
-async def city_updates(zip: str, radius_km: float = 5.0, days: int = 14):
-    z = await fetch_zip(zip)
-    place = (z["place_name"] or "").lower()
-    state = (z["state_abbr"] or "").upper()
-    lat, lon = z["lat"], z["lon"]
-    meters = int(max(0.5, radius_km) * 1000)
-    since  = _since_iso(days)
-
-    if state == "NY" and ("new york" in place or place in {"manhattan","brooklyn","queens","bronx","staten island"}):
-        params = {"$select":"complaint_type,descriptor,status,incident_address,created_date",
-                  "$where": f"within_circle(location,{lat},{lon},{meters}) AND created_date > '{since}'",
-                  "$order":"created_date DESC", "$limit":"25"}
-        async with httpx.AsyncClient(timeout=20, headers=UA) as client:
-            r = await client.get(NYC_311, params=params)
-            r.raise_for_status()
-            rows = r.json()
-        items = [{"type":i.get("complaint_type"),"detail":i.get("descriptor"),"status":i.get("status"),
-                  "address":i.get("incident_address"),"created":i.get("created_date")} for i in rows]
-        return {"zip":zip,"city":"New York City, NY","location":{"lat":lat,"lon":lon},"since":since,"radius_km":radius_km,
-                "items":items,"count":len(items),"source":"NYC Open Data (311)"}
-
-    if state == "IL" and "chicago" in place:
-        params = {"$select":"service_name,status,street_address,creation_date",
-                  "$where": f"within_circle(location,{lat},{lon},{meters}) AND creation_date > '{since}'",
-                  "$order":"creation_date DESC", "$limit":"25"}
-        async with httpx.AsyncClient(timeout=20, headers=UA) as client:
-            r = await client.get(CHI_311, params=params)
-            r.raise_for_status()
-            rows = r.json()
-        items = [{"type":i.get("service_name"),"status":i.get("status"),
-                  "address":i.get("street_address"),"created":i.get("creation_date")} for i in rows]
-        return {"zip":zip,"city":"Chicago, IL","location":{"lat":lat,"lon":lon},"since":since,"radius_km":radius_km,
-                "items":items,"count":len(items),"source":"Chicago Open Data (311)"}
-
-    # Return empty gracefully; UI will NOT show any “coming soon” text.
-    return {"zip": zip, "location":{"lat":lat,"lon":lon}, "items": [], "count": 0}
-
-# ---- Voter Info --------------------------------------------------------------
-STATE_OFFICE_SEARCH = "https://www.google.com/search?q={state}+election+office+site:.gov"
-VOTE_GOV = "https://www.vote.gov/"
-NASS = "https://www.nass.org/can-I-vote"
-EAC_DIR = "https://www.eac.gov/voters/election-day-contact-information"
-
-@app.get("/voter")
-async def voter(zip: str):
-    z = await fetch_zip(zip)
-    state = z["state_name"]; abbr = z["state_abbr"]
+    days = []
+    for i in range(min(len(times), len(maxs), len(mins), len(pops), len(codes))):
+        text, icon = code_to_text(int(codes[i]))
+        days.append({
+            "date": times[i],
+            "tmax_c": maxs[i],
+            "tmin_c": mins[i],
+            "precip_pct": pops[i],
+            "code": codes[i],
+            "summary": text,
+            "icon": icon
+        })
     return {
+        "ok": True,
         "zip": zip,
-        "state": {"name": state, "abbr": abbr},
-        "links": {
-            "register": VOTE_GOV,
-            "state_office": STATE_OFFICE_SEARCH.format(state=state.replace(" ","+")),
-            "how_to_vote": NASS,
-            "county_directory": EAC_DIR
-        }
+        "place": z.get("place_name"),
+        "state": z.get("state_abbr"),
+        "lat": lat, "lon": lon,
+        "days": days,
+        "updated_at": datetime.datetime.utcnow().isoformat(timespec="seconds")+"Z",
+        "source": "Open‑Meteo"
     }
 
-# ---- Feedback / Comments (in‑memory) ----------------------------------------
+# ---------- Feedback (in-memory) ----------
+FEEDBACK: List[Dict[str, Any]] = []
+
 class FeedbackIn(BaseModel):
-    name: str = Field(..., min_length=1, max_length=80)
-    email: EmailStr
-    message: str = Field(..., min_length=3, max_length=1000)
-
-class FeedbackOut(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     message: str
-    created_at: str
-
-_FEEDBACK: List[FeedbackOut] = []
-
-@app.post("/feedback", response_model=FeedbackOut)
-def post_feedback(item: FeedbackIn):
-    obj = FeedbackOut(
-        name=item.name.strip(),
-        email=str(item.email),
-        message=item.message.strip(),
-        created_at=datetime.utcnow().isoformat(timespec="seconds")+"Z"
-    )
-    # Keep latest 200; newest first
-    _FEEDBACK.insert(0, obj)
-    del _FEEDBACK[200:]
-    return obj
+    rating: int = 5
 
 @app.get("/feedback")
-def list_feedback(limit: int = 50):
-    limit = max(1, min(200, limit))
-    return {"count": min(limit, len(_FEEDBACK)), "items": _FEEDBACK[:limit]}
+def get_feedback(limit: int = 50):
+    return {"items": FEEDBACK[-limit:]}
+
+@app.post("/feedback")
+def post_feedback(fd: FeedbackIn):
+    rating = max(1, min(5, fd.rating or 5))
+    item = {
+        "name": fd.name.strip(),
+        "email": fd.email,
+        "message": fd.message.strip(),
+        "rating": rating,
+        "created_at": datetime.datetime.utcnow().isoformat(timespec="seconds") + "Z",
+    }
+    FEEDBACK.append(item)
+    return {"ok": True}
+
+# simple admin utility to clear test data
+@app.delete("/feedback")
+def clear_feedback(all: bool = False):
+    if all:
+        FEEDBACK.clear()
+    return {"ok": True, "count": len(FEEDBACK)}
