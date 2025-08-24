@@ -53,7 +53,8 @@
       <button id="shareBtn" class="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-sm sm:text-base">Copy Share Link</button>
       <button id="clearBtn" class="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-sm sm:text-base">Clear history</button>
     </div>
-    <div id="status" class="text-xs text-slate-500 mt-2"></div>
+    <div id="placeLine" class="text-sm text-slate-700 mt-2"></div>
+    <div id="status" class="text-xs text-slate-500 mt-1"></div>
     <div id="history" class="flex gap-2 mt-2 flex-wrap"></div>
   </section>
 
@@ -218,14 +219,32 @@
     // -------------------- Config --------------------
     const BACKEND = "https://eaglereach-1.onrender.com";
 
-    // -------------------- Panels -------------------
+    // -------------------- Panels (Back + Esc) -------
     const overlay = document.getElementById('overlay');
-    function openPanel(id){ document.getElementById(id).classList.add('open'); overlay.classList.remove('hidden'); }
-    function closePanels(){ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open')); overlay.classList.add('hidden'); }
+    let currentPanel = null;
+    function openPanel(id, hash){
+      document.getElementById(id).classList.add('open');
+      overlay.classList.remove('hidden');
+      currentPanel = id;
+      if (hash) history.pushState({panel:id}, "", hash);
+    }
+    function closePanels(){
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
+      overlay.classList.add('hidden');
+      currentPanel = null;
+      // If there is a hash set for a panel, go back to root hash without creating a new history entry
+      if (location.hash === '#about' || location.hash === '#founder' || location.hash === '#contact') {
+        history.pushState({}, "", location.pathname + location.search);
+      }
+    }
     overlay.addEventListener('click', closePanels);
-    document.getElementById('aboutBtn').onclick = ()=>openPanel('aboutPanel');
-    document.getElementById('founderBtn').onclick = ()=>openPanel('founderPanel');
-    document.getElementById('contactBtn').onclick = ()=>openPanel('contactPanel');
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closePanels(); });
+    window.addEventListener('popstate', ()=>{ closePanels(); });
+
+    document.getElementById('aboutBtn').onclick   = ()=>openPanel('aboutPanel',   '#about');
+    document.getElementById('founderBtn').onclick = ()=>openPanel('founderPanel', '#founder');
+    document.getElementById('contactBtn').onclick = ()=>openPanel('contactPanel', '#contact');
+    document.querySelectorAll('.closePanel').forEach(b=>b.addEventListener('click', closePanels));
 
     // -------------------- Helpers -------------------
     const $ = sel => document.querySelector(sel);
@@ -241,9 +260,17 @@
     const localNews = $('#localNews');
     const worldNews = $('#worldNews');
     const trafficBtn = $('#trafficBtn');
+    const placeLine = $('#placeLine');
 
     function telLink(p){ return p ? `tel:${p.replace(/[^0-9]/g,'')}` : '#'; }
     function setStatus(txt){ statusDiv.textContent = txt || ''; }
+    function setPlaceLine(city, state, zip){
+      const bits = [];
+      if (city) bits.push(city);
+      if (state) bits.push(state);
+      if (zip) bits.push(zip);
+      placeLine.textContent = bits.length ? bits.join(" • ") : "";
+    }
 
     function pushHistory(zip){
       if(!zip) return;
@@ -277,36 +304,68 @@
       setTimeout(()=>setStatus(''),1500);
     };
 
-    // -------------------- Geolocation → ZIP ----------
+    // -------------------- Reverse Geocode (Nominatim) ----------
     async function reverseZip(lat, lon){
       const u = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
       const r = await fetch(u, { headers: { "Accept":"application/json" }});
       const j = await r.json();
-      return (j.address && j.address.postcode) ? j.address.postcode : null;
+      const zip = j?.address?.postcode || null;
+      const city = j?.address?.city || j?.address?.town || j?.address?.village || j?.address?.hamlet || "";
+      const state = j?.address?.state || "";
+      return { zip, city, state };
     }
+
     async function geolocate(){
       return new Promise((resolve,reject)=>{
         if(!navigator.geolocation) return reject(new Error('No geolocation'));
         navigator.geolocation.getCurrentPosition(resolve, reject, {enableHighAccuracy:true, timeout:15000});
       });
     }
+
+    // Use my location: detect → show (ZIP + city/state) → auto-run
     document.getElementById('locBtn').onclick = async ()=>{
       try{
         setStatus('Locating…');
         const pos = await geolocate();
         const {latitude, longitude} = pos.coords;
-        const z = await reverseZip(latitude, longitude);
-        if(z){ $('#zipInput').value = z; setStatus(`Detected ZIP ${z}. Press Search to load.`); }
-        else { setStatus('Location found. Please enter ZIP manually.'); }
-      }catch(e){ setStatus('Unable to get location. Enter ZIP manually.'); }
+        const info = await reverseZip(latitude, longitude);
+        if(info.zip){
+          $('#zipInput').value = info.zip;
+          setPlaceLine(info.city, info.state, info.zip);
+          setStatus(`Detected ${info.city ? info.city + ", " : ""}${info.state ? info.state + " " : ""}${info.zip}`);
+          await run(); // auto-load
+        }else{
+          setStatus('Location found. Please enter ZIP manually.');
+        }
+      }catch(e){
+        setStatus('Unable to get location. Enter ZIP manually.');
+      }
     };
 
+    // When user blurs zip input, fetch city/state quickly
+    $('#zipInput').addEventListener('change', async ()=>{
+      const z = $('#zipInput').value.trim();
+      if(/^\d{5}(-\d{4})?$/.test(z)){
+        try{
+          const j = await (await fetch(`${BACKEND}/zipinfo?zip=${z}`)).json();
+          setPlaceLine(j.place_name, j.state_abbr, z);
+        }catch{}
+      }
+    });
+
     document.getElementById('searchBtn').onclick = ()=>run();
-    window.addEventListener('DOMContentLoaded', ()=>{
+    window.addEventListener('DOMContentLoaded', async ()=>{
       const u = new URL(location.href);
       const z = u.searchParams.get('zip');
-      if(z){ $('#zipInput').value = z; run(); }
+      if(z){ $('#zipInput').value = z; try{
+        const j = await (await fetch(`${BACKEND}/zipinfo?zip=${z}`)).json();
+        setPlaceLine(j.place_name, j.state_abbr, z);
+      }catch{}; run(); }
       renderHistory();
+      // Handle opening panels via hash deep-link
+      if (location.hash === '#about') openPanel('aboutPanel');
+      if (location.hash === '#founder') openPanel('founderPanel');
+      if (location.hash === '#contact') openPanel('contactPanel');
     });
 
     // -------------------- Main run -------------------
@@ -319,6 +378,7 @@
       // Representatives
       try{
         const j = await (await fetch(`${BACKEND}/officials?zip=${zip}`)).json();
+        setPlaceLine(j.place, j.state?.abbr, zip); // ensure city/state visible after load
         repsList.innerHTML = '';
         (j.officials || []).forEach(o=>{
           const div = document.createElement('div');
@@ -336,7 +396,7 @@
           repsList.appendChild(div);
         });
         document.getElementById('copyEmailsBtn').onclick = ()=>{
-          const emails = []; // rarely available
+          const emails = []; // rarely available in open data
           navigator.clipboard.writeText(emails.join(", "));
           setStatus('Emails copied (if available).'); setTimeout(()=>setStatus(''),1200);
         };
@@ -369,7 +429,7 @@
         const j = await (await fetch(`${BACKEND}/voter?zip=${zip}`)).json();
         voterLinks.innerHTML = `
           <a class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-center" target="_blank" rel="noopener" href="${j.register_url}">Register to Vote</a>
-          <a class="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-center" target="_blank" rel="noopener" href="${j.polling_url}">Find Polling Place</a>
+          <a class="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-center" target="_blank" rel="noopener" href="${j.polling_url}">Find Election Office</a>
           <a class="px-3 py-2 rounded-md bg-slate-100 hover:bg-slate-200 text-center" target="_blank" rel="noopener" href="${j.howto_url}">How to Vote</a>
         `;
       }catch(e){ voterLinks.innerHTML = `<p class="text-sm text-red-600">Could not load voter info.</p>`; }
@@ -379,7 +439,7 @@
         const j = await (await fetch(`${BACKEND}/city/updates?zip=${zip}&limit=8`)).json();
         cityList.innerHTML = '';
         if((j.items || []).length === 0){
-          cityList.innerHTML = `<p class="text-sm text-slate-600">No city update feed is available for this ZIP.</p>`;
+          cityList.innerHTML = `<p class="text-sm text-slate-600">No city update feed is available for this ZIP yet.</p>`;
         }else{
           (j.items || []).forEach(it=>{
             const el = document.createElement('div');
@@ -404,7 +464,10 @@
       try{
         const j = await (await fetch(`${BACKEND}/news?zip=${zip}`)).json();
         localNews.href = j.local_url; worldNews.href = j.world_url;
-      }catch(e){ localNews.remove(); worldNews.remove(); }
+      }catch(e){
+        // If backend fails, hide links
+        localNews.remove(); worldNews.remove();
+      }
 
       // Traffic
       trafficBtn.href = `https://www.google.com/maps/@?api=1&map_action=map&layer=traffic&query=${encodeURIComponent(zip)}`;
@@ -426,9 +489,8 @@
     // -------------------- Feedback mailto (bottom) --
     (()=>{
       const starEl = $('#stars'); let rating = 5;
-      // allow click on each star (the text nodes are separated by spaces; select all characters)
       Array.from(starEl.childNodes).forEach((node, i)=>{
-        if(node.nodeType === 3) return; // skip text nodes (spaces)
+        if(node.nodeType === 3) return;
         node.addEventListener('click', ()=>{ rating = i+1; starEl.dataset.v = rating; });
       });
       $('#fbSend').onclick = ()=>{
