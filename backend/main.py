@@ -1,13 +1,11 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-import httpx, asyncio, datetime as dt, time, math, json
+import httpx, asyncio, datetime as dt, time
 from typing import Optional, Dict, Any, Tuple
 
 app = FastAPI(title="EagleReach Backend (Open Data)")
 
-# --------------------------------------------------------------------
-# CORS (GitHub Pages + local dev + allow Render preview)
-# --------------------------------------------------------------------
+# CORS
 ALLOWED = [
     "https://vikesh2608.github.io",
     "http://localhost:8000",
@@ -21,26 +19,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --------------------------------------------------------------------
-# Open data endpoints (no API keys)
-# --------------------------------------------------------------------
+# Sources (no keys)
 ZIPPOP = "https://api.zippopotam.us/us"
 FCC = "https://geo.fcc.gov/api/census/block/find"
 GOVTRACK = "https://www.govtrack.us/api/v2"
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 OPEN_METEO = "https://api.open-meteo.com/v1/forecast"
-
-# City / 311 open-data (no keys for light use)
 NYC311 = "https://data.cityofnewyork.us/resource/erm2-nwe9.json"
 CHI311 = "https://data.cityofchicago.org/resource/v6vf-nfxy.json"
 
-UA = {"User-Agent": "EagleReach/1.2 (contact: vikebairam@gmail.com)"}
+UA = {"User-Agent": "EagleReach/1.3 (contact: vikebairam@gmail.com)"}
 
 def _esc(s): return (s or "").strip()
 
-# --------------------------------------------------------------------
-# Tiny TTL cache (best-effort)
-# --------------------------------------------------------------------
+# Simple TTL cache
 _cache: Dict[str, Tuple[float, Any]] = {}
 def cache_get(key: str):
     v = _cache.get(key)
@@ -52,72 +44,45 @@ def cache_get(key: str):
 def cache_set(key: str, data: Any, ttl: int = 300):
     _cache[key] = (time.time() + ttl, data)
 
-# --------------------------------------------------------------------
-# Helpers
-# --------------------------------------------------------------------
 def fallback_search_url(name:str, state_abbr:str, office:str):
     q = f"{name} {state_abbr} {office} official site"
     return f"https://www.google.com/search?q={httpx.QueryParams({'q': q})['q']}"
 
 def first_tuesday_after_first_monday(year:int) -> dt.date:
-    # US general election rule (used here as a simple “civic anchor” date)
     d = dt.date(year, 11, 1)
-    # First Monday
-    while d.weekday() != 0:
+    while d.weekday() != 0:  # Monday=0
         d += dt.timedelta(days=1)
-    # Tuesday after that Monday
     return d + dt.timedelta(days=1)
 
-def wmo_code_to_label_icon(code:int) -> Tuple[str, str]:
-    # See https://open-meteo.com/en/docs#weathervariables
+def wmo_label_icon(code:int):
     MAP = {
         0: ("Clear", "☀️"),
         1: ("Mainly clear", "🌤️"),
         2: ("Partly cloudy", "⛅"),
         3: ("Overcast", "☁️"),
-        45: ("Fog", "🌫️"),
-        48: ("Depositing rime fog", "🌫️"),
-        51: ("Light drizzle", "🌦️"),
-        53: ("Drizzle", "🌦️"),
-        55: ("Dense drizzle", "🌧️"),
-        56: ("Freezing drizzle", "🌨️"),
-        57: ("Dense freezing drizzle", "🌨️"),
-        61: ("Light rain", "🌦️"),
-        63: ("Rain", "🌧️"),
-        65: ("Heavy rain", "🌧️"),
-        66: ("Freezing rain", "🌨️"),
-        67: ("Heavy freezing rain", "🌨️"),
-        71: ("Light snow", "🌨️"),
-        73: ("Snow", "❄️"),
-        75: ("Heavy snow", "❄️"),
+        45: ("Fog", "🌫️"), 48: ("Depositing rime fog", "🌫️"),
+        51: ("Light drizzle", "🌦️"), 53: ("Drizzle", "🌦️"), 55: ("Dense drizzle", "🌧️"),
+        56: ("Freezing drizzle", "🌨️"), 57: ("Dense freezing drizzle", "🌨️"),
+        61: ("Light rain", "🌦️"), 63: ("Rain", "🌧️"), 65: ("Heavy rain", "🌧️"),
+        66: ("Freezing rain", "🌨️"), 67: ("Heavy freezing rain", "🌨️"),
+        71: ("Light snow", "🌨️"), 73: ("Snow", "❄️"), 75: ("Heavy snow", "❄️"),
         77: ("Snow grains", "🌨️"),
-        80: ("Rain showers", "🌦️"),
-        81: ("Rain showers", "🌦️"),
-        82: ("Violent rain showers", "⛈️"),
-        85: ("Snow showers", "🌨️"),
-        86: ("Snow showers", "❄️"),
-        95: ("Thunderstorm", "⛈️"),
-        96: ("Thunderstorm w/ hail", "⛈️"),
-        99: ("Thunderstorm w/ hail", "⛈️"),
+        80: ("Rain showers", "🌦️"), 81: ("Rain showers", "🌦️"), 82: ("Violent rain showers", "⛈️"),
+        85: ("Snow showers", "🌨️"), 86: ("Snow showers", "❄️"),
+        95: ("Thunderstorm", "⛈️"), 96: ("Thunderstorm w/ hail", "⛈️"), 99: ("Thunderstorm w/ hail", "⛈️"),
     }
     return MAP.get(code, ("Weather", "⛅"))
 
-# --------------------------------------------------------------------
-# Health
-# --------------------------------------------------------------------
 @app.get("/health")
 def health():
     return {
         "ok": True,
-        "backend_version": "1.2.0-open-data",
-        "sources": ["zippopotam.us", "FCC Census Block", "GovTrack", "Wikidata", "Open‑Meteo", "NYC 311", "Chicago 311"],
+        "backend_version": "1.3.0-open-data",
+        "sources": ["zippopotam.us", "FCC", "GovTrack", "Wikidata", "Open‑Meteo", "NYC 311", "Chicago 311"],
     }
 
-# --------------------------------------------------------------------
-# ZIP -> location
-# --------------------------------------------------------------------
+# ---------- ZIP helpers ----------
 async def fetch_zip(zip_code:str):
-    """ZIP -> {state_abbr, state_name, place_name, lat, lon}"""
     url = f"{ZIPPOP}/{_esc(zip_code)}"
     ck = f"zip:{zip_code}"
     c = cache_get(ck)
@@ -139,6 +104,11 @@ async def fetch_zip(zip_code:str):
         cache_set(ck, out, 3600)
         return out
 
+@app.get("/zipinfo")
+async def zipinfo(zip: str = Query(..., min_length=5, max_length=10)):
+    z = await fetch_zip(zip)
+    return {"zip": zip, **z}
+
 async def fetch_cd(lat:float, lon:float):
     params = {"latitude": lat, "longitude": lon, "format": "json", "showall": "false"}
     ck = f"cd:{lat:.4f},{lon:.4f}"
@@ -156,9 +126,7 @@ async def fetch_cd(lat:float, lon:float):
         cache_set(ck, out, 3600)
         return out
 
-# --------------------------------------------------------------------
-# Congress + Mayor
-# --------------------------------------------------------------------
+# ---------- Officials ----------
 async def fetch_senators(state_abbr:str):
     url = f"{GOVTRACK}/role"
     params = {"current": "true", "role_type": "senator", "state": state_abbr.upper()}
@@ -217,10 +185,6 @@ async def fetch_rep(state_abbr:str, district: Optional[str]):
         return rows
 
 async def fetch_mayor(place_name:str, state_name:str):
-    """
-    Best-effort Mayor from Wikidata. If no website, add a Google search link.
-    Returns up to 1 row.
-    """
     city = _esc(place_name); st = _esc(state_name)
     if not city or not st: return []
     q = f"""
@@ -303,11 +267,9 @@ async def officials(zip: str = Query(..., min_length=5, max_length=10)):
         }
     }
 
-# --------------------------------------------------------------------
-# Weather (Open‑Meteo) with labels + emoji
-# --------------------------------------------------------------------
+# ---------- Weather ----------
 @app.get("/weather")
-async def get_weather(zip: str):
+async def weather(zip: str):
     z = await fetch_zip(zip)
     lat, lon = z["lat"], z["lon"]
     params = {
@@ -320,26 +282,18 @@ async def get_weather(zip: str):
         r = await client.get(OPEN_METEO, params=params)
         r.raise_for_status()
         j = r.json()
-
     daily = j.get("daily", {})
-    times = daily.get("time", []) or []
-    tmax  = daily.get("temperature_2m_max", []) or []
-    tmin  = daily.get("temperature_2m_min", []) or []
-    ppop  = daily.get("precipitation_probability_max", []) or []
-    code  = daily.get("weathercode", []) or []
-
     out = []
-    for i in range(min(len(times), len(tmax), len(tmin), len(ppop), len(code))):
-        label, icon = wmo_code_to_label_icon(int(code[i]))
+    for i, t in enumerate(daily.get("time", []) or []):
+        code = int((daily.get("weathercode") or [0])[i])
+        label, icon = wmo_label_icon(code)
         out.append({
-            "date": times[i],
-            "tmax_c": tmax[i],
-            "tmin_c": tmin[i],
-            "precip_pct": ppop[i],
-            "label": label,
-            "icon": icon
+            "date": t,
+            "tmax_c": (daily.get("temperature_2m_max") or [None])[i],
+            "tmin_c": (daily.get("temperature_2m_min") or [None])[i],
+            "precip_pct": (daily.get("precipitation_probability_max") or [0])[i],
+            "label": label, "icon": icon
         })
-
     return {
         "zip": zip,
         "place": z.get("place_name"),
@@ -350,46 +304,32 @@ async def get_weather(zip: str):
         "source": "Open‑Meteo"
     }
 
-# --------------------------------------------------------------------
-# Voter info & education (link set)
-# --------------------------------------------------------------------
+# ---------- Voter ----------
 @app.get("/voter")
 async def voter(zip: str):
     z = await fetch_zip(zip)
-    state = z["state_name"]
     abbr = z["state_abbr"].lower()
-
-    # Vote.gov keeps state pages at /register/<state> for most states
     register_url = f"https://www.vote.gov/register/{abbr}/"
-    # How to vote (national explainer)
     howto_url = "https://www.vote.gov/how-to-vote/"
-    # Find your local election office (official)
     polling_url = "https://www.usa.gov/election-office"
-
     return {
         "zip": zip,
-        "state": state,
+        "state": z["state_name"],
         "register_url": register_url,
         "howto_url": howto_url,
         "polling_url": polling_url
     }
 
-# --------------------------------------------------------------------
-# City updates (NYC & Chicago 311 feeds)
-# --------------------------------------------------------------------
+# ---------- City updates (NYC & Chicago) ----------
 @app.get("/city/updates")
 async def city_updates(zip: str, limit: int = 8):
     z = await fetch_zip(zip)
     place = (z["place_name"] or "").lower()
     state = z["state_abbr"].upper()
-
-    out = []
-    source = None
-
+    out = []; source = None
     try:
         async with httpx.AsyncClient(timeout=15, headers=UA) as client:
             if state == "NY" and place in {"new york", "new york city", "manhattan", "brooklyn", "bronx", "queens", "staten island"}:
-                # NYC 311 by incident_zip
                 params = {"$limit": str(limit), "$order": "created_date DESC", "incident_zip": zip}
                 r = await client.get(NYC311, params=params)
                 if r.status_code == 200:
@@ -417,28 +357,20 @@ async def city_updates(zip: str, limit: int = 8):
                     source = "Chicago Open Data (311 service requests)"
     except Exception:
         pass
+    return {"zip": zip, "items": out[:limit], "count": len(out), "source": source}
 
-    return {
-        "zip": zip,
-        "items": out[:limit],
-        "count": len(out),
-        "source": source
-    }
-
-# --------------------------------------------------------------------
-# Elections (compute next civics anchor date)
-# --------------------------------------------------------------------
+# ---------- Elections ----------
 @app.get("/elections")
 async def elections(zip: str):
     today = dt.date.today()
     this_year = first_tuesday_after_first_monday(today.year)
     next_date = this_year if this_year >= today else first_tuesday_after_first_monday(today.year + 1)
     notes = "State primary dates coming soon (open data, state SoS sources)."
-    return {"zip": zip, "next_federal": next_date.strftime("%B %-d, %Y") if hasattr(next_date, 'strftime') else str(next_date), "notes": notes}
+    # strftime portable for Windows: avoid %-d
+    pretty = next_date.strftime("%B %d, %Y").replace(" 0", " ")
+    return {"zip": zip, "next_federal": pretty, "notes": notes}
 
-# --------------------------------------------------------------------
-# News links
-# --------------------------------------------------------------------
+# ---------- News ----------
 @app.get("/news")
 async def news(zip: str):
     q = httpx.QueryParams({"q": f"{zip} news"})["q"]
