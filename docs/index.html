@@ -2,130 +2,102 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, maximum-scale=1"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EagleReach</title>
-
+  <link rel="icon" href="data:,">
   <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="theme-color" content="#0f2744" />
-  <link rel="apple-touch-icon" href="icons/eagle-192.png" />
-
   <style>
-    :root {
-      --brand:#0f2744;       /* header/nav color */
-      --card:#ffffff;        /* cards */
-      --muted:#6b7280;       /* gray-500 */
-      --ring:#e5e7eb;        /* gray-200 */
-    }
-    .hero-grad {
-      background: linear-gradient(180deg, #0f2744 0%, #183a63 55%, #0f2744 100%);
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--ring);
-      border-radius: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.05);
-    }
-    .btn {
-      display: inline-flex; align-items: center; gap:.5rem;
-      background:#2563eb; color:#fff; font-weight:600;
-      padding:.55rem .9rem; border-radius:.65rem;
-    }
-    .btn-secondary { background:#eef2ff; color:#1e40af; }
-    .btn-ghost {
-      background:#fff; color:#111827; border:1px solid var(--ring);
-    }
-    .link { color:#2563eb }
-    .pill { border-radius:9999px; padding:.25rem .55rem; }
-    /* modal */
-    .modal {
-      position: fixed; inset:0; display:none; place-items:center;
-      background: rgba(17,24,39,.55); z-index:50;
-    }
-    .modal.open { display:grid; }
-    .modal-card { background:#fff; width:min(760px, 92vw); border-radius:16px; }
+    .card { @apply bg-white rounded-xl shadow-md p-4; }
+    .btn  { @apply inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition; }
+    .btn-primary { @apply bg-blue-600 text-white hover:bg-blue-700; }
+    .btn-ghost   { @apply bg-gray-100 text-gray-700 hover:bg-gray-200; }
+    .link { @apply text-blue-600 hover:underline; }
+    .pill { @apply inline-block rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700; }
+    .modal { @apply fixed inset-0 z-[60] hidden items-center justify-center; background: rgba(0,0,0,.35); }
+    .modal-card { @apply w-[92vw] max-w-xl bg-white rounded-xl shadow-lg; }
+    .kbd { @apply bg-gray-100 text-gray-800 rounded px-1.5 py-0.5 border border-gray-300 text-xs; }
   </style>
 </head>
+<body class="bg-slate-50 text-slate-900">
 
-<body class="bg-gray-50 text-gray-900">
+  <!-- Top bar -->
+  <header class="w-full bg-slate-900 text-white">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="flex items-center justify-between py-3">
+        <div class="flex items-center gap-3">
+          <!-- small flag + eagle emoji -->
+          <div class="text-2xl">🦅</div>
+          <div class="text-lg font-semibold tracking-wide">EagleReach</div>
+        </div>
 
-  <!-- Header / Nav -->
-  <header class="hero-grad text-white">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <span class="text-2xl">🦅</span>
-        <span class="font-semibold text-xl tracking-wide">EagleReach</span>
+        <!-- quote (hidden on xs) -->
+        <div class="hidden md:block text-[12.5px] text-slate-300">
+          “A nation, as a society, forms a moral person, and every member of it is personally responsible for his society.”
+          — <span class="italic">Thomas Jefferson</span>
+        </div>
+
+        <!-- tabs -->
+        <nav class="flex items-center gap-6 text-sm">
+          <button data-open="#aboutModal"   class="hover:underline">About</button>
+          <button data-open="#founderModal" class="hover:underline">Founder</button>
+          <button data-open="#contactModal" class="hover:underline">Contact</button>
+          <button data-open="#feedbackModal" class="hover:underline">Feedback</button>
+        </nav>
       </div>
-
-      <nav class="hidden md:flex items-center gap-6 text-sm">
-        <button class="hover:opacity-90" data-open="about">About</button>
-        <button class="hover:opacity-90" data-open="founder">Founder</button>
-        <button class="hover:opacity-90" data-open="contact">Contact</button>
-        <button class="hover:opacity-90" data-open="feedback">Feedback</button>
-        <button id="installBtn" class="btn-secondary hidden" title="Install app">⤓ Install</button>
-      </nav>
-    </div>
-
-    <div class="max-w-6xl mx-auto px-4 pb-4">
-      <p class="text-xs md:text-[13px] opacity-90">
-        “A nation, as a society, forms a moral person, and every member of it is personally responsible for his society.” — Thomas Jefferson
-      </p>
     </div>
   </header>
 
-  <!-- Search controls -->
-  <section class="max-w-6xl mx-auto px-4 mt-6">
-    <p class="text-sm text-gray-600 mb-2">
+  <!-- Search + actions -->
+  <section class="mx-auto max-w-6xl px-4 mt-6">
+    <p class="text-sm text-slate-600">
       Enter your ZIP code to see representatives, voter info, weather, city updates, traffic, and elections.
     </p>
-    <div class="flex flex-wrap items-center gap-3">
+
+    <div class="mt-3 flex flex-wrap gap-2 items-center">
       <input id="zipInput" type="text" inputmode="numeric" maxlength="10"
-             class="px-3 py-2 rounded-md border border-gray-200 w-[240px] bg-white"
+             class="w-64 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
              placeholder="ZIP (e.g., 62704)" />
-      <button id="locBtn" class="btn-ghost">Use my location</button>
-      <button id="searchBtn" class="btn">Search</button>
-      <button id="shareBtn" class="btn-ghost">Copy Share Link</button>
-      <button id="clearBtn" class="btn-ghost">Clear history</button>
+
+      <button id="locBtn" class="btn btn-ghost">Locating…</button>
+      <button id="searchBtn" class="btn btn-primary">Search</button>
+      <button id="shareBtn" class="btn btn-ghost">Copy Share Link</button>
+      <button id="clearBtn" class="btn btn-ghost">Clear history</button>
+
+      <span id="placeLabel" class="text-sm text-slate-500 ml-2"></span>
     </div>
-    <div id="zipBadge" class="text-sm text-gray-600 mt-2"></div>
   </section>
 
   <!-- Content grid -->
-  <main class="max-w-6xl mx-auto px-4 mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+  <main class="mx-auto max-w-6xl px-4 mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
     <!-- Officials -->
-    <section class="card p-4">
+    <section class="card md:col-span-1" id="officialsCard">
       <div class="flex items-center justify-between">
-        <h2 class="font-semibold text-lg">Elected Representatives</h2>
+        <h2 class="font-semibold">Elected Representatives</h2>
         <div class="flex gap-2">
-          <button id="copyEmailsBtn" class="btn-ghost text-sm">Copy Emails</button>
-          <button id="genEmailBtn" class="btn text-sm">Generate Email</button>
+          <button id="copyEmailsBtn" class="btn btn-ghost">Copy Emails</button>
+          <button id="genEmailBtn" class="btn btn-primary">Generate Email</button>
         </div>
       </div>
-      <p class="text-xs text-gray-500 mt-1">
+      <p class="mt-1 text-xs text-slate-500">
         Sources: GovTrack (Congress), Wikidata (Mayor), FCC, Zippopotam.
       </p>
-      <div id="officials" class="space-y-3 mt-3"></div>
+      <div id="officialsList" class="mt-3 space-y-3 text-sm"></div>
+      <p id="officialsHint" class="text-xs text-slate-500 mt-3">Enter a ZIP to load officials…</p>
     </section>
 
     <!-- Weather -->
-    <section class="card p-4">
-      <h2 class="font-semibold text-lg">Weather (7-day)</h2>
-      <div id="weather" class="mt-3 text-sm text-gray-700">
-        Enter a ZIP to load weather…
-      </div>
+    <section class="card" id="weatherCard">
+      <h2 class="font-semibold">Weather (7‑day)</h2>
+      <div id="weatherDays" class="mt-2 divide-y divide-slate-100"></div>
+      <p id="weatherHint" class="text-xs text-slate-500 mt-3">Enter a ZIP to load weather…</p>
     </section>
 
     <!-- Voter Info -->
-    <section class="card p-4">
-      <h2 class="font-semibold text-lg">Voter Info & Education</h2>
-      <ul class="list-disc pl-5 text-sm mt-2">
+    <section class="card" id="voterCard">
+      <h2 class="font-semibold">Voter Info & Education</h2>
+      <ul class="mt-2 list-disc pl-5 text-sm space-y-1">
         <li><a class="link" target="_blank" href="https://www.usa.gov/how-to-vote">How to vote (USA.gov)</a></li>
         <li><a class="link" target="_blank" href="https://www.vote.gov/">Register to vote</a></li>
         <li><a class="link" target="_blank" href="https://www.usa.gov/election-office">Find your Election Office</a></li>
@@ -133,76 +105,66 @@
     </section>
 
     <!-- City updates -->
-    <section class="card p-4">
-      <h2 class="font-semibold text-lg">City updates</h2>
-      <div id="city" class="text-sm mt-3 text-gray-700">
-        Enter a ZIP to load updates…
-      </div>
+    <section class="card" id="cityCard">
+      <h2 class="font-semibold">City updates</h2>
+      <div id="cityList" class="mt-2 space-y-2 text-sm"></div>
+      <p id="cityHint" class="text-xs text-slate-500 mt-2">Enter a ZIP to load updates…</p>
     </section>
 
     <!-- News -->
-    <section class="card p-4">
-      <h2 class="font-semibold text-lg">News</h2>
-      <div class="mt-3 flex gap-3">
-        <a id="localNews" class="btn" target="_blank" href="#">Open Local News</a>
-        <a id="worldNews" class="btn-ghost" target="_blank" href="https://news.google.com/home">World News</a>
+    <section class="card" id="newsCard">
+      <h2 class="font-semibold">News</h2>
+      <div class="mt-3 flex gap-2">
+        <a id="localNewsBtn" class="btn btn-primary" target="_blank" rel="noopener">Open Local News</a>
+        <a id="worldNewsBtn" class="btn btn-ghost"   target="_blank" rel="noopener">World News</a>
       </div>
-      <p class="text-xs text-gray-500 mt-2">Opens news in a new tab.</p>
+      <p class="text-xs text-slate-500 mt-2">Opens news in a new tab.</p>
     </section>
 
     <!-- Elections -->
-    <section class="card p-4">
-      <h2 class="font-semibold text-lg">Upcoming Elections</h2>
-      <div id="elections" class="text-sm text-gray-700 mt-3">
-        Next Federal: <b>November 3, 2025</b><br/>
-        State/Local specific dates coming from open data.
-      </div>
+    <section class="card" id="elexCard">
+      <h2 class="font-semibold">Upcoming Elections</h2>
+      <div id="elexBody" class="mt-2 text-sm"></div>
     </section>
 
     <!-- Traffic -->
-    <section class="card p-4">
-      <h2 class="font-semibold text-lg">Traffic</h2>
-      <p class="text-sm text-gray-700 mt-2">
-        Open live traffic for your area in Google Maps.
-      </p>
-      <button id="trafficBtn" class="btn-ghost mt-3">Open Traffic Map</button>
+    <section class="card" id="trafficCard">
+      <h2 class="font-semibold">Traffic</h2>
+      <p class="text-sm text-slate-600 mt-1">Open live traffic for your area in Google Maps.</p>
+      <a id="trafficBtn" target="_blank" rel="noopener"
+         class="mt-3 inline-flex btn btn-ghost">Open Traffic Map</a>
     </section>
 
     <!-- Emergency -->
-    <section class="card p-4 lg:col-span-3">
-      <h2 class="font-semibold text-lg">Emergency</h2>
-      <p class="text-xs text-gray-500 mb-3">Tap a number to call.</p>
-      <div class="flex flex-wrap gap-3">
-        <a class="btn bg-red-600 hover:bg-red-700" href="tel:911">911 — Emergency</a>
-        <a class="btn bg-fuchsia-600 hover:bg-fuchsia-700" href="tel:988">988 — Suicide &amp; Crisis</a>
-        <a class="btn bg-green-600 hover:bg-green-700" href="tel:211">211 — Community Services</a>
-        <a class="btn bg-sky-700 hover:bg-sky-800" href="tel:311">311 — City Services</a>
-        <a class="btn bg-amber-700 hover:bg-amber-800" href="tel:811">811 — Before You Dig</a>
-        <a class="btn bg-orange-600 hover:bg-orange-700" href="tel:18002221222">Poison Control</a>
+    <section class="card lg:col-span-3" id="emergCard">
+      <h2 class="font-semibold">Emergency</h2>
+      <p class="text-xs text-slate-500">Tap a number to call.</p>
+      <div class="mt-3 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-2 text-sm">
+        <a class="btn bg-red-600 text-white hover:bg-red-700"  href="tel:911">911 — Emergency</a>
+        <a class="btn bg-fuchsia-600 text-white hover:bg-fuchsia-700" href="tel:988">988 — Suicide &amp; Crisis</a>
+        <a class="btn bg-emerald-600 text-white hover:bg-emerald-700" href="tel:211">211 — Community Services</a>
+        <a class="btn bg-blue-700 text-white hover:bg-blue-800" href="tel:311">311 — City Services</a>
+        <a class="btn bg-orange-600 text-white hover:bg-orange-700" href="tel:811">811 — Before You Dig</a>
+        <a class="btn bg-orange-500 text-white hover:bg-orange-600" href="tel:18002221222">Poison Control</a>
       </div>
     </section>
 
-    <!-- Raise a concern -->
-    <section class="card p-4 lg:col-span-3">
-      <h2 class="font-semibold text-lg">Raise a Concern</h2>
-      <p class="text-sm text-gray-700 mt-2">
+    <!-- Raise a Concern -->
+    <section class="card lg:col-span-3" id="concernCard">
+      <h2 class="font-semibold">Raise a Concern</h2>
+      <p class="text-sm text-slate-600 mt-1">
         Report city issues (311), contact your city hall, or write to your representatives.
       </p>
-      <div class="mt-3 flex flex-wrap gap-3">
-        <a id="concernPotholes" class="btn-ghost" href="#">Potholes</a>
-        <a id="concernTrash" class="btn-ghost" href="#">Trash</a>
-        <a id="concernLights" class="btn-ghost" href="#">Street lights</a>
+      <div class="mt-3 flex flex-wrap gap-2 text-sm">
+        <button data-template="pothole" class="btn btn-ghost">Potholes</button>
+        <button data-template="trash"   class="btn btn-ghost">Trash</button>
+        <button data-template="lights"  class="btn btn-ghost">Street lights</button>
       </div>
     </section>
+
   </main>
 
-  <!-- Footer -->
-  <footer class="max-w-6xl mx-auto px-4 py-8 text-xs text-gray-500">
-    © 2025 EagleReach. Built open‑source.
-  </footer>
-
-  <!-- Modals -->
-  <!-- About -->
+  <!-- Modals: About / Founder / Contact / Feedback -->
   <div id="aboutModal" class="modal">
     <div class="modal-card p-5">
       <div class="flex items-center justify-between">
@@ -210,18 +172,19 @@
         <button class="text-gray-500" data-close>&times;</button>
       </div>
       <div class="mt-3 text-sm leading-6">
-        <p><b>EagleReach</b> is a public, open‑source civic assistant that connects residents with elected officials, voter information, weather, traffic, and local updates—fast and reliably, without ads or logins.</p>
-        <ul class="list-disc pl-5 mt-3">
-          <li>One ZIP → your officials, emails, and phone numbers.</li>
-          <li>7‑day weather, traffic map, and emergency numbers one tap away.</li>
-          <li>Voter education: how to vote, register, and find your local office.</li>
-          <li>Write‑ready templates for potholes, trash, and street‑light concerns.</li>
+        <p class="mb-2">
+          EagleReach is a public, open‑source civic assistant that connects U.S. residents with their elected officials,
+          nearby services, and local context such as weather, traffic, and city updates—fast and free.
+        </p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>No logins. No tracking. Open data only.</li>
+          <li>Built to inform voters and reduce friction in civic participation.</li>
+          <li>Mobile‑friendly and light‑weight for wide accessibility.</li>
         </ul>
       </div>
     </div>
   </div>
 
-  <!-- Founder -->
   <div id="founderModal" class="modal">
     <div class="modal-card p-5">
       <div class="flex items-center justify-between">
@@ -229,336 +192,313 @@
         <button class="text-gray-500" data-close>&times;</button>
       </div>
       <div class="mt-3 text-sm leading-6">
-        <p><b>Vikesh Sagar Bairam</b> — Founder of EagleReach • Tech Evangelist • Business Solutions Architect • AI/ML &amp; Data Engineer • DevOps Specialist • Research Professional.</p>
-        <p class="mt-2">M.S. in Information Systems &amp; Management (University of Illinois, Springfield). B.S. in Psychology and B.S. in Computer Science. Currently at Jabil; previously at Surfaces by Pacific.</p>
+        <p class="mb-3">
+          <strong>Vikesh Sagar Bairam</strong> — Founder of EagleReach · Tech Evangelist & Business Solutions Architect ·
+          AI/ML & Data Engineer · DevOps Specialist · Research Professional.
+        </p>
+        <p>
+          M.S. (Information Systems & Management), University of Illinois Springfield; dual Bachelors (Psychology, Computer Science).
+          Currently at Jabil; previously with Surfaces by Pacific.
+        </p>
       </div>
     </div>
   </div>
 
-  <!-- Contact -->
   <div id="contactModal" class="modal">
     <div class="modal-card p-5">
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-semibold">Contact</h3>
         <button class="text-gray-500" data-close>&times;</button>
       </div>
-      <div class="mt-3 text-sm leading-6">
+      <div class="mt-3 text-sm leading-6 space-y-2">
         <p>
           LinkedIn:
-          <a class="link" target="_blank"
-             href="https://www.linkedin.com/in/LINKEDIN_PROFILE_URL">Vikesh Bairam</a><br/>
-          GitHub:
-          <a class="link" target="_blank" href="https://github.com/vikesh2608">vikesh2608</a><br/>
-          Email:
-          <a class="link" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a>
+          <a id="liLink" class="link" target="_blank" rel="noopener noreferrer external">Vikesh Bairam</a>
+          <button id="liCopy" class="btn-ghost kbd ml-2">Copy link</button>
         </p>
-        <p class="mt-3 text-xs text-gray-500">
-          Tip: Copy your exact LinkedIn profile link from LinkedIn → Profile → More → Copy link to profile,
-          then replace <code>LINKEDIN_PROFILE_URL</code> above.
-        </p>
+        <p>GitHub: <a class="link" target="_blank" rel="noopener" href="https://github.com/vikesh2608">vikesh2608</a></p>
+        <p>Email: <a class="link" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a></p>
+        <p class="text-xs text-slate-500">If LinkedIn shows an error in an in‑app browser, open the copied link in the LinkedIn app or your device browser.</p>
       </div>
     </div>
   </div>
 
-  <!-- Feedback -->
   <div id="feedbackModal" class="modal">
     <div class="modal-card p-5">
       <div class="flex items-center justify-between">
         <h3 class="text-lg font-semibold">Feedback</h3>
         <button class="text-gray-500" data-close>&times;</button>
       </div>
-      <form id="feedbackForm" class="mt-3 grid gap-3 text-sm">
-        <div class="grid md:grid-cols-2 gap-3">
-          <input id="fbName" class="border border-gray-200 rounded-md px-3 py-2" placeholder="Your name (optional)" />
-          <input id="fbEmail" type="email" class="border border-gray-200 rounded-md px-3 py-2" placeholder="Email (optional)" />
+      <form id="feedbackForm" class="mt-3 space-y-3 text-sm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <input id="fbName"  class="rounded-md border border-slate-300 px-3 py-2" placeholder="Your name" />
+          <input id="fbEmail" class="rounded-md border border-slate-300 px-3 py-2" placeholder="Email (optional)" />
         </div>
-        <textarea id="fbMsg" rows="4" class="border border-gray-200 rounded-md px-3 py-2"
-                  placeholder="Share your thoughts, suggestions, or issues…"></textarea>
-        <div class="flex items-center gap-2">
-          <span>Rate:</span>
-          <div id="stars" class="flex gap-1 text-xl cursor-pointer select-none" aria-label="rating">
-            <span data-s="1">⭐</span><span data-s="2">⭐</span><span data-s="3">⭐</span><span data-s="4">⭐</span><span data-s="5">⭐</span>
+        <div>
+          <label class="block mb-1">Rating</label>
+          <div id="stars" class="flex gap-1 text-2xl cursor-pointer select-none">
+            <span data-s="1">☆</span><span data-s="2">☆</span><span data-s="3">☆</span><span data-s="4">☆</span><span data-s="5">☆</span>
           </div>
-          <span id="starsNote" class="text-xs text-gray-500 ml-2"></span>
         </div>
-        <div class="flex justify-end">
-          <button class="btn" type="submit">Send</button>
+        <textarea id="fbText" rows="5"
+                  class="w-full rounded-md border border-slate-300 px-3 py-2"
+                  placeholder="Your comments…"></textarea>
+        <div class="flex justify-end gap-2">
+          <button type="button" data-close class="btn btn-ghost">Cancel</button>
+          <button type="submit" class="btn btn-primary">Send</button>
         </div>
-        <p id="fbThanks" class="hidden text-green-700 text-sm">Thank you! Your feedback was noted.</p>
       </form>
     </div>
   </div>
 
-  <!-- JS -->
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] hidden">
+    <div class="bg-slate-900 text-white px-4 py-2 rounded shadow-lg text-sm" id="toastMsg"></div>
+  </div>
+
   <script>
     const API = "https://eaglereach-1.onrender.com"; // backend base
+    const LINKEDIN_URL = "https://www.linkedin.com/in/vikesh-bairam-219769258/";
 
-    // Elements
-    const zipInput = document.getElementById("zipInput");
-    const zipBadge = document.getElementById("zipBadge");
-    const searchBtn = document.getElementById("searchBtn");
-    const locBtn = document.getElementById("locBtn");
-    const shareBtn = document.getElementById("shareBtn");
-    const clearBtn = document.getElementById("clearBtn");
+    const $ = (sel, p=document) => p.querySelector(sel);
+    const $$ = (sel, p=document) => Array.from(p.querySelectorAll(sel));
 
-    const officialsDiv = document.getElementById("officials");
-    const weatherDiv  = document.getElementById("weather");
-    const cityDiv     = document.getElementById("city");
-    const electionsDiv= document.getElementById("elections");
+    const zipInput = $("#zipInput");
+    const locBtn   = $("#locBtn");
+    const searchBtn= $("#searchBtn");
+    const shareBtn = $("#shareBtn");
+    const clearBtn = $("#clearBtn");
+    const placeLbl = $("#placeLabel");
 
-    const localNews = document.getElementById("localNews");
-    const worldNews = document.getElementById("worldNews");
-    const trafficBtn= document.getElementById("trafficBtn");
+    const officialsList = $("#officialsList");
+    const officialsHint = $("#officialsHint");
+    const copyEmailsBtn = $("#copyEmailsBtn");
+    const genEmailBtn   = $("#genEmailBtn");
 
-    const copyEmailsBtn = document.getElementById("copyEmailsBtn");
-    const genEmailBtn   = document.getElementById("genEmailBtn");
+    const weatherDays = $("#weatherDays");
+    const weatherHint = $("#weatherHint");
 
-    const concernPotholes = document.getElementById("concernPotholes");
-    const concernTrash    = document.getElementById("concernTrash");
-    const concernLights   = document.getElementById("concernLights");
+    const cityList = $("#cityList");
+    const cityHint = $("#cityHint");
 
-    // Helpers
-    const qs = (sel) => document.querySelector(sel);
-    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    const localNewsBtn = $("#localNewsBtn");
+    const worldNewsBtn = $("#worldNewsBtn");
+    const elexBody     = $("#elexBody");
+    const trafficBtn   = $("#trafficBtn");
 
-    function toast(msg){ alert(msg); }
-
-    // Load from URL param if present
-    const url = new URL(location.href);
-    const zipFromUrl = url.searchParams.get("zip") || "";
-    if (zipFromUrl) {
-      zipInput.value = zipFromUrl;
-      runSearch(zipFromUrl);
-    }
-
-    // Copy share link
-    shareBtn.addEventListener("click", async () => {
-      const z = (zipInput.value || "").trim();
-      if (!z) return toast("Enter a ZIP first.");
-      const link = `${location.origin}${location.pathname}?zip=${encodeURIComponent(z)}`;
-      await navigator.clipboard.writeText(link);
-      toast("Share link copied.");
+    // Modals
+    $$("#aboutModal, #founderModal, #contactModal, #feedbackModal").forEach(m=>{
+      m.addEventListener('click', e => { if (e.target === m || e.target.hasAttribute('data-close')) m.classList.add('hidden'); });
+    });
+    $$('[data-open]').forEach(btn=>{
+      btn.addEventListener('click', ()=> $($(btn).dataset.open).classList.remove('hidden'));
     });
 
-    // Clear history
-    clearBtn.addEventListener("click", () => {
-      zipInput.value = "";
-      zipBadge.textContent = "";
-      officialsDiv.innerHTML = "";
-      weatherDiv.textContent  = "Enter a ZIP to load weather…";
-      cityDiv.textContent     = "Enter a ZIP to load updates…";
-      history.replaceState(null,"",location.pathname);
+    // LinkedIn
+    const liLink = $("#liLink"); const liCopy = $("#liCopy");
+    liLink.href = LINKEDIN_URL;
+    liCopy.addEventListener('click', async ()=>{
+      try { await navigator.clipboard.writeText(LINKEDIN_URL);
+            toast("LinkedIn link copied. Open it in the LinkedIn app or browser."); }
+      catch { toast("Long‑press to copy:\n" + LINKEDIN_URL); }
     });
 
-    // Search click
-    searchBtn.addEventListener("click", () => {
-      const z = (zipInput.value || "").trim();
-      if (!z) return toast("Enter a ZIP.");
-      runSearch(z);
-    });
-
-    // Use my location → try to get ZIP server-side (lat/lon→ZIP)
-    locBtn.addEventListener("click", async () => {
-      locBtn.disabled = true;
-      locBtn.textContent = "Locating…";
-      try {
-        const pos = await new Promise((res,rej)=>
-          navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true, timeout:10000})
-        );
-        const {latitude, longitude} = pos.coords;
-        // Use backend helper (FCC reverse or OpenMeteo reverse) → returns {zip, city, state}
-        const r = await fetch(`${API}/zipfrom?lat=${latitude}&lon=${longitude}`);
-        if (!r.ok) throw new Error("reverse failed");
-        const j = await r.json();
-        if (!j.zip) throw new Error("no zip");
-        zipInput.value = j.zip;
-        runSearch(j.zip, j.city, j.state);
-      } catch (e) {
-        toast("Could not resolve ZIP from your location.");
-      } finally {
-        locBtn.disabled = false;
-        locBtn.textContent = "Use my location";
-      }
-    });
-
-    // Core: run search by ZIP
-    async function runSearch(zip, city=null, state=null){
-      zipBadge.textContent = "";
-      try {
-        // Officials
-        const o = await (await fetch(`${API}/officials?zip=${encodeURIComponent(zip)}`)).json();
-        const place = o.place || city || "";
-        const stAbr = o?.state?.abbr || state || "";
-        zipBadge.textContent = `${zip} — ${place ? place + ", " : ""}${stAbr || ""}`;
-
-        renderOfficials(o.officials || []);
-
-        // Weather
-        const w = await (await fetch(`${API}/weather?zip=${encodeURIComponent(zip)}`)).json();
-        renderWeather(w.days || []);
-
-        // City updates (if available)
-        try {
-          const c = await (await fetch(`${API}/city/updates?zip=${encodeURIComponent(zip)}`)).json();
-          renderCity(c.updates || []);
-        } catch { cityDiv.textContent = "City updates unavailable."; }
-
-        // Local news link
-        localNews.href = `https://news.google.com/search?q=${encodeURIComponent(place||zip)}&hl=en-US&gl=US&ceid=US:en`;
-
-        // Traffic map
-        trafficBtn.onclick = () => {
-          window.open(`https://www.google.com/maps/@?api=1&map_action=map&layer=traffic&query=${encodeURIComponent(place||zip)}`,"_blank");
-        };
-
-        // Concern templates (mailto)
-        concernPotholes.href = makeMailto(o.officials, "Pothole concern", "Hello,\n\nI would like to report potholes in my neighborhood.");
-        concernTrash.href    = makeMailto(o.officials, "Trash collection issue", "Hello,\n\nTrash collection has been missed in my area.");
-        concernLights.href   = makeMailto(o.officials, "Street light is out", "Hello,\n\nA street light is not functioning in my neighborhood.");
-
-        // update URL
-        const u = new URL(location.href);
-        u.searchParams.set("zip", zip);
-        history.replaceState(null, "", u);
-
-      } catch (e) {
-        toast("Failed to load data. Please try another ZIP.");
-      }
-    }
-
-    function renderOfficials(rows){
-      officialsDiv.innerHTML = "";
-      if (!rows || !rows.length){
-        officialsDiv.textContent = "Enter a ZIP to load officials…";
-        return;
-      }
-      rows.forEach(r=>{
-        const el = document.createElement("div");
-        el.className = "border border-gray-200 rounded-md p-3";
-        const url = (r.urls && r.urls[0]) ? r.urls[0] : null;
-        const phone = (r.phones && r.phones[0]) ? r.phones[0] : null;
-        el.innerHTML = `
-          <div class="text-[15px] font-medium">${r.name || "—"} <span class="text-gray-500">— ${r.office || ""}</span></div>
-          <div class="mt-1 text-sm flex flex-col gap-1">
-            ${url ? `<a class="link" target="_blank" href="${url}">${new URL(url).hostname}</a>` : ""}
-            ${phone ? `<a class="text-gray-700" href="tel:${phone.replace(/[^0-9]/g,"")}">${phone}</a>` : ""}
-          </div>
-        `;
-        officialsDiv.appendChild(el);
+    // Feedback stars + mailto
+    let rating = 0;
+    $$("#stars span").forEach(s=>{
+      s.addEventListener('click', ()=>{
+        rating = Number(s.dataset.s);
+        $$("#stars span").forEach(x=> x.textContent = (Number(x.dataset.s)<=rating) ? "★" : "☆");
       });
+    });
+    $("#feedbackForm").addEventListener('submit', e=>{
+      e.preventDefault();
+      const name = $("#fbName").value.trim() || "Anonymous";
+      const email= $("#fbEmail").value.trim();
+      const text = $("#fbText").value.trim();
+      const subj = encodeURIComponent("EagleReach feedback");
+      const body = encodeURIComponent(
+        `Name: ${name}\nEmail: ${email}\nRating: ${rating || "N/A"}/5\n\n${text}`
+      );
+      window.open(`mailto:vikebairam@gmail.com?subject=${subj}&body=${body}`,'_blank');
+      $("#feedbackModal").classList.add('hidden');
+      toast("Thanks for the feedback!");
+    });
 
-      // copy all emails
-      copyEmailsBtn.onclick = () => {
-        const emails = rows.flatMap(r => r.emails||[]).join(", ");
-        if (!emails) return toast("No emails available.");
-        navigator.clipboard.writeText(emails).then(()=>toast("Emails copied."));
-      };
+    // Toast helper
+    function toast(msg){
+      $("#toastMsg").textContent = msg;
+      const t = $("#toast");
+      t.classList.remove('hidden');
+      setTimeout(()=> t.classList.add('hidden'), 2500);
+    }
 
-      // sample generated email
-      genEmailBtn.onclick = () => {
-        const to = rows.flatMap(r => r.emails||[]).slice(0,3).join(",");
-        const subject = encodeURIComponent("Constituent inquiry");
-        const body = encodeURIComponent("Dear Representative,\n\nI'm a constituent in your district and wanted to share a concern…\n\nSincerely,\n");
-        location.href = `mailto:${to}?subject=${subject}&body=${body}`;
-      };
+    // Weather summary from precip %
+    function skyFromPrecip(p){ if (p>=60) return "Rain"; if (p>=30) return "Cloudy"; return "Clear"; }
+
+    // Render helpers
+    function renderOfficials(rows){
+      officialsList.innerHTML = rows.map(r=>`
+        <div class="rounded-lg border border-slate-200 p-3">
+          <div class="font-medium">${r.name} — <span class="text-slate-600">${r.office}</span></div>
+          ${r.party? `<div class="text-xs text-slate-500">${r.party}</div>`:''}
+          <div class="mt-1 flex flex-wrap gap-3 text-sm">
+            ${ (r.urls||[]).map(u=>`<a class="link" target="_blank" rel="noopener" href="${u}">${new URL(u).hostname.replace('www.','')}</a>`).join('') }
+            ${ (r.phones||[]).map(p=>`<a class="link" href="tel:${p.replace(/[^0-9]/g,'')}">${p}</a>`).join('') }
+          </div>
+        </div>
+      `).join('');
     }
 
     function renderWeather(days){
-      if (!days.length){ weatherDiv.textContent = "No forecast available."; return; }
-      const rows = days.map(d=>{
-        const cond = d.cond || d.condition || "";
-        const tmax = (d.tmax_c!=null?`${d.tmax_c}°C`:"");
-        const tmin = (d.tmin_c!=null?`${d.tmin_c}°C`:"");
-        return `<div class="flex items-center justify-between py-2 border-b border-gray-100">
-          <div class="text-sm text-gray-700">${d.date||""} — <span class="text-gray-600">${cond}</span></div>
-          <div class="text-sm text-gray-700">${tmin} / ${tmax}</div>
-        </div>`;
-      }).join("");
-      weatherDiv.innerHTML = rows;
+      weatherDays.innerHTML = days.map(d=>{
+        const sky = d.summary || skyFromPrecip(d.precip_pct ?? 0);
+        const hi  = Math.round(d.tmax_c ?? d.tmax ?? 0);
+        const lo  = Math.round(d.tmin_c ?? d.tmin ?? 0);
+        return `
+          <div class="py-2 flex items-center justify-between">
+            <div class="text-sm text-slate-700">${d.date}</div>
+            <div class="text-sm text-slate-600">${sky}</div>
+            <div class="text-sm font-medium">${lo}° / ${hi}°C</div>
+          </div>`;
+      }).join('');
     }
 
-    function renderCity(list){
-      if (!list.length){ cityDiv.textContent = "No recent updates."; return; }
-      cityDiv.innerHTML = list.slice(0,8).map(x=>`
-        <div class="text-sm py-1 border-b border-gray-100">
-          <span class="text-gray-800">${x.type||"Update"}</span>
-          <span class="text-gray-500">— ${x.detail||""}</span>
-          ${x.address?`<span class="text-gray-400"> — ${x.address}</span>`:""}
+    function renderCity(updates){
+      if (!updates || !updates.length){
+        cityList.innerHTML = `<div class="text-sm text-slate-600">City updates unavailable.</div>`;
+        return;
+      }
+      cityList.innerHTML = updates.slice(0,8).map(u=>`
+        <div class="rounded border border-slate-200 p-2">
+          <div class="text-sm font-medium">${u.type || u.title || "Update"}</div>
+          ${u.detail ? `<div class="text-xs text-slate-600 mt-1">${u.detail}</div>`:''}
+          ${u.address ? `<div class="text-xs text-slate-500 mt-1">${u.address}</div>`:''}
         </div>
-      `).join("");
+      `).join('');
     }
 
-    function makeMailto(rows, subject, body){
-      const to = rows.flatMap(r => r.emails||[]).slice(0,5).join(",");
-      return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // Actions
+    async function run(zip){
+      if (!zip) return;
+      localStorage.setItem("lastZip", zip);
+      const qs = new URLSearchParams(location.search);
+      qs.set("zip", zip);
+      history.replaceState(null, "", `${location.pathname}?${qs.toString()}`);
+
+      const loc = await fetch(`${API}/officials?zip=${encodeURIComponent(zip)}`).then(r=>r.json()).catch(()=>null);
+      if (loc && loc.place && loc.state && loc.state.abbr){
+        placeLbl.textContent = `${zip} — ${loc.place}, ${loc.state.abbr}`;
+      } else placeLbl.textContent = `${zip}`;
+
+      // Officials
+      if (loc && Array.isArray(loc.officials)){
+        officialsHint.classList.add('hidden');
+        renderOfficials(loc.officials);
+        // copy / gen email
+        copyEmailsBtn.onclick = ()=>{
+          const emails = (loc.officials||[]).flatMap(o=> o.emails||[]);
+          if (!emails.length) return toast("No emails available.");
+          navigator.clipboard.writeText(emails.join(", ")).then(()=>toast("Emails copied."));
+        };
+        genEmailBtn.onclick = ()=>{
+          const emails = (loc.officials||[]).flatMap(o=> o.emails||[]);
+          if (!emails.length) return toast("No emails available.");
+          const subj = encodeURIComponent("Constituent inquiry from " + zip);
+          const body = encodeURIComponent("Dear Representative,\n\n[Write your message here]\n\nThank you.");
+          location.href = `mailto:${emails.join(",")}?subject=${subj}&body=${body}`;
+        };
+      } else {
+        officialsList.innerHTML = "";
+        officialsHint.classList.remove('hidden');
+      }
+
+      // Weather
+      const w = await fetch(`${API}/weather?zip=${encodeURIComponent(zip)}`).then(r=>r.json()).catch(()=>null);
+      if (w && Array.isArray(w.days) && w.days.length){
+        weatherHint.classList.add('hidden');
+        renderWeather(w.days);
+      } else {
+        weatherDays.innerHTML = "";
+        weatherHint.classList.remove('hidden');
+      }
+
+      // City updates (best‑effort)
+      try{
+        const cu = await fetch(`${API}/city/updates?zip=${encodeURIComponent(zip)}`).then(r=>r.json());
+        renderCity(cu?.updates || cu?.items || []);
+        cityHint.classList.add('hidden');
+      }catch{
+        renderCity([]);
+        cityHint.classList.add('hidden');
+      }
+
+      // Elections (static next federal + note)
+      elexBody.innerHTML = `
+        <div class="text-sm">Next Federal: <span class="font-medium">November 3, 2025</span></div>
+        <div class="text-xs text-slate-500 mt-1">State/Local specific dates coming from open data.</div>
+      `;
+
+      // News links
+      localNewsBtn.href = `https://news.google.com/search?q=${encodeURIComponent(zip)}&hl=en-US&gl=US&ceid=US:en`;
+      worldNewsBtn.href = `https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en`;
+
+      // Traffic map
+      trafficBtn.href = `https://www.google.com/maps/@?api=1&map_action=map&basemap=traffic`;
     }
 
-    // Simple modals
-    const modalMap = {
-      about:   document.getElementById("aboutModal"),
-      founder: document.getElementById("founderModal"),
-      contact: document.getElementById("contactModal"),
-      feedback:document.getElementById("feedbackModal"),
-    };
-    $$('[data-open]').forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        const k = btn.getAttribute("data-open");
-        const m = modalMap[k];
-        if (m) m.classList.add("open");
-      });
-    });
-    $$('[data-close]').forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        btn.closest(".modal").classList.remove("open");
-      });
-    });
-    Object.values(modalMap).forEach(m=>{
-      m.addEventListener("click", (e)=>{ if(e.target===m) m.classList.remove("open"); });
-    });
-
-    // Feedback stars + fake store
-    const stars = document.getElementById("stars");
-    const starsNote = document.getElementById("starsNote");
-    let fbScore = 0;
-    stars?.addEventListener("click",(e)=>{
-      const s = Number(e.target.getAttribute("data-s")||0);
-      if (!s) return;
-      fbScore = s;
-      starsNote.textContent = `${s} / 5`;
-    });
-    document.getElementById("feedbackForm")?.addEventListener("submit",(e)=>{
-      e.preventDefault();
-      // Store locally just to show success (no server)
-      localStorage.setItem("er_feedback", JSON.stringify({
-        name: document.getElementById("fbName").value || "",
-        email:document.getElementById("fbEmail").value||"",
-        msg:  document.getElementById("fbMsg").value  ||"",
-        stars: fbScore
-      }));
-      document.getElementById("fbThanks").classList.remove("hidden");
-      setTimeout(()=> modalMap.feedback.classList.remove("open"), 900);
-    });
-
-    // PWA register
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js").catch(()=>{});
-      });
+    // Geolocation -> reverse to ZIP (BigDataCloud, CORS‑friendly)
+    async function setZipFromGeo(){
+      locBtn.disabled = true;
+      locBtn.textContent = "Locating…";
+      try{
+        const pos = await new Promise((res, rej)=>{
+          navigator.geolocation.getCurrentPosition(res, rej, {enableHighAccuracy:true, timeout:12000});
+        });
+        const {latitude, longitude} = pos.coords;
+        const g = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`).then(r=>r.json());
+        const zipcode = g.postcode || g.localityInfo?.informative?.find(x=>x.description==="postcode")?.name;
+        if (!zipcode) throw new Error("No ZIP in reverse geocode.");
+        zipInput.value = zipcode;
+        placeLbl.textContent = `${zipcode} — ${g.city || g.locality || ""}${g.principalSubdivision ? ", "+g.principalSubdivision : ""}`;
+        await run(zipcode);
+      }catch(e){
+        alert("Could not resolve ZIP from your location.");
+      }finally{
+        locBtn.disabled = false;
+        locBtn.textContent = "Use my location";
+      }
     }
-    // PWA install prompt
-    let deferredPrompt=null;
-    const installBtn=document.getElementById("installBtn");
-    window.addEventListener("beforeinstallprompt",(e)=>{
-      e.preventDefault(); deferredPrompt=e;
-      if (installBtn) installBtn.classList.remove("hidden");
+
+    // Wire UI
+    locBtn.addEventListener('click', setZipFromGeo);
+    searchBtn.addEventListener('click', ()=> run(zipInput.value.trim()));
+    zipInput.addEventListener('keydown', e=>{ if(e.key==="Enter"){ e.preventDefault(); run(zipInput.value.trim()); }});
+    shareBtn.addEventListener('click', async ()=>{
+      const url = location.href.includes("?") ? location.href : `${location.origin}${location.pathname}?zip=${encodeURIComponent(zipInput.value.trim())}`;
+      try{ await navigator.clipboard.writeText(url); toast("Share link copied."); } catch{ toast("Copy failed."); }
     });
-    installBtn?.addEventListener("click", async ()=>{
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      installBtn.classList.add("hidden");
-      deferredPrompt=null;
+    clearBtn.addEventListener('click', ()=>{
+      localStorage.removeItem("lastZip");
+      zipInput.value = "";
+      placeLbl.textContent = "";
+      officialsList.innerHTML = "";
+      weatherDays.innerHTML  = "";
+      cityList.innerHTML     = "";
+      officialsHint.classList.remove('hidden');
+      weatherHint.classList.remove('hidden');
+      cityHint.classList.remove('hidden');
     });
+
+    // init
+    (function init(){
+      // set btn text
+      locBtn.textContent = "Use my location";
+      // restore zip from query or localStorage
+      const qp = new URLSearchParams(location.search);
+      const zq = qp.get("zip") || localStorage.getItem("lastZip") || "";
+      if (zq){ zipInput.value = zq; run(zq); }
+    })();
   </script>
 </body>
 </html>
