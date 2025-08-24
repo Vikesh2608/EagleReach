@@ -5,7 +5,7 @@ from typing import Optional, Dict, Any, Tuple
 
 app = FastAPI(title="EagleReach Backend (Open Data)")
 
-# CORS
+# ---------------- CORS ----------------
 ALLOWED = [
     "https://vikesh2608.github.io",
     "http://localhost:8000",
@@ -19,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Sources (no keys)
+# ---------------- Sources (no keys) ----------------
 ZIPPOP = "https://api.zippopotam.us/us"
 FCC = "https://geo.fcc.gov/api/census/block/find"
 GOVTRACK = "https://www.govtrack.us/api/v2"
@@ -32,7 +32,7 @@ UA = {"User-Agent": "EagleReach/1.3 (contact: vikebairam@gmail.com)"}
 
 def _esc(s): return (s or "").strip()
 
-# Simple TTL cache
+# ---------------- Tiny TTL cache ----------------
 _cache: Dict[str, Tuple[float, Any]] = {}
 def cache_get(key: str):
     v = _cache.get(key)
@@ -44,6 +44,7 @@ def cache_get(key: str):
 def cache_set(key: str, data: Any, ttl: int = 300):
     _cache[key] = (time.time() + ttl, data)
 
+# ---------------- Helpers ----------------
 def fallback_search_url(name:str, state_abbr:str, office:str):
     q = f"{name} {state_abbr} {office} official site"
     return f"https://www.google.com/search?q={httpx.QueryParams({'q': q})['q']}"
@@ -73,6 +74,7 @@ def wmo_label_icon(code:int):
     }
     return MAP.get(code, ("Weather", "⛅"))
 
+# ---------------- Health ----------------
 @app.get("/health")
 def health():
     return {
@@ -81,7 +83,7 @@ def health():
         "sources": ["zippopotam.us", "FCC", "GovTrack", "Wikidata", "Open‑Meteo", "NYC 311", "Chicago 311"],
     }
 
-# ---------- ZIP helpers ----------
+# ---------------- ZIP helpers ----------------
 async def fetch_zip(zip_code:str):
     url = f"{ZIPPOP}/{_esc(zip_code)}"
     ck = f"zip:{zip_code}"
@@ -126,7 +128,7 @@ async def fetch_cd(lat:float, lon:float):
         cache_set(ck, out, 3600)
         return out
 
-# ---------- Officials ----------
+# ---------------- Officials ----------------
 async def fetch_senators(state_abbr:str):
     url = f"{GOVTRACK}/role"
     params = {"current": "true", "role_type": "senator", "state": state_abbr.upper()}
@@ -267,7 +269,7 @@ async def officials(zip: str = Query(..., min_length=5, max_length=10)):
         }
     }
 
-# ---------- Weather ----------
+# ---------------- Weather ----------------
 @app.get("/weather")
 async def weather(zip: str):
     z = await fetch_zip(zip)
@@ -304,7 +306,7 @@ async def weather(zip: str):
         "source": "Open‑Meteo"
     }
 
-# ---------- Voter ----------
+# ---------------- Voter ----------------
 @app.get("/voter")
 async def voter(zip: str):
     z = await fetch_zip(zip)
@@ -320,7 +322,7 @@ async def voter(zip: str):
         "polling_url": polling_url
     }
 
-# ---------- City updates (NYC & Chicago) ----------
+# ---------------- City updates (NYC & Chicago) ----------------
 @app.get("/city/updates")
 async def city_updates(zip: str, limit: int = 8):
     z = await fetch_zip(zip)
@@ -359,18 +361,17 @@ async def city_updates(zip: str, limit: int = 8):
         pass
     return {"zip": zip, "items": out[:limit], "count": len(out), "source": source}
 
-# ---------- Elections ----------
+# ---------------- Elections ----------------
 @app.get("/elections")
 async def elections(zip: str):
     today = dt.date.today()
     this_year = first_tuesday_after_first_monday(today.year)
     next_date = this_year if this_year >= today else first_tuesday_after_first_monday(today.year + 1)
     notes = "State primary dates coming soon (open data, state SoS sources)."
-    # strftime portable for Windows: avoid %-d
     pretty = next_date.strftime("%B %d, %Y").replace(" 0", " ")
     return {"zip": zip, "next_federal": pretty, "notes": notes}
 
-# ---------- News ----------
+# ---------------- News ----------------
 @app.get("/news")
 async def news(zip: str):
     q = httpx.QueryParams({"q": f"{zip} news"})["q"]
