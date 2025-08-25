@@ -1,130 +1,142 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>EagleReach</title>
-  <link rel="icon" href="data:," />
-  <!-- Tailwind (CDN) -->
+  <link rel="icon" href="data:,"/>
+  <!-- Tailwind via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* Soft shadow and card polish */
-    .soft { box-shadow: 0 8px 28px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04); }
-    .btn { @apply inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold; }
-    .btn-surface { @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50; }
-    .btn-primary { @apply bg-blue-600 text-white hover:bg-blue-700; }
-    .btn-ghost   { @apply text-slate-600 hover:text-slate-800 hover:bg-slate-100; }
-    .pill { @apply text-[11px] font-medium bg-slate-100 text-slate-600 rounded-full px-2 py-0.5; }
-    .modal-backdrop { @apply fixed inset-0 bg-slate-900/60 backdrop-blur-sm; }
-    .modal-card { @apply bg-white rounded-xl p-6 w-full max-w-2xl soft; }
-    .flag-bar {
-      background: linear-gradient(90deg,#0b3d91 0 35%, #b31942 35% 100%);
-      height: 6px;
-      position: relative;
-      overflow: hidden;
-    }
-    .star { position:absolute; width:6px; height:6px; background:#fff; border-radius:1px; }
-    .star:nth-child(odd){ top:2px } .star:nth-child(even){ top:10px }
+    .soft{box-shadow:0 10px 30px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.05)}
+    .btn{ @apply inline-flex items-center gap-2 rounded-md px-3.5 py-2.5 text-sm font-semibold transition; }
+    .btn-surface{ @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50; }
+    .btn-primary{ @apply bg-blue-600 text-white hover:bg-blue-700; }
+    .btn-ghost{ @apply text-slate-50/90 hover:text-white hover:bg-white/10 rounded-md px-3 py-2; }
+    .pill{ @apply text-[11px] font-medium bg-slate-100 text-slate-600 rounded-full px-2 py-0.5; }
+    /* Modal */
+    .modal-backdrop{ @apply fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] flex items-center justify-center z-[100]; }
+    .modal-card{ @apply bg-white rounded-2xl p-6 w-full max-w-2xl soft relative; }
+    /* Flag SVG in header scales nicely */
+    .flag svg{height:22px;width:auto}
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-  <!-- Top header -->
-  <header class="bg-slate-900 text-white sticky top-0 z-40">
-    <div class="flag-bar">
-      <!-- tiny stars suggestion (purely decorative) -->
-      <span class="star" style="left:8px"></span><span class="star" style="left:20px"></span>
-      <span class="star" style="left:32px"></span><span class="star" style="left:44px"></span>
-      <span class="star" style="left:56px"></span><span class="star" style="left:68px"></span>
-    </div>
-
-    <div class="max-w-6xl mx-auto px-4">
-      <div class="flex items-center justify-between py-3">
-        <div class="flex items-center gap-3">
-          <div class="text-2xl">🦅</div>
-          <div class="text-xl font-bold tracking-wide">EagleReach</div>
-          <div class="ml-2 text-xs opacity-80 hidden sm:block">
-            “A nation, as a society, forms a moral person, and every member of it is personally responsible for his society.”
-            — Thomas Jefferson
+  <!-- HEADER -->
+  <header class="bg-slate-900 text-white sticky top-0 z-40 soft">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center justify-between py-4 md:py-5">
+        <div class="flex items-center gap-4">
+          <span class="text-3xl md:text-4xl">🦅</span>
+          <div>
+            <div class="flex items-center gap-3">
+              <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide">EagleReach</h1>
+              <div class="flag hidden sm:block">
+                <!-- Minimal US flag (inline SVG) -->
+                <svg viewBox="0 0 7410 3900" aria-hidden="true">
+                  <rect width="7410" height="3900" fill="#b31942"/>
+                  <g fill="#fff">
+                    <rect y="300" width="7410" height="300"/>
+                    <rect y="900" width="7410" height="300"/>
+                    <rect y="1500" width="7410" height="300"/>
+                    <rect y="2100" width="7410" height="300"/>
+                    <rect y="2700" width="7410" height="300"/>
+                    <rect y="3300" width="7410" height="300"/>
+                  </g>
+                  <rect width="2964" height="2100" fill="#0b3d91"/>
+                </svg>
+              </div>
+            </div>
+            <p class="mt-1 text-xs md:text-sm text-slate-200/90">
+              “A nation, as a society, forms a moral person, and every member of it is personally responsible for his society.”
+              — Thomas Jefferson
+            </p>
           </div>
         </div>
 
         <!-- Desktop nav -->
         <nav class="hidden md:flex items-center gap-1">
-          <button data-open="about"    class="btn btn-ghost">About</button>
-          <button data-open="founder"  class="btn btn-ghost">Founder</button>
-          <button data-open="contact"  class="btn btn-ghost">Contact</button>
-          <button data-open="feedback" class="btn btn-ghost">Feedback</button>
+          <button data-open="about"    class="btn-ghost">About</button>
+          <button data-open="founder"  class="btn-ghost">Founder</button>
+          <button data-open="contact"  class="btn-ghost">Contact</button>
+          <button data-open="feedback" class="btn-ghost">Feedback</button>
         </nav>
 
         <!-- Mobile menu -->
         <div class="md:hidden">
-          <button id="menuBtn" class="btn btn-surface">Menu</button>
+          <button id="menuBtn" class="btn-surface btn">☰ Menu</button>
         </div>
       </div>
 
       <!-- Mobile dropdown -->
-      <div id="mobileMenu" class="hidden md:hidden pb-3">
+      <div id="mobileMenu" class="hidden md:hidden pb-4">
         <div class="flex flex-col gap-1">
-          <button data-open="about"    class="btn btn-ghost w-full text-left">About</button>
-          <button data-open="founder"  class="btn btn-ghost w-full text-left">Founder</button>
-          <button data-open="contact"  class="btn btn-ghost w-full text-left">Contact</button>
-          <button data-open="feedback" class="btn btn-ghost w-full text-left">Feedback</button>
+          <button data-open="about"    class="btn-ghost text-left">About</button>
+          <button data-open="founder"  class="btn-ghost text-left">Founder</button>
+          <button data-open="contact"  class="btn-ghost text-left">Contact</button>
+          <button data-open="feedback" class="btn-ghost text-left">Feedback</button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Main -->
-  <main class="max-w-6xl mx-auto px-4 py-8">
+  <!-- MAIN -->
+  <main class="max-w-7xl mx-auto px-4 py-8">
 
-    <!-- Zip + actions -->
-    <section class="soft bg-white rounded-xl p-5 mb-6">
-      <p class="text-sm text-slate-600">Enter your ZIP code to see representatives, voter info, weather, city updates, traffic, and elections.</p>
+    <!-- Search row -->
+    <section class="soft bg-white rounded-2xl p-5 mb-6">
+      <p class="text-sm text-slate-600">
+        Enter your ZIP to see representatives, voter info, weather, city updates, traffic, and elections.
+      </p>
 
-      <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <input id="zipInput" class="rounded-md border border-slate-300 px-3 py-2"
-               type="text" inputmode="numeric" maxlength="10" placeholder="ZIP (e.g., 62704)">
-
-        <div class="flex items-center gap-2">
-          <button id="locBtn" class="btn btn-surface">📍 Use my location</button>
-          <button id="searchBtn" class="btn btn-primary">Search</button>
+      <div class="mt-3 grid grid-cols-1 md:grid-cols-12 gap-3">
+        <div class="md:col-span-5">
+          <input id="zipInput" class="w-full rounded-md border border-slate-300 px-3.5 py-2.5"
+                 type="text" inputmode="numeric" maxlength="10" placeholder="ZIP (e.g., 62704)"/>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button id="shareBtn" class="btn btn-surface">Copy Share Link</button>
-          <button id="clearBtn" class="btn btn-surface">Clear history</button>
+        <div class="md:col-span-4 flex items-center gap-2">
+          <button id="locBtn" class="btn btn-surface">📍 Use my location</button>
+          <button id="searchBtn" class="btn btn-primary">🔎 Search</button>
+        </div>
+
+        <div class="md:col-span-3 flex items-center gap-2">
+          <button id="shareBtn" class="btn btn-surface">🔗 Copy link</button>
+          <button id="clearBtn" class="btn btn-surface">🧹 Clear history</button>
         </div>
       </div>
 
       <div id="where" class="mt-2 text-sm text-slate-500 hidden"></div>
     </section>
 
-    <!-- Grid of cards -->
+    <!-- Cards grid -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       <!-- Officials -->
-      <div class="lg:col-span-1 soft bg-white rounded-xl p-5">
+      <div class="lg:col-span-1 soft bg-white rounded-2xl p-5">
         <div class="flex items-center justify-between">
-          <h2 class="font-semibold">Elected Representatives</h2>
+          <h2 class="font-semibold text-lg">Elected Representatives</h2>
           <div class="flex items-center gap-2">
-            <button id="copyEmailsBtn" class="btn btn-surface">Copy Emails</button>
-            <button id="genEmailBtn" class="btn btn-primary">Generate Email</button>
+            <button id="copyEmailsBtn" class="btn btn-surface">📋 Copy Emails</button>
+            <button id="genEmailBtn" class="btn btn-primary">✉️ Generate Email</button>
           </div>
         </div>
-        <p class="text-xs mt-1 text-slate-500">Sources: GovTrack (Congress), Wikidata (Mayor), FCC, Zippopotam.</p>
+        <p class="text-xs mt-1 text-slate-500">
+          Sources: GovTrack (Congress), Wikidata (Mayor), FCC, Zippopotam.
+        </p>
         <div id="officials" class="mt-3 space-y-3"></div>
       </div>
 
       <!-- Weather + Voter -->
       <div class="lg:col-span-1 space-y-6">
-        <div class="soft bg-white rounded-xl p-5">
-          <h2 class="font-semibold">Weather (7‑day)</h2>
+        <div class="soft bg-white rounded-2xl p-5">
+          <h2 class="font-semibold text-lg">Weather (7‑day)</h2>
           <div id="weather" class="mt-3 text-sm text-slate-700">Enter a ZIP to load weather…</div>
         </div>
 
-        <div class="soft bg-white rounded-xl p-5">
-          <h2 class="font-semibold">Voter Info & Education</h2>
+        <div class="soft bg-white rounded-2xl p-5">
+          <h2 class="font-semibold text-lg">Voter Info & Education</h2>
           <ul class="mt-2 text-sm list-disc ml-5 space-y-1">
             <li><a class="text-blue-700 hover:underline" href="https://www.usa.gov/how-to-vote" target="_blank" rel="noopener">How to vote (USA.gov)</a></li>
             <li><a class="text-blue-700 hover:underline" href="https://vote.gov/" target="_blank" rel="noopener">Register to vote</a></li>
@@ -133,39 +145,41 @@
         </div>
       </div>
 
-      <!-- City/Traffic/Elections/News -->
+      <!-- City / Elections / Traffic / News -->
       <div class="lg:col-span-1 space-y-6">
-        <div class="soft bg-white rounded-xl p-5">
-          <h2 class="font-semibold">City updates</h2>
+        <div class="soft bg-white rounded-2xl p-5">
+          <h2 class="font-semibold text-lg">City updates</h2>
           <div id="city" class="mt-2 text-sm text-slate-700">Enter a ZIP to load updates…</div>
         </div>
 
-        <div class="soft bg-white rounded-xl p-5">
-          <h2 class="font-semibold">Upcoming Elections</h2>
-          <div id="elections" class="mt-2 text-sm text-slate-700">Next Federal: November 3, 2025<br/><span class="text-slate-500 text-xs">State/Local specific dates coming from open data.</span></div>
+        <div class="soft bg-white rounded-2xl p-5">
+          <h2 class="font-semibold text-lg">Upcoming Elections</h2>
+          <div id="elections" class="mt-2 text-sm text-slate-700">
+            Next Federal: November 3, 2025<br/>
+            <span class="text-slate-500 text-xs">State/Local specific dates coming from open data.</span>
+          </div>
         </div>
 
-        <div class="soft bg-white rounded-xl p-5">
-          <h2 class="font-semibold">Traffic</h2>
+        <div class="soft bg-white rounded-2xl p-5">
+          <h2 class="font-semibold text-lg">Traffic</h2>
           <p class="text-sm text-slate-600 mt-1">Open live traffic for your area in Google Maps.</p>
-          <button id="trafficBtn" class="btn btn-surface mt-3">Open Traffic Map</button>
+          <button id="trafficBtn" class="btn btn-surface mt-3">🗺️ Open Traffic Map</button>
         </div>
 
-        <div class="soft bg-white rounded-xl p-5">
-          <h2 class="font-semibold">News</h2>
+        <div class="soft bg-white rounded-2xl p-5">
+          <h2 class="font-semibold text-lg">News</h2>
           <div class="flex gap-2 mt-3">
             <a class="btn btn-primary" href="https://news.google.com/search?q=local%20news" target="_blank" rel="noopener">Open Local News</a>
             <a class="btn btn-surface" href="https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener">World News</a>
           </div>
-          <p class="text-xs text-slate-500 mt-2">Opens news in a new tab.</p>
         </div>
       </div>
     </section>
 
-    <!-- Raise concern + Emergency -->
+    <!-- Concern + Emergency -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-      <div class="lg:col-span-2 soft bg-white rounded-xl p-5">
-        <h2 class="font-semibold">Raise a Concern</h2>
+      <div class="lg:col-span-2 soft bg-white rounded-2xl p-5">
+        <h2 class="font-semibold text-lg">Raise a Concern</h2>
         <p class="text-sm text-slate-600 mt-1">Report city issues (311), contact your city hall, or write to your representatives.</p>
         <div class="flex flex-wrap gap-2 mt-3">
           <a class="btn btn-surface" id="concernPothole" href="#">Potholes</a>
@@ -174,34 +188,31 @@
         </div>
       </div>
 
-      <div class="soft bg-white rounded-xl p-5">
-        <h2 class="font-semibold">Emergency</h2>
+      <div class="soft bg-white rounded-2xl p-5">
+        <h2 class="font-semibold text-lg">Emergency</h2>
+        <!-- Toned palette -->
         <div class="grid grid-cols-2 gap-2 mt-3">
-          <a class="btn !justify-center font-bold text-white" style="background:#d32f2f" href="tel:911">911 — Emergency</a>
-          <a class="btn !justify-center font-bold text-white" style="background:#8e24aa" href="tel:988">988 — Suicide &amp; Crisis</a>
-          <a class="btn !justify-center font-bold text-white" style="background:#2e7d32" href="tel:211">211 — Community Services</a>
-          <a class="btn !justify-center font-bold text-white" style="background:#1565c0" href="tel:311">311 — City Services</a>
-          <a class="btn !justify-center font-bold text-white" style="background:#ef6c00" href="tel:811">811 — Before You Dig</a>
-          <a class="btn !justify-center font-bold text-white" style="background:#e65100" href="tel:18002221222">Poison Control</a>
+          <a class="btn !justify-center text-white" style="background:#1f2937" href="tel:911">911 — Emergency</a>
+          <a class="btn !justify-center text-white" style="background:#374151" href="tel:988">988 — Suicide &amp; Crisis</a>
+          <a class="btn !justify-center text-white" style="background:#2563eb" href="tel:211">211 — Community Services</a>
+          <a class="btn !justify-center text-white" style="background:#3b82f6" href="tel:311">311 — City Services</a>
+          <a class="btn !justify-center text-white" style="background:#0ea5e9" href="tel:811">811 — Before You Dig</a>
+          <a class="btn !justify-center text-white" style="background:#0891b2" href="tel:18002221222">Poison Control</a>
         </div>
         <p class="text-xs text-slate-500 mt-2">Tap a number to call.</p>
       </div>
     </section>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="py-8 text-center text-xs text-slate-500">
-    © 2025 EagleReach. Built open‑source.
-  </footer>
+  <footer class="py-10 text-center text-xs text-slate-500">© 2025 EagleReach. Built open‑source.</footer>
 
-  <!-- MODALS -->
+  <!-- MODAL HOST (nothing else on page) -->
   <div id="modalHost" class="hidden"></div>
 
   <script>
-    // ---------------------------
-    // CONFIG
-    // ---------------------------
+    // ------- CONFIG -------
     const API = "https://eaglereach-1.onrender.com";
+
     const zipInput  = document.getElementById('zipInput');
     const searchBtn = document.getElementById('searchBtn');
     const locBtn    = document.getElementById('locBtn');
@@ -217,21 +228,20 @@
     const copyEmailsBtn = document.getElementById('copyEmailsBtn');
     const genEmailBtn   = document.getElementById('genEmailBtn');
 
-    // mobile menu
+    // Mobile menu
     document.getElementById('menuBtn')?.addEventListener('click', () => {
       document.getElementById('mobileMenu').classList.toggle('hidden');
     });
 
-    // Modals openers (desktop + mobile)
-    document.querySelectorAll('[data-open]').forEach(btn=>{
-      btn.addEventListener('click', () => openModal(btn.getAttribute('data-open')));
+    // Modal openers (desktop & mobile)
+    document.querySelectorAll('[data-open]').forEach(b=>{
+      b.addEventListener('click', ()=>openModal(b.getAttribute('data-open')));
     });
 
-    // restore from URL
+    // URL restore
     const urlZip = new URLSearchParams(location.search).get('zip');
     if (urlZip) { zipInput.value = urlZip; run(); }
-
-    // restore last zip
+    // LocalStorage restore
     if (!zipInput.value) {
       const last = localStorage.getItem('er:lastZip');
       if (last) { zipInput.value = last; run(false); }
@@ -239,12 +249,12 @@
 
     // Actions
     searchBtn.addEventListener('click', run);
-    zipInput.addEventListener('keydown', e => { if (e.key === 'Enter') run(); });
+    zipInput.addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
 
     shareBtn.addEventListener('click', () => {
       const z = zipInput.value.trim();
-      const url = z ? `${location.origin}${location.pathname}?zip=${encodeURIComponent(z)}` : location.href;
-      navigator.clipboard.writeText(url).then(()=>toast('Link copied.'));
+      const link = z ? `${location.origin}${location.pathname}?zip=${encodeURIComponent(z)}` : location.href;
+      navigator.clipboard.writeText(link).then(()=>toast('Link copied.'));
     });
 
     clearBtn.addEventListener('click', () => {
@@ -257,7 +267,7 @@
       toast('History cleared.');
     });
 
-    // Use my location -> resolve ZIP -> fill + run
+    // Use my location (with fallbacks)
     locBtn.addEventListener('click', async () => {
       try {
         const pos = await new Promise((res, rej)=>
@@ -267,15 +277,14 @@
         whereEl.classList.remove('hidden');
         whereEl.textContent = 'Locating…';
 
-        // Reverse geocode #1 (BigDataCloud free)
+        // Reverse geocode #1
         let postal = '';
         try {
           const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
           const j = await r.json();
           postal = j.postcode || j.postalCode || '';
         } catch {}
-
-        // Fallback #2 (Nominatim)
+        // Fallback #2
         if (!postal) {
           try {
             const r2 = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
@@ -284,36 +293,28 @@
           } catch {}
         }
 
-        if (!postal) {
-          alert('Could not resolve ZIP from your location.');
-          whereEl.classList.add('hidden');
-          return;
-        }
+        if (!postal) { alert('Could not resolve ZIP from your location.'); whereEl.classList.add('hidden'); return; }
         zipInput.value = postal.replace(/\s+/g,'').slice(0,10);
         run();
-      } catch (e) {
+      } catch {
         alert('Could not resolve ZIP from your location.');
       }
     });
 
-    // Traffic
-    trafficBtn.addEventListener('click', () => {
-      const z = zipInput.value.trim();
-      if (!z) { toast('Enter a ZIP first.'); return; }
-      // open Google Maps traffic layer centered on ZIP (search query)
+    trafficBtn.addEventListener('click', ()=>{
+      const z=zipInput.value.trim();
+      if(!z){ toast('Enter a ZIP first.'); return; }
       window.open(`https://www.google.com/maps/search/${encodeURIComponent(z)}+traffic`, '_blank');
     });
 
-    // Copy emails + Generate email
-    copyEmailsBtn.addEventListener('click', () => {
+    copyEmailsBtn.addEventListener('click', ()=>{
       const emails = Array.from(officialsEl.querySelectorAll('[data-email]'))
-        .map(el => el.getAttribute('data-email'))
-        .filter(Boolean);
-      if (emails.length === 0) { toast('No emails available.'); return; }
+        .map(el=>el.getAttribute('data-email')).filter(Boolean);
+      if(emails.length===0){ toast('No emails available.'); return; }
       navigator.clipboard.writeText(emails.join(', ')).then(()=>toast('Emails copied.'));
     });
 
-    genEmailBtn.addEventListener('click', () => {
+    genEmailBtn.addEventListener('click', ()=>{
       const names = Array.from(officialsEl.querySelectorAll('[data-name]')).map(el=>el.getAttribute('data-name'));
       const z = zipInput.value.trim();
       const subject = encodeURIComponent(`Constituent from ${z} — Community concerns`);
@@ -329,87 +330,66 @@ I’m a resident of ZIP ${z}. I’d like to raise a few local concerns and would
 Thank you for your service.
 
 Sincerely,
-[Your Name]
-`
-      );
+[Your Name]`);
       location.href = `mailto:?subject=${subject}&body=${body}`;
     });
 
-    // Concern mailto helpers
-    const mailtoIssue = (issue) => {
-      const z = zipInput.value.trim();
-      const subject = encodeURIComponent(`[${z}] ${issue} concern`);
-      const body = encodeURIComponent(`Hello,\n\nI’d like to report a ${issue.toLowerCase()} issue in ZIP ${z}.\n\nLocation/Details:\n\nThank you.`);
-      location.href = `mailto:?subject=${subject}&body=${body}`;
-    };
-    document.getElementById('concernPothole').addEventListener('click', e => { e.preventDefault(); mailtoIssue('Pothole'); });
-    document.getElementById('concernTrash').addEventListener('click', e => { e.preventDefault(); mailtoIssue('Trash'); });
-    document.getElementById('concernLights').addEventListener('click', e => { e.preventDefault(); mailtoIssue('Street lights'); });
-
-    // Core runner
-    async function run(save = true) {
+    // Main fetches
+    async function run(save=true){
       const zip = zipInput.value.trim();
-      if (!zip) { toast('Enter a ZIP.'); return; }
-      if (save) localStorage.setItem('er:lastZip', zip);
-      history.replaceState(null, '', `?zip=${encodeURIComponent(zip)}`);
+      if(!zip){ toast('Enter a ZIP.'); return; }
+      if(save) localStorage.setItem('er:lastZip', zip);
+      history.replaceState(null,'',`?zip=${encodeURIComponent(zip)}`);
 
-      // officials
-      try {
-        officialsEl.innerHTML = '<div class="text-sm text-slate-500">Loading officials…</div>';
+      // Officials
+      try{
+        officialsEl.innerHTML='<div class="text-sm text-slate-500">Loading officials…</div>';
         const r = await fetch(`${API}/officials?zip=${encodeURIComponent(zip)}`);
-        if (!r.ok) throw 0;
+        if(!r.ok) throw 0;
         const j = await r.json();
         renderOfficials(j);
         if (j.place && j.state && j.state.abbr) {
           whereEl.textContent = `${zip} — ${j.place}, ${j.state.abbr}`;
           whereEl.classList.remove('hidden');
         }
-      } catch {
-        officialsEl.innerHTML = '<div class="text-sm text-rose-600">Could not load officials.</div>';
-      }
+      }catch{ officialsEl.innerHTML='<div class="text-sm text-rose-600">Could not load officials.</div>'; }
 
-      // weather
-      try {
+      // Weather
+      try{
         const r = await fetch(`${API}/weather?zip=${encodeURIComponent(zip)}`);
-        if (!r.ok) throw 0;
+        if(!r.ok) throw 0;
         const j = await r.json();
         renderWeather(j);
-      } catch {
-        weatherEl.textContent = 'Weather temporarily unavailable.';
-      }
+      }catch{ weatherEl.textContent='Weather temporarily unavailable.'; }
 
-      // city placeholder (activate when backend endpoint ready)
-      cityEl.textContent = 'City updates will appear here as they become available.';
+      // City updates placeholder (activate when endpoint ready)
+      cityEl.textContent='City updates will appear here as they become available.';
     }
 
-    function renderOfficials(j) {
-      const rows = (j.officials || []);
-      if (rows.length === 0) {
-        officialsEl.innerHTML = '<div class="text-sm text-slate-600">Enter a ZIP to load officials…</div>';
-        return;
-      }
-      officialsEl.innerHTML = rows.map(o => {
-        const phone = (o.phones && o.phones[0]) || '';
-        const site  = (o.urls && o.urls[0]) || '';
-        const email = ''; // not exposed in GovTrack; keep attr empty
-        const party = o.party ? ` — <span class="text-slate-500">${o.party}</span>` : '';
-        const tel   = phone ? `<div class="mt-1 text-sm"><a class="text-blue-700 hover:underline" href="tel:${phone.replace(/[^0-9+]/g,'')}">${phone}</a></div>` : '';
-        const url   = site ? `<div class="mt-1 text-sm"><a class="text-blue-700 hover:underline" href="${site}" target="_blank" rel="noopener">${site.replace(/^https?:\/\//,'')}</a></div>` : '';
+    function renderOfficials(j){
+      const rows=j.officials||[];
+      if(rows.length===0){ officialsEl.innerHTML='<div class="text-sm text-slate-600">Enter a ZIP to load officials…</div>'; return; }
+      officialsEl.innerHTML = rows.map(o=>{
+        const phone=(o.phones&&o.phones[0])||'';
+        const site =(o.urls&&o.urls[0])||'';
+        const email=''; // GovTrack rarely exposes direct emails
+        const party=o.party?` — <span class="text-slate-500">${escapeHtml(o.party)}</span>`:'';
+        const tel = phone?`<div class="mt-1 text-sm"><a class="text-blue-700 hover:underline" href="tel:${phone.replace(/[^0-9+]/g,'')}">${phone}</a></div>`:'';
+        const url = site ?`<div class="mt-1 text-sm"><a class="text-blue-700 hover:underline" href="${site}" target="_blank" rel="noopener">${site.replace(/^https?:\/\//,'')}</a></div>`:'';
         return `
-          <div class="rounded-lg border border-slate-200 p-3">
+          <div class="rounded-xl border border-slate-200 p-3">
             <div class="font-medium" data-name="${escapeHtml(o.name||'')}">${escapeHtml(o.name||'')}</div>
-            <div class="text-sm text-slate-600">${escapeHtml(o.office||'')} ${party}</div>
+            <div class="text-sm text-slate-600">${escapeHtml(o.office||'')}${party}</div>
             ${url}${tel}
             <span class="hidden" data-email="${escapeHtml(email)}"></span>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
-    function renderWeather(j) {
-      const days = j.days || [];
-      if (days.length === 0) { weatherEl.textContent = 'No forecast available.'; return; }
-      const rows = days.map(d => `
+    function renderWeather(j){
+      const days=j.days||[];
+      if(days.length===0){ weatherEl.textContent='No forecast available.'; return; }
+      weatherEl.innerHTML = days.map(d=>`
         <div class="flex items-center justify-between border-b last:border-none py-2">
           <div class="text-sm">${d.date}</div>
           <div class="flex items-center gap-3">
@@ -417,142 +397,79 @@ Sincerely,
             <div class="text-sm">${Math.round(d.tmin_c)}° / ${Math.round(d.tmax_c)}°C</div>
             <div class="text-xs text-slate-500">${d.precip_pct ?? 0}%</div>
           </div>
-        </div>
-      `).join('');
-      weatherEl.innerHTML = rows;
+        </div>`).join('');
     }
+    function iconFor(d){ const p=d.precip_pct??0; if(p>=60) return '🌧️ Rain'; if(p>=20) return '☁️ Cloudy'; return '☀️ Clear'; }
+    const escapeHtml = s=>(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    function toast(msg){ const el=document.createElement('div'); el.className='fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-3 py-2 rounded-md soft z-[200]'; el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(),1800); }
 
-    function iconFor(d){
-      // crude condition based on precip + temp movement
-      const p = d.precip_pct ?? 0;
-      if (p >= 60) return '🌧️ Rain';
-      if (p >= 20) return '☁️ Cloudy';
-      return '☀️ Clear';
-    }
-
-    // Simple toast
-    function toast(msg){
-      const el = document.createElement('div');
-      el.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-3 py-2 rounded-md soft';
-      el.textContent = msg;
-      document.body.appendChild(el);
-      setTimeout(()=>{ el.remove(); }, 1800);
-    }
-    const escapeHtml = (s) => (s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-
-    // ---------------------------
-    // MODALS
-    // ---------------------------
-    const modalHost = document.getElementById('modalHost');
+    // ------- MODALS -------
+    const modalHost=document.getElementById('modalHost');
     function closeModal(){ modalHost.className='hidden'; modalHost.innerHTML=''; }
-
     function openModal(kind){
-      let title='', html='';
-      if (kind==='about'){
+      let title='',html='';
+      if(kind==='about'){
         title='About EagleReach';
-        html = `
-          <p class="text-slate-700 leading-relaxed">
-            EagleReach is a public, open-source civic assistant that connects residents with their elected officials, nearby services,
-            and local context such as weather, traffic, and city updates—all in one place. The app is intentionally simple, fast,
-            and free for everyone.
-          </p>
-          <ul class="list-disc ml-5 mt-3 space-y-1 text-slate-700">
-            <li>No sign‑ins. No tracking. Your ZIP stays on your device.</li>
-            <li>Built on open data to keep government transparent and helpful.</li>
-            <li>Accessible design for students, seniors, professionals, and everyone in between.</li>
-          </ul>
-        `;
-      }
-      if (kind==='founder'){
+        html=`<p class="text-slate-700 leading-relaxed">
+          EagleReach is a public, open-source civic assistant that connects residents with their elected officials, nearby services,
+          and local context such as weather, traffic, and city updates—all in one place. No sign‑ins. No tracking. Fast and free for everyone.
+        </p>`;
+      }else if(kind==='founder'){
         title='Founder';
-        html = `
-          <p class="text-slate-700">
-            <strong>Vikesh Sagar Bairam</strong> — Founder of EagleReach. Tech Evangelist & Business Solutions Architect.
-          </p>
-          <p class="text-slate-700 mt-2">
-            Master’s in Information Systems & Management (University of Illinois, Springfield). Bachelor’s in Psychology and
-            Bachelor’s in Computer Science. Currently at Jabil; previously at Surfaces by Pacific.
-          </p>
-          <p class="text-slate-700 mt-2">
-            Passionate about AI/ML, generative AI, DevOps, and data engineering—building tools that bring government closer to people.
-          </p>
-        `;
-      }
-      if (kind==='contact'){
+        html=`<p class="text-slate-700">
+          <strong>Vikesh Sagar Bairam</strong> — Founder of EagleReach. Tech Evangelist & Business Solutions Architect.
+          Master’s in Information Systems & Management (University of Illinois, Springfield). Bachelor’s in Psychology and
+          Bachelor’s in Computer Science. Currently at Jabil; previously at Surfaces by Pacific. Passionate about AI/ML, Generative AI,
+          DevOps, and data engineering—building tools that bring government closer to people.
+        </p>`;
+      }else if(kind==='contact'){
         title='Contact';
-        html = `
-          <div class="space-y-2 text-slate-700">
-            <div>LinkedIn: <a class="text-blue-700 hover:underline" href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank" rel="noopener">vikesh-bairam-219769258</a></div>
-            <div>GitHub: <a class="text-blue-700 hover:underline" href="https://github.com/vikesh2608" target="_blank" rel="noopener">vikesh2608</a></div>
-            <div>Email: <a class="text-blue-700 hover:underline" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a></div>
-          </div>
-        `;
-      }
-      if (kind==='feedback'){
+        html=`<div class="space-y-2 text-slate-700">
+          <div>LinkedIn: <a class="text-blue-700 hover:underline" href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank" rel="noopener">vikesh-bairam-219769258</a></div>
+          <div>GitHub: <a class="text-blue-700 hover:underline" href="https://github.com/vikesh2608" target="_blank" rel="noopener">vikesh2608</a></div>
+          <div>Email: <a class="text-blue-700 hover:underline" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a></div>
+        </div>`;
+      }else if(kind==='feedback'){
         title='Feedback & Comments';
-        html = `
-          <form id="fbForm" class="space-y-4">
-            <div>
-              <label class="block text-sm mb-1">Your name (optional)</label>
-              <input name="name" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="Name" />
-            </div>
-            <div>
-              <label class="block text-sm mb-1">Email (optional)</label>
-              <input name="email" type="email" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="you@example.com" />
-            </div>
-            <div>
-              <label class="block text-sm mb-1">Rating</label>
-              <div class="flex gap-1 text-2xl" id="stars">
-                <button type="button">☆</button><button type="button">☆</button><button type="button">☆</button><button type="button">☆</button><button type="button">☆</button>
-              </div>
-              <input type="hidden" name="rating" value="0">
-            </div>
-            <div>
-              <label class="block text-sm mb-1">Comments</label>
-              <textarea name="txt" rows="4" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="Your thoughts…"></textarea>
-            </div>
-            <button class="btn btn-primary" type="submit">Send</button>
-          </form>
-        `;
+        html=`<form id="fbForm" class="space-y-4">
+          <div><label class="block text-sm mb-1">Your name (optional)</label>
+            <input name="name" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="Name"/></div>
+          <div><label class="block text-sm mb-1">Email (optional)</label>
+            <input name="email" type="email" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="you@example.com"/></div>
+          <div>
+            <label class="block text-sm mb-1">Rating</label>
+            <div class="flex gap-1 text-2xl" id="stars"><button type="button">☆</button><button type="button">☆</button><button type="button">☆</button><button type="button">☆</button><button type="button">☆</button></div>
+            <input type="hidden" name="rating" value="0">
+          </div>
+          <div>
+            <label class="block text-sm mb-1">Comments</label>
+            <textarea name="txt" rows="4" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="Your thoughts…"></textarea>
+          </div>
+          <button class="btn btn-primary" type="submit">Send</button>
+        </form>`;
       }
-
       modalHost.className='';
-      modalHost.innerHTML = `
-        <div class="modal-backdrop flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <div class="modal-card relative">
-            <button class="absolute right-3 top-3 btn btn-surface" id="closeModal">✕</button>
+      modalHost.innerHTML=`
+        <div class="modal-backdrop" role="dialog" aria-modal="true">
+          <div class="modal-card">
+            <button class="btn btn-surface absolute right-3 top-3" id="closeModal">✕</button>
             <h3 class="text-lg font-semibold mb-3">${title}</h3>
             ${html}
           </div>
-        </div>
-      `;
-      document.getElementById('closeModal').onclick = closeModal;
-      modalHost.querySelector('.modal-backdrop').addEventListener('click',(e)=>{
-        if (e.target.classList.contains('modal-backdrop')) closeModal();
-      });
+        </div>`;
+      document.getElementById('closeModal').onclick=closeModal;
+      modalHost.querySelector('.modal-backdrop').addEventListener('click',(e)=>{ if(e.target.classList.contains('modal-backdrop')) closeModal(); });
 
-      // feedback stars + submit
-      if (kind==='feedback'){
-        const stars = modalHost.querySelectorAll('#stars button');
-        const ratingInput = modalHost.querySelector('input[name="rating"]');
-        stars.forEach((b,i)=>{
-          b.addEventListener('click', ()=>{
-            const r=i+1; ratingInput.value=r;
-            stars.forEach((s,j)=> s.textContent = j<r ? '★':'☆' );
-          });
-        });
-        modalHost.querySelector('#fbForm').addEventListener('submit', e=>{
+      if(kind==='feedback'){
+        const stars=modalHost.querySelectorAll('#stars button');
+        const ratingInput=modalHost.querySelector('input[name="rating"]');
+        stars.forEach((b,i)=>b.addEventListener('click',()=>{ const r=i+1; ratingInput.value=r; stars.forEach((s,j)=>s.textContent=j<r?'★':'☆'); }));
+        modalHost.querySelector('#fbForm').addEventListener('submit',e=>{
           e.preventDefault();
-          const f = new FormData(e.target);
-          const subject = encodeURIComponent(`EagleReach feedback — ${f.get('rating') || 0}★`);
-          const body = encodeURIComponent(
-`Name: ${f.get('name')||''}
-Email: ${f.get('email')||''}
-Rating: ${f.get('rating')||0} stars
-
-${f.get('txt')||''}
-`);
-          location.href = `mailto:vikebairam@gmail.com?subject=${subject}&body=${body}`;
+          const f=new FormData(e.target);
+          const subject=encodeURIComponent(`EagleReach feedback — ${f.get('rating')||0}★`);
+          const body=encodeURIComponent(`Name: ${f.get('name')||''}\nEmail: ${f.get('email')||''}\nRating: ${f.get('rating')||0} stars\n\n${f.get('txt')||''}\n`);
+          location.href=`mailto:vikebairam@gmail.com?subject=${subject}&body=${body}`;
         });
       }
     }
