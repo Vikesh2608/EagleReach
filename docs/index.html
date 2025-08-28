@@ -1,478 +1,461 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>EagleReach</title>
-  <link rel="icon" href="data:,"/>
-  <!-- Tailwind via CDN -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EagleReach — Civic Assistant for US Residents</title>
+
+  <!-- Tailwind (JIT CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { blue: '#0b3d91', red: '#b31942' }
+          },
+          boxShadow: {
+            soft: '0 10px 20px rgba(0,0,0,.06), 0 6px 6px rgba(0,0,0,.08)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Heroicons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <link rel="icon" href="data:image/svg+xml,\
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>\
+  <rect width='64' height='64' fill='%230b3d91'/>\
+  <text x='32' y='40' font-size='28' text-anchor='middle' fill='white'>🦅</text>\
+  </svg>">
   <style>
-    .soft{box-shadow:0 10px 30px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.05)}
-    .btn{ @apply inline-flex items-center gap-2 rounded-md px-3.5 py-2.5 text-sm font-semibold transition; }
-    .btn-surface{ @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50; }
-    .btn-primary{ @apply bg-blue-600 text-white hover:bg-blue-700; }
-    .btn-ghost{ @apply text-slate-50/90 hover:text-white hover:bg-white/10 rounded-md px-3 py-2; }
-    .pill{ @apply text-[11px] font-medium bg-slate-100 text-slate-600 rounded-full px-2 py-0.5; }
-    /* Modal */
-    .modal-backdrop{ @apply fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] flex items-center justify-center z-[100]; }
-    .modal-card{ @apply bg-white rounded-2xl p-6 w-full max-w-2xl soft relative; }
-    /* Flag SVG in header scales nicely */
-    .flag svg{height:22px;width:auto}
+    .card { @apply bg-white rounded-2xl p-5 shadow-soft; }
+    .kicker { @apply text-xs uppercase tracking-widest text-slate-500; }
+    .pill { @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm bg-slate-100; }
+    .btn { @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium shadow-soft; }
+    .btn-primary { @apply bg-brand-blue text-white hover:opacity-90; }
+    .btn-ghost   { @apply bg-white text-brand-blue border border-brand-blue hover:bg-slate-50; }
+    .heading { @apply text-2xl md:text-[28px] font-semibold text-slate-800; }
+    dialog::backdrop { background: rgba(0,0,0,.5); }
+    .flagbar {
+      background: linear-gradient(90deg, #b31942 0 20%, #fff 20% 40%, #0b3d91 40% 60%, #fff 60% 80%, #b31942 80% 100%);
+      height: 6px;
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="min-h-screen bg-slate-50 text-slate-800">
 
-  <!-- HEADER -->
-  <header class="bg-slate-900 text-white sticky top-0 z-40 soft">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="flex items-center justify-between py-4 md:py-5">
-        <div class="flex items-center gap-4">
-          <span class="text-3xl md:text-4xl">🦅</span>
-          <div>
-            <div class="flex items-center gap-3">
-              <h1 class="text-2xl md:text-3xl font-extrabold tracking-wide">EagleReach</h1>
-              <div class="flag hidden sm:block">
-                <!-- Minimal US flag (inline SVG) -->
-                <svg viewBox="0 0 7410 3900" aria-hidden="true">
-                  <rect width="7410" height="3900" fill="#b31942"/>
-                  <g fill="#fff">
-                    <rect y="300" width="7410" height="300"/>
-                    <rect y="900" width="7410" height="300"/>
-                    <rect y="1500" width="7410" height="300"/>
-                    <rect y="2100" width="7410" height="300"/>
-                    <rect y="2700" width="7410" height="300"/>
-                    <rect y="3300" width="7410" height="300"/>
-                  </g>
-                  <rect width="2964" height="2100" fill="#0b3d91"/>
-                </svg>
-              </div>
-            </div>
-            <p class="mt-1 text-xs md:text-sm text-slate-200/90">
-              “A nation, as a society, forms a moral person, and every member of it is personally responsible for his society.”
-              — Thomas Jefferson
-            </p>
-          </div>
-        </div>
-
-        <!-- Desktop nav -->
-        <nav class="hidden md:flex items-center gap-1">
-          <button data-open="about"    class="btn-ghost">About</button>
-          <button data-open="founder"  class="btn-ghost">Founder</button>
-          <button data-open="contact"  class="btn-ghost">Contact</button>
-          <button data-open="feedback" class="btn-ghost">Feedback</button>
-        </nav>
-
-        <!-- Mobile menu -->
-        <div class="md:hidden">
-          <button id="menuBtn" class="btn-surface btn">☰ Menu</button>
+  <!-- Top brand bar -->
+  <header class="bg-brand-blue text-white">
+    <div class="flagbar"></div>
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🦅</span>
+        <div>
+          <div class="text-xl font-semibold tracking-tight">EagleReach</div>
+          <div class="text-xs opacity-80">“A nation… every member is responsible for his society.” — Thomas Jefferson</div>
         </div>
       </div>
-
-      <!-- Mobile dropdown -->
-      <div id="mobileMenu" class="hidden md:hidden pb-4">
-        <div class="flex flex-col gap-1">
-          <button data-open="about"    class="btn-ghost text-left">About</button>
-          <button data-open="founder"  class="btn-ghost text-left">Founder</button>
-          <button data-open="contact"  class="btn-ghost text-left">Contact</button>
-          <button data-open="feedback" class="btn-ghost text-left">Feedback</button>
-        </div>
+      <nav class="hidden md:flex items-center gap-2">
+        <button class="btn btn-ghost" data-open="aboutDlg"  title="About"><i data-feather="info"></i> About</button>
+        <button class="btn btn-ghost" data-open="founderDlg" title="Founder"><i data-feather="user"></i> Founder</button>
+        <button class="btn btn-ghost" data-open="contactDlg" title="Contact"><i data-feather="mail"></i> Contact</button>
+        <button class="btn btn-ghost" data-open="feedbackDlg" title="Feedback"><i data-feather="message-square"></i> Feedback</button>
+      </nav>
+      <div class="md:hidden">
+        <button class="btn btn-ghost" data-open="menuDlg"><i data-feather="menu"></i></button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <main class="max-w-7xl mx-auto px-4 py-8">
-
-    <!-- Search row -->
-    <section class="soft bg-white rounded-2xl p-5 mb-6">
-      <p class="text-sm text-slate-600">
-        Enter your ZIP to see representatives, voter info, weather, city updates, traffic, and elections.
-      </p>
-
-      <div class="mt-3 grid grid-cols-1 md:grid-cols-12 gap-3">
-        <div class="md:col-span-5">
-          <input id="zipInput" class="w-full rounded-md border border-slate-300 px-3.5 py-2.5"
-                 type="text" inputmode="numeric" maxlength="10" placeholder="ZIP (e.g., 62704)"/>
+  <!-- Search / actions -->
+  <section class="max-w-6xl mx-auto px-4 py-6">
+    <div class="card">
+      <div class="flex flex-col md:flex-row md:items-end gap-3">
+        <div class="flex-1">
+          <div class="kicker mb-1">Enter ZIP</div>
+          <input id="zipInput" type="text" inputmode="numeric" maxlength="10"
+                 placeholder="ZIP (e.g., 45220)"
+                 class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
+          <p id="geoLabel" class="text-xs mt-1 text-slate-500"></p>
         </div>
-
-        <div class="md:col-span-4 flex items-center gap-2">
-          <button id="locBtn" class="btn btn-surface">📍 Use my location</button>
-          <button id="searchBtn" class="btn btn-primary">🔎 Search</button>
-        </div>
-
-        <div class="md:col-span-3 flex items-center gap-2">
-          <button id="shareBtn" class="btn btn-surface">🔗 Copy link</button>
-          <button id="clearBtn" class="btn btn-surface">🧹 Clear history</button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnLocate" class="btn btn-primary"><i data-feather="map-pin"></i> Use my location</button>
+          <button id="btnSearch" class="btn btn-ghost"><i data-feather="search"></i> Search</button>
+          <button id="btnCopy" class="btn btn-ghost"><i data-feather="link"></i> Copy Share Link</button>
+          <button id="btnClear" class="btn btn-ghost"><i data-feather="trash-2"></i> Clear history</button>
         </div>
       </div>
+      <p id="placeTag" class="mt-3 text-sm text-slate-600"></p>
+    </div>
+  </section>
 
-      <div id="where" class="mt-2 text-sm text-slate-500 hidden"></div>
+  <!-- Content grid -->
+  <main class="max-w-6xl mx-auto px-4 pb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+    <!-- Elected Representatives -->
+    <section class="card md:col-span-1">
+      <div class="kicker mb-1">Civic</div>
+      <h2 class="heading mb-3">Elected Representatives</h2>
+      <div id="repsList" class="space-y-3"></div>
+      <div class="text-[11px] mt-3 text-slate-500">Sources: GovTrack (Congress), Wikidata (Mayor), FCC, Zippopotam.</div>
     </section>
 
-    <!-- Cards grid -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Voter Info & Education -->
+    <section class="card">
+      <div class="kicker mb-1">Democracy</div>
+      <h2 class="heading mb-3">Voter Info & Education</h2>
+      <ul class="text-sm space-y-2">
+        <li><a class="text-brand-blue underline" target="_blank" href="https://www.usa.gov/how-to-vote">How to vote (USA.gov)</a></li>
+        <li><a class="text-brand-blue underline" target="_blank" href="https://ovr.ohiosos.gov/" id="linkRegister">Register to vote</a></li>
+        <li><a class="text-brand-blue underline" target="_blank" id="linkElectionOffice">Find your Election Office</a></li>
+      </ul>
+    </section>
 
-      <!-- Officials -->
-      <div class="lg:col-span-1 soft bg-white rounded-2xl p-5">
-        <div class="flex items-center justify-between">
-          <h2 class="font-semibold text-lg">Elected Representatives</h2>
-          <div class="flex items-center gap-2">
-            <button id="copyEmailsBtn" class="btn btn-surface">📋 Copy Emails</button>
-            <button id="genEmailBtn" class="btn btn-primary">✉️ Generate Email</button>
-          </div>
-        </div>
-        <p class="text-xs mt-1 text-slate-500">
-          Sources: GovTrack (Congress), Wikidata (Mayor), FCC, Zippopotam.
-        </p>
-        <div id="officials" class="mt-3 space-y-3"></div>
+    <!-- Weather -->
+    <section class="card">
+      <div class="kicker mb-1">Local</div>
+      <h2 class="heading mb-3">Weather (7-day)</h2>
+      <div id="wxList" class="text-sm space-y-2"></div>
+    </section>
+
+    <!-- City Updates (admin content if available) -->
+    <section class="card">
+      <div class="kicker mb-1">City</div>
+      <h2 class="heading mb-3">City updates</h2>
+      <div id="cityList" class="text-sm text-slate-600">Enter a ZIP to load updates…</div>
+    </section>
+
+    <!-- News -->
+    <section class="card">
+      <div class="kicker mb-1">News</div>
+      <h2 class="heading mb-3">News</h2>
+      <div class="flex items-center gap-2">
+        <a id="openLocalNews" class="btn btn-primary" target="_blank" rel="noopener">Open Local News</a>
+        <a id="openWorldNews" class="btn btn-ghost" target="_blank" rel="noopener">World News</a>
       </div>
+      <p class="text-[11px] mt-3 text-slate-500">Opens news in a new tab.</p>
+    </section>
 
-      <!-- Weather + Voter -->
-      <div class="lg:col-span-1 space-y-6">
-        <div class="soft bg-white rounded-2xl p-5">
-          <h2 class="font-semibold text-lg">Weather (7‑day)</h2>
-          <div id="weather" class="mt-3 text-sm text-slate-700">Enter a ZIP to load weather…</div>
-        </div>
+    <!-- Elections -->
+    <section class="card">
+      <div class="kicker mb-1">Elections</div>
+      <h2 class="heading mb-3">Upcoming Elections</h2>
+      <div id="electionsBox" class="text-sm text-slate-700"></div>
+    </section>
 
-        <div class="soft bg-white rounded-2xl p-5">
-          <h2 class="font-semibold text-lg">Voter Info & Education</h2>
-          <ul class="mt-2 text-sm list-disc ml-5 space-y-1">
-            <li><a class="text-blue-700 hover:underline" href="https://www.usa.gov/how-to-vote" target="_blank" rel="noopener">How to vote (USA.gov)</a></li>
-            <li><a class="text-blue-700 hover:underline" href="https://vote.gov/" target="_blank" rel="noopener">Register to vote</a></li>
-            <li><a class="text-blue-700 hover:underline" href="https://www.eac.gov/voters/election-day-contact-information" target="_blank" rel="noopener">Find your Election Office</a></li>
-          </ul>
-        </div>
-      </div>
+    <!-- Traffic -->
+    <section class="card">
+      <div class="kicker mb-1">Traffic</div>
+      <h2 class="heading mb-3">Traffic</h2>
+      <p class="text-sm mb-3">Open live traffic for your area in Google Maps.</p>
+      <a id="openTraffic" class="btn btn-primary" target="_blank" rel="noopener"><i data-feather="navigation"></i> Open Traffic Map</a>
+    </section>
 
-      <!-- City / Elections / Traffic / News -->
-      <div class="lg:col-span-1 space-y-6">
-        <div class="soft bg-white rounded-2xl p-5">
-          <h2 class="font-semibold text-lg">City updates</h2>
-          <div id="city" class="mt-2 text-sm text-slate-700">Enter a ZIP to load updates…</div>
-        </div>
-
-        <div class="soft bg-white rounded-2xl p-5">
-          <h2 class="font-semibold text-lg">Upcoming Elections</h2>
-          <div id="elections" class="mt-2 text-sm text-slate-700">
-            Next Federal: November 3, 2025<br/>
-            <span class="text-slate-500 text-xs">State/Local specific dates coming from open data.</span>
-          </div>
-        </div>
-
-        <div class="soft bg-white rounded-2xl p-5">
-          <h2 class="font-semibold text-lg">Traffic</h2>
-          <p class="text-sm text-slate-600 mt-1">Open live traffic for your area in Google Maps.</p>
-          <button id="trafficBtn" class="btn btn-surface mt-3">🗺️ Open Traffic Map</button>
-        </div>
-
-        <div class="soft bg-white rounded-2xl p-5">
-          <h2 class="font-semibold text-lg">News</h2>
-          <div class="flex gap-2 mt-3">
-            <a class="btn btn-primary" href="https://news.google.com/search?q=local%20news" target="_blank" rel="noopener">Open Local News</a>
-            <a class="btn btn-surface" href="https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener">World News</a>
-          </div>
-        </div>
+    <!-- Raise a concern -->
+    <section class="card md:col-span-2 lg:col-span-3">
+      <div class="kicker mb-1">Civic Action</div>
+      <h2 class="heading mb-3">Raise a Concern</h2>
+      <p class="text-sm mb-3">Report city issues (311), contact your city hall, or write to your representatives.</p>
+      <div class="flex flex-wrap gap-2">
+        <a id="lnkPotholes" class="pill" target="_blank" rel="noopener"><i data-feather="alert-triangle"></i> Potholes</a>
+        <a id="lnkTrash"    class="pill" target="_blank" rel="noopener"><i data-feather="trash-2"></i> Trash</a>
+        <a id="lnkLights"   class="pill" target="_blank" rel="noopener"><i data-feather="moon"></i> Street lights</a>
       </div>
     </section>
 
-    <!-- Concern + Emergency -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-      <div class="lg:col-span-2 soft bg-white rounded-2xl p-5">
-        <h2 class="font-semibold text-lg">Raise a Concern</h2>
-        <p class="text-sm text-slate-600 mt-1">Report city issues (311), contact your city hall, or write to your representatives.</p>
-        <div class="flex flex-wrap gap-2 mt-3">
-          <a class="btn btn-surface" id="concernPothole" href="#">Potholes</a>
-          <a class="btn btn-surface" id="concernTrash" href="#">Trash</a>
-          <a class="btn btn-surface" id="concernLights" href="#">Street lights</a>
-        </div>
+    <!-- Emergency Contacts -->
+    <section class="card">
+      <div class="kicker mb-1">Emergency</div>
+      <h2 class="heading mb-3">Emergency</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <a class="btn btn-primary justify-center" href="tel:911">911 — Emergency</a>
+        <a class="btn btn-primary justify-center" href="tel:988">988 — Suicide &amp; Crisis</a>
+        <a class="btn btn-primary justify-center" href="tel:311">311 — City Services</a>
+        <a class="btn btn-primary justify-center" href="tel:211">211 — Community Services</a>
+        <a class="btn btn-primary justify-center" href="tel:811">811 — Before You Dig</a>
+        <a class="btn btn-primary justify-center" href="tel:18002221222">Poison Control</a>
       </div>
-
-      <div class="soft bg-white rounded-2xl p-5">
-        <h2 class="font-semibold text-lg">Emergency</h2>
-        <!-- Toned palette -->
-        <div class="grid grid-cols-2 gap-2 mt-3">
-          <a class="btn !justify-center text-white" style="background:#1f2937" href="tel:911">911 — Emergency</a>
-          <a class="btn !justify-center text-white" style="background:#374151" href="tel:988">988 — Suicide &amp; Crisis</a>
-          <a class="btn !justify-center text-white" style="background:#2563eb" href="tel:211">211 — Community Services</a>
-          <a class="btn !justify-center text-white" style="background:#3b82f6" href="tel:311">311 — City Services</a>
-          <a class="btn !justify-center text-white" style="background:#0ea5e9" href="tel:811">811 — Before You Dig</a>
-          <a class="btn !justify-center text-white" style="background:#0891b2" href="tel:18002221222">Poison Control</a>
-        </div>
-        <p class="text-xs text-slate-500 mt-2">Tap a number to call.</p>
-      </div>
+      <p class="text-[11px] mt-3 text-slate-500">Tap a number to call.</p>
     </section>
   </main>
 
-  <footer class="py-10 text-center text-xs text-slate-500">© 2025 EagleReach. Built open‑source.</footer>
+  <!-- Footer -->
+  <footer class="border-t bg-white">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="text-sm text-slate-500">© <span id="yr"></span> EagleReach. Built open-source.</div>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-ghost" data-open="aboutDlg"><i data-feather="info"></i> About</button>
+        <button class="btn btn-ghost" data-open="founderDlg"><i data-feather="user"></i> Founder</button>
+        <button class="btn btn-ghost" data-open="contactDlg"><i data-feather="mail"></i> Contact</button>
+        <button class="btn btn-ghost" data-open="feedbackDlg"><i data-feather="message-square"></i> Feedback</button>
+      </div>
+    </div>
+  </footer>
 
-  <!-- MODAL HOST (nothing else on page) -->
-  <div id="modalHost" class="hidden"></div>
+  <!-- Modals -->
+  <dialog id="menuDlg" class="rounded-xl p-0 w-[92%] max-w-sm">
+    <div class="p-4 border-b flex items-center justify-between">
+      <div class="font-semibold">Menu</div>
+      <button data-close="menuDlg"><i data-feather="x"></i></button>
+    </div>
+    <div class="p-4 space-y-2">
+      <button class="btn w-full" data-open="aboutDlg"  data-close="menuDlg"><i data-feather="info"></i> About</button>
+      <button class="btn w-full" data-open="founderDlg" data-close="menuDlg"><i data-feather="user"></i> Founder</button>
+      <button class="btn w-full" data-open="contactDlg" data-close="menuDlg"><i data-feather="mail"></i> Contact</button>
+      <button class="btn w-full" data-open="feedbackDlg" data-close="menuDlg"><i data-feather="message-square"></i> Feedback</button>
+    </div>
+  </dialog>
 
+  <dialog id="aboutDlg" class="rounded-xl p-0 w-[92%] max-w-2xl">
+    <div class="p-4 border-b flex items-center justify-between">
+      <div class="font-semibold">About EagleReach</div>
+      <button data-close="aboutDlg"><i data-feather="x"></i></button>
+    </div>
+    <div class="p-6 space-y-4 text-slate-700 leading-relaxed">
+      <p><strong>EagleReach</strong> is a public, open-source civic assistant that connects U.S. residents with their elected officials, nearby services, local context (weather, traffic, news) and simple tools to raise concerns—fast.</p>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>No logins. No tracking. Open data only.</li>
+        <li>Designed for clarity, accuracy, and speed.</li>
+        <li>Built to serve people across every community—equally.</li>
+      </ul>
+      <p class="italic">Mission: make civic access simple, trustworthy, and easy for everyone.</p>
+    </div>
+  </dialog>
+
+  <dialog id="founderDlg" class="rounded-xl p-0 w-[92%] max-w-2xl">
+    <div class="p-4 border-b flex items-center justify-between">
+      <div class="font-semibold">Founder</div>
+      <button data-close="founderDlg"><i data-feather="x"></i></button>
+    </div>
+    <div class="p-6 space-y-4 text-slate-700 leading-relaxed">
+      <p><strong>Vikesh Sagar Bairam</strong> — Founder of EagleReach. Tech Evangelist &amp; Business Solutions Architect.</p>
+      <p>M.S. in Information Systems &amp; Management (University of Illinois, Springfield). Bachelors in Psychology and Bachelors in Computer Science. Currently at Jabil; previously with Surfaces by Pacific.</p>
+      <p>Passionate about AI/ML, generative AI, DevOps, and data engineering—building tools that bring government closer to people.</p>
+      <div class="flex flex-wrap gap-2">
+        <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.linkedin.com/in/vikesh-bairam-219769258/"><i data-feather="linkedin"></i> LinkedIn</a>
+        <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://github.com/vikesh2608"><i data-feather="github"></i> GitHub</a>
+        <a class="btn btn-ghost" href="mailto:vikebairam@gmail.com"><i data-feather="mail"></i> Email</a>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="contactDlg" class="rounded-xl p-0 w-[92%] max-w-md">
+    <div class="p-4 border-b flex items-center justify-between">
+      <div class="font-semibold">Contact</div>
+      <button data-close="contactDlg"><i data-feather="x"></i></button>
+    </div>
+    <div class="p-6 space-y-3 text-slate-700 leading-relaxed">
+      <p>Email: <a class="text-brand-blue underline" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a></p>
+      <p>LinkedIn: <a class="text-brand-blue underline" target="_blank" rel="noopener" href="https://www.linkedin.com/in/vikesh-bairam-219769258/">@vikesh-bairam</a></p>
+      <p>GitHub: <a class="text-brand-blue underline" target="_blank" rel="noopener" href="https://github.com/vikesh2608">github.com/vikesh2608</a></p>
+    </div>
+  </dialog>
+
+  <dialog id="feedbackDlg" class="rounded-xl p-0 w-[92%] max-w-xl">
+    <div class="p-4 border-b flex items-center justify-between">
+      <div class="font-semibold">Feedback</div>
+      <button data-close="feedbackDlg"><i data-feather="x"></i></button>
+    </div>
+    <form class="p-6 space-y-4 text-slate-700" action="https://formspree.io/f/xayzdddd" method="POST">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="kicker">Your name</label>
+          <input name="name" class="w-full rounded-lg border border-slate-300 px-3 py-2" required />
+        </div>
+        <div>
+          <label class="kicker">Email</label>
+          <input name="email" type="email" class="w-full rounded-lg border border-slate-300 px-3 py-2" required />
+        </div>
+      </div>
+      <div>
+        <label class="kicker">Comments</label>
+        <textarea name="comments" rows="4" class="w-full rounded-lg border border-slate-300 px-3 py-2" required></textarea>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="kicker">Rating</span>
+        <div class="flex gap-1 text-2xl">
+          <label><input type="radio" name="stars" value="⭐" class="hidden" /><span>⭐</span></label>
+          <label><input type="radio" name="stars" value="⭐⭐" class="hidden" /><span>⭐</span></label>
+          <label><input type="radio" name="stars" value="⭐⭐⭐" class="hidden" /><span>⭐</span></label>
+          <label><input type="radio" name="stars" value="⭐⭐⭐⭐" class="hidden" /><span>⭐</span></label>
+          <label><input type="radio" name="stars" value="⭐⭐⭐⭐⭐" class="hidden" checked /><span>⭐</span></label>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2">
+        <button type="button" class="btn" data-close="feedbackDlg">Cancel</button>
+        <button type="submit" class="btn btn-primary">Send</button>
+      </div>
+      <p class="text-[11px] text-slate-500">Submits via Formspree. You can replace the endpoint with your own later.</p>
+    </form>
+  </dialog>
+
+  <!-- App script -->
   <script>
-    // ------- CONFIG -------
-    const API = "https://eaglereach-1.onrender.com";
+    feather.replace();
+    document.getElementById('yr').textContent = new Date().getFullYear();
 
-    const zipInput  = document.getElementById('zipInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const locBtn    = document.getElementById('locBtn');
-    const shareBtn  = document.getElementById('shareBtn');
-    const clearBtn  = document.getElementById('clearBtn');
-    const trafficBtn= document.getElementById('trafficBtn');
-    const whereEl   = document.getElementById('where');
+    // === CONFIG ===
+    const API_BASE = 'https://eaglereach-1.onrender.com'; // <-- your Render backend
+    const qs = new URLSearchParams(location.search);
+    const zipInput = document.getElementById('zipInput');
 
-    const officialsEl = document.getElementById('officials');
-    const weatherEl   = document.getElementById('weather');
-    const cityEl      = document.getElementById('city');
+    // load initial from URL
+    if (qs.get('zip')) zipInput.value = qs.get('zip');
 
-    const copyEmailsBtn = document.getElementById('copyEmailsBtn');
-    const genEmailBtn   = document.getElementById('genEmailBtn');
-
-    // Mobile menu
-    document.getElementById('menuBtn')?.addEventListener('click', () => {
-      document.getElementById('mobileMenu').classList.toggle('hidden');
+    // dialog open/close
+    document.querySelectorAll('[data-open]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-open');
+        document.getElementById(id).showModal();
+        if (btn.hasAttribute('data-close')) {
+          document.getElementById(btn.getAttribute('data-close')).close();
+        }
+      });
+    });
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => document.getElementById(btn.getAttribute('data-close')).close());
     });
 
-    // Modal openers (desktop & mobile)
-    document.querySelectorAll('[data-open]').forEach(b=>{
-      b.addEventListener('click', ()=>openModal(b.getAttribute('data-open')));
-    });
-
-    // URL restore
-    const urlZip = new URLSearchParams(location.search).get('zip');
-    if (urlZip) { zipInput.value = urlZip; run(); }
-    // LocalStorage restore
-    if (!zipInput.value) {
-      const last = localStorage.getItem('er:lastZip');
-      if (last) { zipInput.value = last; run(false); }
+    // unified fetch helper
+    async function getJSON(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
     }
 
-    // Actions
-    searchBtn.addEventListener('click', run);
-    zipInput.addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
+    // UI pieces
+    const geoLabel     = document.getElementById('geoLabel');
+    const placeTag     = document.getElementById('placeTag');
+    const repsList     = document.getElementById('repsList');
+    const wxList       = document.getElementById('wxList');
+    const cityList     = document.getElementById('cityList');
+    const electionsBox = document.getElementById('electionsBox');
+    const openLocalNews = document.getElementById('openLocalNews');
+    const openWorldNews = document.getElementById('openWorldNews');
+    const openTraffic   = document.getElementById('openTraffic');
 
-    shareBtn.addEventListener('click', () => {
+    // News links (always clickable)
+    openWorldNews.href = 'https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en';
+
+    // share/copy
+    document.getElementById('btnCopy').addEventListener('click', async () => {
+      const u = new URL(location.href);
       const z = zipInput.value.trim();
-      const link = z ? `${location.origin}${location.pathname}?zip=${encodeURIComponent(z)}` : location.href;
-      navigator.clipboard.writeText(link).then(()=>toast('Link copied.'));
+      if (z) u.searchParams.set('zip', z); else u.searchParams.delete('zip');
+      await navigator.clipboard.writeText(u.href);
+      alert('Link copied!');
     });
 
-    clearBtn.addEventListener('click', () => {
-      localStorage.removeItem('er:lastZip');
+    document.getElementById('btnClear').addEventListener('click', () => {
       zipInput.value = '';
-      whereEl.classList.add('hidden');
-      officialsEl.innerHTML = '';
-      weatherEl.textContent = 'Enter a ZIP to load weather…';
-      cityEl.textContent = 'Enter a ZIP to load updates…';
-      toast('History cleared.');
+      placeTag.textContent = '';
+      geoLabel.textContent = '';
+      history.replaceState({}, '', location.pathname);
+      repsList.innerHTML = '';
+      wxList.innerHTML = '';
+      cityList.textContent = 'Enter a ZIP to load updates…';
+      electionsBox.innerHTML = '';
     });
 
-    // Use my location (with fallbacks)
-    locBtn.addEventListener('click', async () => {
+    document.getElementById('btnSearch').addEventListener('click', runSearch);
+    document.getElementById('btnLocate').addEventListener('click', locateMe);
+
+    async function locateMe() {
+      geoLabel.textContent = 'Locating…';
       try {
-        const pos = await new Promise((res, rej)=>
-          navigator.geolocation.getCurrentPosition(res, rej, {enableHighAccuracy:true, timeout:12000})
+        const pos = await new Promise((res, rej) =>
+          navigator.geolocation.getCurrentPosition(res, rej, {enableHighAccuracy:true, timeout:10000})
         );
-        const {latitude:lat, longitude:lon} = pos.coords;
-        whereEl.classList.remove('hidden');
-        whereEl.textContent = 'Locating…';
-
-        // Reverse geocode #1
-        let postal = '';
-        try {
-          const r = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-          const j = await r.json();
-          postal = j.postcode || j.postalCode || '';
-        } catch {}
-        // Fallback #2
-        if (!postal) {
-          try {
-            const r2 = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
-            const j2 = await r2.json();
-            postal = j2?.address?.postcode || '';
-          } catch {}
+        const { latitude, longitude } = pos.coords;
+        // reverse-zip via backend helper
+        const data = await getJSON(`${API_BASE}/reverse-zip?lat=${latitude}&lon=${longitude}`);
+        if (data && data.zip) {
+          zipInput.value = data.zip;
+          runSearch();
+          geoLabel.textContent = `${data.place}, ${data.state}`;
+        } else {
+          geoLabel.textContent = 'Could not resolve ZIP from your location.';
         }
-
-        if (!postal) { alert('Could not resolve ZIP from your location.'); whereEl.classList.add('hidden'); return; }
-        zipInput.value = postal.replace(/\s+/g,'').slice(0,10);
-        run();
-      } catch {
-        alert('Could not resolve ZIP from your location.');
+      } catch (e) {
+        geoLabel.textContent = 'Location permission denied or unavailable.';
       }
-    });
+    }
 
-    trafficBtn.addEventListener('click', ()=>{
-      const z=zipInput.value.trim();
-      if(!z){ toast('Enter a ZIP first.'); return; }
-      window.open(`https://www.google.com/maps/search/${encodeURIComponent(z)}+traffic`, '_blank');
-    });
-
-    copyEmailsBtn.addEventListener('click', ()=>{
-      const emails = Array.from(officialsEl.querySelectorAll('[data-email]'))
-        .map(el=>el.getAttribute('data-email')).filter(Boolean);
-      if(emails.length===0){ toast('No emails available.'); return; }
-      navigator.clipboard.writeText(emails.join(', ')).then(()=>toast('Emails copied.'));
-    });
-
-    genEmailBtn.addEventListener('click', ()=>{
-      const names = Array.from(officialsEl.querySelectorAll('[data-name]')).map(el=>el.getAttribute('data-name'));
-      const z = zipInput.value.trim();
-      const subject = encodeURIComponent(`Constituent from ${z} — Community concerns`);
-      const body = encodeURIComponent(
-`Dear Representative,
-
-I’m a resident of ZIP ${z}. I’d like to raise a few local concerns and would appreciate your guidance on next steps.
-
-• Topic 1
-• Topic 2
-• Topic 3
-
-Thank you for your service.
-
-Sincerely,
-[Your Name]`);
-      location.href = `mailto:?subject=${subject}&body=${body}`;
-    });
-
-    // Main fetches
-    async function run(save=true){
+    async function runSearch() {
       const zip = zipInput.value.trim();
-      if(!zip){ toast('Enter a ZIP.'); return; }
-      if(save) localStorage.setItem('er:lastZip', zip);
-      history.replaceState(null,'',`?zip=${encodeURIComponent(zip)}`);
+      if (!zip) return alert('Please enter a ZIP code');
+      const u = new URL(location.href);
+      u.searchParams.set('zip', zip);
+      history.replaceState({}, '', u.href);
 
-      // Officials
-      try{
-        officialsEl.innerHTML='<div class="text-sm text-slate-500">Loading officials…</div>';
-        const r = await fetch(`${API}/officials?zip=${encodeURIComponent(zip)}`);
-        if(!r.ok) throw 0;
-        const j = await r.json();
-        renderOfficials(j);
-        if (j.place && j.state && j.state.abbr) {
-          whereEl.textContent = `${zip} — ${j.place}, ${j.state.abbr}`;
-          whereEl.classList.remove('hidden');
-        }
-      }catch{ officialsEl.innerHTML='<div class="text-sm text-rose-600">Could not load officials.</div>'; }
+      // local display of place
+      try {
+        const z = await getJSON(`${API_BASE}/zipinfo?zip=${zip}`);
+        placeTag.textContent = `${zip} — ${z.place || ''}${z.state ? ', ' + z.state : ''}`;
+        openLocalNews.href = `https://news.google.com/search?q=${encodeURIComponent(z.place||zip)}&hl=en-US&gl=US&ceid=US:en`;
+        openTraffic.href   = `https://www.google.com/maps/search/traffic/@${z.lat||0},${z.lon||0},12z`;
+        // voter links (use state if present)
+        const st = z.state_abbr || z.state || '';
+        document.getElementById('linkRegister').href = 'https://vote.gov/';
+        document.getElementById('linkElectionOffice').href = `https://www.usa.gov/election-office`;
+      } catch { placeTag.textContent = zip; }
 
-      // Weather
-      try{
-        const r = await fetch(`${API}/weather?zip=${encodeURIComponent(zip)}`);
-        if(!r.ok) throw 0;
-        const j = await r.json();
-        renderWeather(j);
-      }catch{ weatherEl.textContent='Weather temporarily unavailable.'; }
-
-      // City updates placeholder (activate when endpoint ready)
-      cityEl.textContent='City updates will appear here as they become available.';
-    }
-
-    function renderOfficials(j){
-      const rows=j.officials||[];
-      if(rows.length===0){ officialsEl.innerHTML='<div class="text-sm text-slate-600">Enter a ZIP to load officials…</div>'; return; }
-      officialsEl.innerHTML = rows.map(o=>{
-        const phone=(o.phones&&o.phones[0])||'';
-        const site =(o.urls&&o.urls[0])||'';
-        const email=''; // GovTrack rarely exposes direct emails
-        const party=o.party?` — <span class="text-slate-500">${escapeHtml(o.party)}</span>`:'';
-        const tel = phone?`<div class="mt-1 text-sm"><a class="text-blue-700 hover:underline" href="tel:${phone.replace(/[^0-9+]/g,'')}">${phone}</a></div>`:'';
-        const url = site ?`<div class="mt-1 text-sm"><a class="text-blue-700 hover:underline" href="${site}" target="_blank" rel="noopener">${site.replace(/^https?:\/\//,'')}</a></div>`:'';
-        return `
+      // officials
+      repsList.innerHTML = '<div class="text-sm text-slate-500">Loading…</div>';
+      try {
+        const data = await getJSON(`${API_BASE}/officials?zip=${zip}`);
+        repsList.innerHTML = data.officials.map(o => `
           <div class="rounded-xl border border-slate-200 p-3">
-            <div class="font-medium" data-name="${escapeHtml(o.name||'')}">${escapeHtml(o.name||'')}</div>
-            <div class="text-sm text-slate-600">${escapeHtml(o.office||'')}${party}</div>
-            ${url}${tel}
-            <span class="hidden" data-email="${escapeHtml(email)}"></span>
-          </div>`;
-      }).join('');
-    }
+            <div class="font-medium">${o.name} — ${o.office || ''}${o.party ? ' — ' + o.party : ''}</div>
+            ${o.urls?.[0] ? `<div><a class="text-brand-blue underline text-sm break-all" target="_blank" href="${o.urls[0]}">${o.urls[0]}</a></div>` : ''}
+            ${o.phones?.[0] ? `<div class="text-sm mt-1">📞 <a class="underline" href="tel:${o.phones[0]}">${o.phones[0]}</a></div>` : ''}
+          </div>`).join('') || '<div class="text-sm text-slate-500">No officials found.</div>';
+      } catch { repsList.innerHTML = '<div class="text-sm text-red-600">Failed to load officials.</div>'; }
 
-    function renderWeather(j){
-      const days=j.days||[];
-      if(days.length===0){ weatherEl.textContent='No forecast available.'; return; }
-      weatherEl.innerHTML = days.map(d=>`
-        <div class="flex items-center justify-between border-b last:border-none py-2">
-          <div class="text-sm">${d.date}</div>
-          <div class="flex items-center gap-3">
-            <span class="pill">${iconFor(d)}</span>
-            <div class="text-sm">${Math.round(d.tmin_c)}° / ${Math.round(d.tmax_c)}°C</div>
-            <div class="text-xs text-slate-500">${d.precip_pct ?? 0}%</div>
-          </div>
-        </div>`).join('');
-    }
-    function iconFor(d){ const p=d.precip_pct??0; if(p>=60) return '🌧️ Rain'; if(p>=20) return '☁️ Cloudy'; return '☀️ Clear'; }
-    const escapeHtml = s=>(s||'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-    function toast(msg){ const el=document.createElement('div'); el.className='fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-3 py-2 rounded-md soft z-[200]'; el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(),1800); }
+      // weather
+      wxList.innerHTML = '<div class="text-sm text-slate-500">Loading…</div>';
+      try {
+        const data = await getJSON(`${API_BASE}/weather?zip=${zip}`);
+        wxList.innerHTML = (data.days || []).map(d => `
+          <div class="flex items-center justify-between">
+            <div class="text-slate-600">${d.date || ''}</div>
+            <div class="font-medium">${d.summary || ''}</div>
+            <div class="text-slate-600">${d.min}° / ${d.max}°</div>
+          </div>`).join('') || '<div class="text-sm text-slate-500">No forecast available.</div>';
+      } catch { wxList.innerHTML = '<div class="text-sm text-red-600">Failed to load weather.</div>'; }
 
-    // ------- MODALS -------
-    const modalHost=document.getElementById('modalHost');
-    function closeModal(){ modalHost.className='hidden'; modalHost.innerHTML=''; }
-    function openModal(kind){
-      let title='',html='';
-      if(kind==='about'){
-        title='About EagleReach';
-        html=`<p class="text-slate-700 leading-relaxed">
-          EagleReach is a public, open-source civic assistant that connects residents with their elected officials, nearby services,
-          and local context such as weather, traffic, and city updates—all in one place. No sign‑ins. No tracking. Fast and free for everyone.
-        </p>`;
-      }else if(kind==='founder'){
-        title='Founder';
-        html=`<p class="text-slate-700">
-          <strong>Vikesh Sagar Bairam</strong> — Founder of EagleReach. Tech Evangelist & Business Solutions Architect.
-          Master’s in Information Systems & Management (University of Illinois, Springfield). Bachelor’s in Psychology and
-          Bachelor’s in Computer Science. Currently at Jabil; previously at Surfaces by Pacific. Passionate about AI/ML, Generative AI,
-          DevOps, and data engineering—building tools that bring government closer to people.
-        </p>`;
-      }else if(kind==='contact'){
-        title='Contact';
-        html=`<div class="space-y-2 text-slate-700">
-          <div>LinkedIn: <a class="text-blue-700 hover:underline" href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank" rel="noopener">vikesh-bairam-219769258</a></div>
-          <div>GitHub: <a class="text-blue-700 hover:underline" href="https://github.com/vikesh2608" target="_blank" rel="noopener">vikesh2608</a></div>
-          <div>Email: <a class="text-blue-700 hover:underline" href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a></div>
-        </div>`;
-      }else if(kind==='feedback'){
-        title='Feedback & Comments';
-        html=`<form id="fbForm" class="space-y-4">
-          <div><label class="block text-sm mb-1">Your name (optional)</label>
-            <input name="name" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="Name"/></div>
-          <div><label class="block text-sm mb-1">Email (optional)</label>
-            <input name="email" type="email" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="you@example.com"/></div>
-          <div>
-            <label class="block text-sm mb-1">Rating</label>
-            <div class="flex gap-1 text-2xl" id="stars"><button type="button">☆</button><button type="button">☆</button><button type="button">☆</button><button type="button">☆</button><button type="button">☆</button></div>
-            <input type="hidden" name="rating" value="0">
-          </div>
-          <div>
-            <label class="block text-sm mb-1">Comments</label>
-            <textarea name="txt" rows="4" class="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="Your thoughts…"></textarea>
-          </div>
-          <button class="btn btn-primary" type="submit">Send</button>
-        </form>`;
+      // elections
+      electionsBox.innerHTML = '<div class="text-sm text-slate-500">Loading…</div>';
+      try {
+        const data = await getJSON(`${API_BASE}/elections?zip=${zip}`);
+        const next = data.next || {};
+        electionsBox.innerHTML = `
+          <div><strong>Next Federal:</strong> ${next.federal || '—'}</div>
+          <div class="text-[11px] text-slate-500 mt-2">State/Local dates coming from open data.</div>`;
+      } catch { electionsBox.innerHTML = '<div class="text-sm text-red-600">Failed to load elections.</div>'; }
+
+      // city updates (optional)
+      try {
+        const data = await getJSON(`${API_BASE}/city/updates?zip=${zip}`);
+        if (!data || !data.items || !data.items.length) throw 0;
+        cityList.innerHTML = data.items.map(i =>
+          `<div class="mb-2"><span class="font-medium">${i.type}</span> — ${i.detail}</div>`
+        ).join('');
+      } catch {
+        cityList.textContent = 'No city updates available.';
       }
-      modalHost.className='';
-      modalHost.innerHTML=`
-        <div class="modal-backdrop" role="dialog" aria-modal="true">
-          <div class="modal-card">
-            <button class="btn btn-surface absolute right-3 top-3" id="closeModal">✕</button>
-            <h3 class="text-lg font-semibold mb-3">${title}</h3>
-            ${html}
-          </div>
-        </div>`;
-      document.getElementById('closeModal').onclick=closeModal;
-      modalHost.querySelector('.modal-backdrop').addEventListener('click',(e)=>{ if(e.target.classList.contains('modal-backdrop')) closeModal(); });
 
-      if(kind==='feedback'){
-        const stars=modalHost.querySelectorAll('#stars button');
-        const ratingInput=modalHost.querySelector('input[name="rating"]');
-        stars.forEach((b,i)=>b.addEventListener('click',()=>{ const r=i+1; ratingInput.value=r; stars.forEach((s,j)=>s.textContent=j<r?'★':'☆'); }));
-        modalHost.querySelector('#fbForm').addEventListener('submit',e=>{
-          e.preventDefault();
-          const f=new FormData(e.target);
-          const subject=encodeURIComponent(`EagleReach feedback — ${f.get('rating')||0}★`);
-          const body=encodeURIComponent(`Name: ${f.get('name')||''}\nEmail: ${f.get('email')||''}\nRating: ${f.get('rating')||0} stars\n\n${f.get('txt')||''}\n`);
-          location.href=`mailto:vikebairam@gmail.com?subject=${subject}&body=${body}`;
-        });
-      }
+      // concerns (links depend on city)
+      document.getElementById('lnkPotholes').href = `https://www.google.com/search?q=${encodeURIComponent('report pothole ' + (placeTag.textContent||zip))}`;
+      document.getElementById('lnkTrash').href    = `https://www.google.com/search?q=${encodeURIComponent('trash complaint ' + (placeTag.textContent||zip))}`;
+      document.getElementById('lnkLights').href   = `https://www.google.com/search?q=${encodeURIComponent('street light out report ' + (placeTag.textContent||zip))}`;
     }
+
+    // Autoload if ?zip=
+    if (zipInput.value) runSearch();
   </script>
 </body>
 </html>
