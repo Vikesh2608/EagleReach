@@ -1,4 +1,3 @@
-import os
 import time
 from typing import Any, Dict, List, Optional
 
@@ -6,24 +5,20 @@ import httpx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
+HTTP_TIMEOUT = 12.0
 
-# ------------------------------
-# FastAPI & CORS
-# ------------------------------
+# ---------- FastAPI & CORS ----------
 app = FastAPI(title="EagleReach API", version=APP_VERSION)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],                  # tighten to your GitHub Pages origin if you want
+    allow_origins=["*"],          # tighten to your GitHub Pages origin if you prefer
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ------------------------------
-# Tiny in-memory TTL cache
-# ------------------------------
+# ---------- Small TTL cache ----------
 CACHE: Dict[str, Dict[str, Any]] = {}
 DEFAULT_TTL = 60 * 10  # 10 minutes
 
@@ -39,20 +34,23 @@ def cache_get(key: str) -> Optional[Any]:
 def cache_set(key: str, val: Any, ttl: int = DEFAULT_TTL) -> None:
     CACHE[key] = {"val": val, "exp": time.time() + ttl}
 
-# ------------------------------
-# HTTP helper
-# ------------------------------
-HTTP_TIMEOUT = 12.0
+# ---------- HTTP helpers ----------
+UA = {"User-Agent": "EagleReach/1.0 (+mailto:vikebairam@gmail.com)"}
 
 async def fetch_json(url: str, params: Optional[dict] = None, headers: Optional[dict] = None) -> Any:
+    hdrs = {**UA, **(headers or {})}
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
-        r = await client.get(url, params=params, headers=headers)
+        r = await client.get(url, params=params, headers=hdrs)
         r.raise_for_status()
-        return r.json()
+        # Some civic endpoints return application/text with JSON inside.
+        # Try JSON first; if it fails, fall back to manual parse.
+        try:
+            return r.json()
+        except Exception:
+            import json
+            return json.loads(r.text)
 
-# ------------------------------
-# Weather code → text (Open-Meteo)
-# ------------------------------
+# ---------- Weather code → text (Open-Meteo) ----------
 WX_MAP = {
     0: "Clear", 1: "Mainly clear", 2: "Partly cloudy", 3: "Cloudy",
     45: "Fog", 48: "Rime fog",
@@ -67,16 +65,12 @@ WX_MAP = {
     95: "Thunderstorm", 96: "Thunderstorm (hail)", 99: "Thunderstorm (hail)",
 }
 
-# ------------------------------
-# Health
-# ------------------------------
+# ---------- Health ----------
 @app.get("/health")
 async def health():
     return {"ok": True, "service": "eaglereach-api", "version": APP_VERSION}
 
-# ------------------------------
-# ZIP info (Zippopotam)
-# ------------------------------
+# ---------- ZIP info (Zippopotam) ----------
 @app.get("/zipinfo")
 async def zipinfo(zip: str = Query(..., description="US ZIP code")):
     key = f"zipinfo:{zip}"
@@ -102,13 +96,10 @@ async def zipinfo(zip: str = Query(..., description="US ZIP code")):
         "lat": float(place.get("latitude")) if place.get("latitude") else None,
         "lon": float(place.get("longitude")) if place.get("longitude") else None,
     }
-    cache_set(key, payload, ttl=60 * 60)
+    cache_set(key, payload, ttl=60 * 60)  # 1 hour
     return payload
 
-# ------------------------------
-# Reverse ZIP from lat/lon
-# (BigDataCloud reverse geocode)
-# ------------------------------
+# ---------- Reverse ZIP from lat/lon (BigDataCloud) ----------
 @app.get("/reverse-zip")
 async def reverse_zip(lat: float, lon: float):
     key = f"revzip:{lat:.4f},{lon:.4f}"
@@ -123,7 +114,8 @@ async def reverse_zip(lat: float, lon: float):
     except httpx.HTTPError as e:
         raise HTTPException(status_code=502, detail=f"Reverse geocode failed: {e}") from e
 
-    zip_code = data.get("postcode")
+    # Postcode may not be present in rural areas; return what we have.
+    zip_code = data.get("postcode") or None
     payload = {
         "zip": zip_code,
         "place": data.get("city") or data.get("locality") or data.get("principalSubdivision"),
@@ -134,11 +126,9 @@ async def reverse_zip(lat: float, lon: float):
     cache_set(key, payload, ttl=60 * 30)
     return payload
 
-# ------------------------------
-# Elected officials
-# Primary: whoismyrepresentative.com
-# Fallback: GovTrack senators by state
-# ------------------------------
+# ---------- Elected officials ----------
+# Primary: whoismyrepresentative.com (ZIP → House + Senators)
+# Fallback: GovTrack (state senators) when ZIP source is unavailable/rate-limited
 def _fmt_official(name: str, office: str, party: Optional[str] = None,
                   phone: Optional[str] = None, url: Optional[str] = None) -> Dict[str, Any]:
     out = {"name": name, "office": office}
@@ -157,19 +147,16 @@ async def officials(zip: str):
     if cached:
         return cached
 
-    # Try WIMR (simple JSON API)
-    results: List[Dict[str, Any]] = []
+    officials: List[Dict[str, Any]] = []
+
+    # Try WIMR first (returns House + Senate for the ZIP)
     try:
         wimr = await fetch_json(
             "https://whoismyrepresentative.com/getall_mems.php",
-            params={"zip": zip, "output": "json"}
+            params={"zip": zip, "output": "json"},
+            headers={"Accept": "application/json"}
         )
         results = wimr.get("results") or []
-    except Exception:
-        results = []
-
-    officials: List[Dict[str, Any]] = []
-    if results:
         for r in results:
             party = {"D": "Democrat", "R": "Republican"}.get(r.get("party", "").strip(), r.get("party"))
             officials.append(_fmt_official(
@@ -179,8 +166,12 @@ async def officials(zip: str):
                 phone=r.get("phone"),
                 url=r.get("link")
             ))
-    else:
-        # Fallback: senators via GovTrack
+    except Exception:
+        # ignore; fall back to GovTrack
+        pass
+
+    # Fallback: senators via GovTrack
+    if not officials:
         try:
             z = await zipinfo(zip)
             abbr = (z.get("state_abbr") or "").upper()
@@ -201,7 +192,7 @@ async def officials(zip: str):
         except Exception:
             pass
 
-    # Helpful mayor link (best effort)
+    # Helpful Mayor link (best effort) so there is always a city-level entry
     try:
         z = await zipinfo(zip)
         place = z.get("place") or ""
@@ -219,9 +210,7 @@ async def officials(zip: str):
     cache_set(key, payload, ttl=60 * 30)
     return payload
 
-# ------------------------------
-# Weather (Open-Meteo)
-# ------------------------------
+# ---------- Weather (Open-Meteo daily) ----------
 @app.get("/weather")
 async def weather(zip: str):
     key = f"wx:{zip}"
@@ -247,11 +236,13 @@ async def weather(zip: str):
         days = []
         for i, date in enumerate(daily.get("time", [])):
             code = int((daily.get("weathercode") or [0])[i])
+            tmax = (daily.get("temperature_2m_max") or [None])[i]
+            tmin = (daily.get("temperature_2m_min") or [None])[i]
             days.append({
                 "date": date,
                 "summary": WX_MAP.get(code, "Weather"),
-                "max": (daily.get("temperature_2m_max") or [None])[i],
-                "min": (daily.get("temperature_2m_min") or [None])[i],
+                "max": tmax,
+                "min": tmin,
             })
     except httpx.HTTPError as e:
         raise HTTPException(status_code=502, detail=f"Weather fetch failed: {e}") from e
@@ -260,19 +251,16 @@ async def weather(zip: str):
     cache_set(key, payload, ttl=60 * 30)
     return payload
 
-# ------------------------------
-# Elections (simple, safe default)
-# ------------------------------
+# ---------- Elections (simple helper text) ----------
 def next_federal_election() -> str:
-    return "November 3, 2025"  # general election cycle helper text
+    # Helper text for the next federal general—adjust as new cycle approaches.
+    return "November 3, 2025"
 
 @app.get("/elections")
 async def elections(zip: str):
     return {"next": {"federal": next_federal_election()}}
 
-# ------------------------------
-# City Updates (demo: NYC & Chicago)
-# ------------------------------
+# ---------- City Updates (demo: NYC & Chicago open data) ----------
 @app.get("/city/updates")
 async def city_updates(zip: str):
     key = f"city:{zip}"
@@ -285,7 +273,6 @@ async def city_updates(zip: str):
     state = (z.get("state_abbr") or z.get("state") or "").upper()
 
     items: List[Dict[str, Any]] = []
-
     try:
         if "new york" in place and state == "NY":
             url = "https://data.cityofnewyork.us/resource/erm2-nwe9.json"
@@ -299,7 +286,6 @@ async def city_updates(zip: str):
                     "created": r.get("created_date") or "",
                     "source": "NYC Open Data (311)"
                 })
-
         elif "chicago" in place and state == "IL":
             url = "https://data.cityofchicago.org/resource/v6vf-nfxy.json"
             params = {"$limit": 10, "zip_code": zip}
@@ -313,6 +299,7 @@ async def city_updates(zip: str):
                     "source": "City of Chicago (311)"
                 })
     except Exception:
+        # soft-fail; show no updates if the open-data API is unavailable
         pass
 
     payload = {
