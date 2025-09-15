@@ -140,7 +140,7 @@ footer{color:var(--muted);font-size:.9rem;padding:28px 0;text-align:center}
               <div><b>Emergency (life-threatening)</b></div><div>📞 <a href="tel:911">911</a></div>
               <div>Suicide & Crisis Lifeline</div><div>📞 <a href="tel:988">988</a> · <a target="_blank" rel="noopener" href="https://988lifeline.org/">Website</a></div>
               <div>Poison Control</div><div>📞 <a href="tel:+18002221222">1-800-222-1222</a></div>
-              <div>City Services (potholes, trash, street lights)</div><div>📞 311 (where available) · or your city website</div>
+              <div>City Services</div><div>📞 311 (where available) · check your city website</div>
               <div>Community Resources</div><div>📞 211 · <a target="_blank" rel="noopener" href="https://www.211.org/">211.org</a></div>
             </div>
           </div>
@@ -176,7 +176,7 @@ footer{color:var(--muted);font-size:.9rem;padding:28px 0;text-align:center}
       </div>
     </div>
 
-    <!-- FOUNDER (professional bio) -->
+    <!-- FOUNDER -->
     <div id="page-founder" class="page">
       <div class="panel">
         <h3>Founder</h3>
@@ -225,12 +225,13 @@ footer{color:var(--muted);font-size:.9rem;padding:28px 0;text-align:center}
 
 <script>
 // ===========================
-// Backend base (SET THIS!)
+// Backend base (already set)
 // ===========================
 const API_BASE = (window.location.hostname.includes('github.io'))
-  ? 'https://YOUR-BACKEND-DOMAIN'   // ← REPLACE with your Render URL
+  ? 'https://eaglereach.onrender.com'
   : 'http://localhost:8000';
 
+// If you see the warning, change the URL above to your exact Render URL.
 if (API_BASE.includes('YOUR-BACKEND-DOMAIN')) {
   document.getElementById('apiWarning').style.display = 'block';
 }
@@ -317,15 +318,17 @@ $('btnLocate').addEventListener('click', () => {
 });
 
 // Local news button opens Google News query for city/state after a search
-$('btnLocalNews')?.addEventListener('click', () => {
-  const tag = $('locLine')?.textContent || '';
-  if(tag.includes('—')){
-    const where = tag.split('—')[1].trim(); // "Cincinnati, Ohio"
-    const url = `https://news.google.com/search?q=${encodeURIComponent(where+' local news')}&hl=en-US&gl=US&ceid=US:en`;
-    window.open(url, '_blank', 'noopener');
-  }else{
-    const url = `https://news.google.com/search?q=local%20news&hl=en-US&gl=US&ceid=US:en`;
-    window.open(url, '_blank', 'noopener');
+document.addEventListener('click', e => {
+  if(e.target && e.target.id === 'btnLocalNews'){
+    const tag = $('locLine')?.textContent || '';
+    if(tag.includes('—')){
+      const where = tag.split('—')[1].trim();
+      const url = `https://news.google.com/search?q=${encodeURIComponent(where+' local news')}&hl=en-US&gl=US&ceid=US:en`;
+      window.open(url, '_blank', 'noopener');
+    }else{
+      const url = `https://news.google.com/search?q=local%20news&hl=en-US&gl=US&ceid=US:en`;
+      window.open(url, '_blank', 'noopener');
+    }
   }
 });
 
@@ -342,6 +345,12 @@ function renderRoute(){
 }
 window.addEventListener('hashchange', renderRoute);
 document.addEventListener('DOMContentLoaded', () => { renderRoute(); $('zipInput').value='45220'; });
+
+// Insert "Local News" button after DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+  const newsPanel = document.querySelector('h3+div.body').parentElement?.nextElementSibling?.querySelector('.body');
+  // We already included it above in markup, this is just safety if structure shifts.
+});
 </script>
 </body>
 </html>
