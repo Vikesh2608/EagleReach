@@ -1,7 +1,6 @@
 import os
 import re
 import time
-import json
 import asyncio
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -16,7 +15,6 @@ API_TIMEOUT = float(os.getenv("API_TIMEOUT", "8.0"))
 CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "900"))  # 15 minutes
 
 DEFAULT_ORIGINS = ",".join([
-    # Put your GitHub Pages + local dev origins here
     "https://vikesh2608.github.io",
     "https://vikesh2608.github.io/EagleReach",
     "https://*.github.dev",
@@ -64,7 +62,7 @@ def cache_set(key: str, value: Any):
     _cache[key] = (time.time(), value)
 
 # -----------------------------
-# HTTP client (created on startup)
+# HTTP client
 # -----------------------------
 client: Optional[httpx.AsyncClient] = None
 
@@ -102,11 +100,7 @@ def clean_party(p: Optional[str]) -> Optional[str]:
 def govtrack_role_to_person(role: Dict[str, Any]) -> Dict[str, Any]:
     person = role.get("person") or {}
     pid = person.get("id")
-    website = (
-        role.get("website")
-        or role.get("extra", {}).get("url")
-        or person.get("link")
-    )
+    website = role.get("website") or role.get("extra", {}).get("url") or person.get("link")
     photo = f"https://www.govtrack.us/static/legisphotos/{pid}-200px.jpeg" if pid else None
     extras = role.get("extras") or role.get("extra") or {}
     twitter = extras.get("twitter") or extras.get("twitter_id") if isinstance(extras, dict) else None
@@ -154,7 +148,6 @@ async def zippopotam_info(zipcode: str) -> Dict[str, Any]:
     }
 
 async def whois_house(zipcode: str) -> Optional[Dict[str, Any]]:
-    """Get a quick House district from WhoIsMyRepresentative (can be flaky)."""
     try:
         data = await fetch_json(WMR_HOUSE_URL.format(zip=zipcode), f"wmr:{zipcode}")
     except Exception:
@@ -175,9 +168,6 @@ async def govtrack_representatives(state: str, district: str) -> List[Dict[str, 
     return [govtrack_role_to_person(o) for o in data.get("objects", [])]
 
 async def wikidata_mayor(city: str, state_full: str) -> Optional[Dict[str, Any]]:
-    """
-    Best-effort lookup of head of government (P6) for a U.S. city.
-    """
     if client is None:
         return None
     query = f"""
@@ -193,7 +183,7 @@ async def wikidata_mayor(city: str, state_full: str) -> Optional[Dict[str, Any]]
     """
     try:
         r = await client.get(
-            WIKIDATA_SPARQL,
+            "https://query.wikidata.org/sparql",
             params={"format": "json", "query": query},
             headers={"Accept": "application/sparql-results+json"},
         )
@@ -227,11 +217,9 @@ async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
     city = loc["city"]
     state_full = loc["state_full"]
 
-    # Parallel upstream lookups
     wmr_task = whois_house(zip)
     sen_task = govtrack_senators(state)
     mayor_task = wikidata_mayor(city, state_full)
-
     wmr, senators, mayor = await asyncio.gather(wmr_task, sen_task, mayor_task)
 
     representatives: List[Dict[str, Any]] = []
@@ -253,17 +241,16 @@ async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
         "officials": {
             "senators": senators,
             "representatives": representatives,
-            "mayor": mayor,  # may be None
+            "mayor": mayor,
         },
         "sources": {
             "zip": "Zippopotam.us",
-            "district": "WhoIsMyRepresentative (ZIP → district)",
+            "district": "WhoIsMyRepresentative",
             "congress": "GovTrack.us",
-            "mayor": "Wikidata",
-        },
+            "mayor": "Wikidata"
+        }
     }
 
     if not senators and not representatives and not mayor:
-        # All upstream providers failed — surface a helpful error
         raise HTTPException(status_code=502, detail="Civic data providers unavailable. Try again shortly.")
     return payload
