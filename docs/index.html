@@ -1,58 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>EagleReach — Civic info, fast & free</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ctext y='90' font-size='90'%3E%F0%9F%87%BA%F0%9F%87%B8%3C/text%3E%3C/svg%3E"/>
 <style>
-  :root{
-    --bg:#f6f8fc; --panel:#fff; --ink:#0b1f44; --muted:#6b7a90; --brand:#1f49ff;
-    --ring:#e5ecff; --ok:#1f9d59; --err:#c62828; --radius:16px;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  a{color:var(--brand);text-decoration:none}
-  .nav{position:sticky;top:0;background:#0f3b86;color:#fff;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-  .nav .wrap{max-width:1160px;margin:0 auto;padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between}
-  .brand{font-weight:800;letter-spacing:.2px}
-  .tabs{display:flex;gap:10px;flex-wrap:wrap}
-  .tab{color:#d9e6ff;padding:.45rem .7rem;border-radius:10px}
-  .tab.active{background:#2a59c4;color:#fff}
-  .wrap{max-width:1160px;margin:1rem auto;padding:0 1rem}
-  .panel{background:var(--panel);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:0 2px 12px rgba(16,24,40,.05)}
-  .panel h3{margin:0;padding:16px;border-bottom:1px solid var(--ring);font-size:1rem}
-  .panel .body{padding:16px}
-  .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
-  @media (max-width:980px){.grid{grid-template-columns:1fr}}
-  .row{display:flex;gap:10px;flex-wrap:wrap}
-  input[type="text"]{flex:1;min-width:220px;padding:.78rem .85rem;border:1px solid var(--ring);border-radius:12px;font-size:1rem}
-  button{border:0;background:var(--brand);color:#fff;padding:.78rem 1.05rem;border-radius:12px;font-weight:700;cursor:pointer}
-  button.secondary{background:#eef3ff;color:#1b3aa6}
-  .pill{display:inline-block;padding:.28rem .6rem;border:1px solid var(--ring);border-radius:999px;font-size:.83rem;color:var(--muted);background:#fbfcff}
-  .list{display:flex;flex-direction:column;gap:10px}
-  .official{display:flex;gap:12px;align-items:center;border:1px solid var(--ring);border-radius:12px;padding:10px}
-  .official img{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--ring)}
-  .official .meta{min-width:0}
-  .official .name{font-weight:800}
-  .official .sub{color:var(--muted);font-size:.92rem}
-  .empty{color:var(--muted);font-style:italic}
-  .alert{padding:.7rem .9rem;border-radius:12px;margin-top:10px}
-  .alert.ok{background:#eaf7ef;color:#0a5f35;border:1px solid #ccebd9}
-  .alert.err{background:#fdebea;color:#7a1818;border:1px solid #f6c7c5}
-  footer{color:var(--muted);font-size:.9rem;padding:28px 0;text-align:center}
-  /* Pages */
-  .page{display:none}
-  .page.active{display:block}
-  .section{margin:16px 0}
-  .lead{color:#334;line-height:1.6}
-  .card{border:1px solid var(--ring);border-radius:12px;padding:14px;background:#fff}
+:root{
+  --bg:#f6f8fc; --panel:#fff; --ink:#0b1f44; --muted:#6b7a90; --brand:#1f49ff;
+  --ring:#e5ecff; --ok:#1f9d59; --err:#c62828; --radius:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--brand);text-decoration:none}
+.nav{position:sticky;top:0;background:#0f3b86;color:#fff;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.nav .wrap{max-width:1160px;margin:0 auto;padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:800;letter-spacing:.2px;display:flex;gap:.5rem;align-items:baseline}
+.brand small{font-weight:500;opacity:.9}
+.tabs{display:flex;gap:10px;flex-wrap:wrap}
+.tab{color:#d9e6ff;padding:.45rem .7rem;border-radius:10px}
+.tab.active{background:#2a59c4;color:#fff}
+.wrap{max-width:1160px;margin:1rem auto;padding:0 1rem}
+.panel{background:var(--panel);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:0 2px 12px rgba(16,24,40,.05)}
+.panel h3{margin:0;padding:16px;border-bottom:1px solid var(--ring);font-size:1rem}
+.panel .body{padding:16px}
+.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+input[type="text"]{flex:1;min-width:220px;padding:.78rem .85rem;border:1px solid var(--ring);border-radius:12px;font-size:1rem}
+button{border:0;background:var(--brand);color:#fff;padding:.78rem 1.05rem;border-radius:12px;font-weight:700;cursor:pointer}
+button.secondary{background:#eef3ff;color:#1b3aa6}
+.pill{display:inline-block;padding:.28rem .6rem;border:1px solid var(--ring);border-radius:999px;font-size:.83rem;color:var(--muted);background:#fbfcff}
+.list{display:flex;flex-direction:column;gap:10px}
+.official{display:flex;gap:12px;align-items:center;border:1px solid var(--ring);border-radius:12px;padding:10px}
+.official img{width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid var(--ring)}
+.official .meta{min-width:0}
+.official .name{font-weight:800}
+.official .sub{color:var(--muted);font-size:.92rem}
+.empty{color:var(--muted);font-style:italic}
+.alert{padding:.7rem .9rem;border-radius:12px;margin-top:10px}
+.alert.ok{background:#eaf7ef;color:#0a5f35;border:1px solid #ccebd9}
+.alert.err{background:#fdebea;color:#7a1818;border:1px solid #f6c7c5}
+footer{color:var(--muted);font-size:.9rem;padding:28px 0;text-align:center}
+.page{display:none} .page.active{display:block}
+.section{margin:16px 0}
+.lead{color:#334;line-height:1.6}
+.card{border:1px solid var(--ring);border-radius:12px;padding:14px;background:#fff}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:8px;align-items:start}
+@media (max-width:620px){.kv{grid-template-columns:1fr}}
+.small{font-size:.9rem;color:var(--muted)}
 </style>
 </head>
 <body>
   <!-- Top bar -->
   <div class="nav">
     <div class="wrap">
-      <div class="brand">🇺🇸 EagleReach</div>
+      <div class="brand">🇺🇸 EagleReach <small>— civic info, fast &amp; free for every U.S. resident</small></div>
       <div class="tabs">
         <a href="#/" class="tab" data-route="/">Home</a>
         <a href="#/about" class="tab" data-route="/about">About</a>
@@ -70,7 +73,7 @@
         <h3>Enter ZIP</h3>
         <div class="body">
           <div class="row">
-            <input id="zipInput" type="text" inputmode="numeric" maxlength="5" placeholder="e.g., 45220" />
+            <input id="zipInput" type="text" inputmode="numeric" maxlength="5" placeholder="e.g., 45220"/>
             <button id="btnSearch">Search</button>
             <button id="btnLocate" class="secondary">Use my location</button>
           </div>
@@ -83,6 +86,7 @@
       </div>
 
       <div class="grid" style="margin-top:12px">
+        <!-- LEFT -->
         <div class="panel">
           <h3>Elected Representatives</h3>
           <div class="body">
@@ -94,29 +98,55 @@
               <div class="pill">Mayor</div>
               <div id="mayor" class="section"></div>
             </div>
-            <p style="margin-top:12px;color:var(--muted);font-size:.9rem">
+            <p class="small" style="margin-top:12px">
               Sources: Zippopotam (ZIP), WhoIsMyRepresentative (district), GovTrack (official sites & photos), Wikidata (mayor).
             </p>
           </div>
         </div>
 
-        <div class="panel">
-          <h3>Voter Info & Education</h3>
-          <div class="body">
-            <div class="list">
-              <a class="card" href="https://www.usa.gov/how-to-vote" target="_blank" rel="noopener">
-                <b>How to vote (USA.gov)</b><br><span class="sub">Registration, deadlines, ID rules</span>
-              </a>
-              <a class="card" href="https://www.vote.gov/" target="_blank" rel="noopener">
-                <b>Register to vote</b><br><span class="sub">Official state portals</span>
-              </a>
-              <a class="card" href="https://www.usa.gov/election-office" target="_blank" rel="noopener">
-                <b>Find your Election Office</b><br><span class="sub">Local contact details</span>
-              </a>
+        <!-- RIGHT -->
+        <div class="list">
+          <div class="panel">
+            <h3>Voter Info & Education</h3>
+            <div class="body">
+              <div class="list">
+                <a class="card" href="https://www.usa.gov/how-to-vote" target="_blank" rel="noopener">
+                  <b>How to vote (USA.gov)</b><br><span class="sub">Registration, deadlines, ID rules</span>
+                </a>
+                <a class="card" href="https://www.vote.gov/" target="_blank" rel="noopener">
+                  <b>Register to vote</b><br><span class="sub">Official state portals</span>
+                </a>
+                <a class="card" href="https://www.usa.gov/election-office" target="_blank" rel="noopener">
+                  <b>Find your Election Office</b><br><span class="sub">Local contact details</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>News</h3>
+            <div class="body">
+              <div class="row">
+                <button id="btnLocalNews" class="secondary">Open Local News</button>
+                <a class="card" style="flex:1;text-align:center" href="https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en" target="_blank" rel="noopener"><b>World News</b></a>
+              </div>
+              <p class="small" style="margin-top:8px">Local news opens Google News for your ZIP’s city.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Emergency & Community</h3>
+            <div class="body kv">
+              <div><b>Emergency (life-threatening)</b></div><div>📞 <a href="tel:911">911</a></div>
+              <div>Suicide & Crisis Lifeline</div><div>📞 <a href="tel:988">988</a> · <a target="_blank" rel="noopener" href="https://988lifeline.org/">Website</a></div>
+              <div>Poison Control</div><div>📞 <a href="tel:+18002221222">1-800-222-1222</a></div>
+              <div>City Services (potholes, trash, street lights)</div><div>📞 311 (where available) · or your city website</div>
+              <div>Community Resources</div><div>📞 211 · <a target="_blank" rel="noopener" href="https://www.211.org/">211.org</a></div>
             </div>
           </div>
         </div>
       </div>
+
       <footer>© 2025 EagleReach — Civic info, fast & free — built for everyone in the United States.</footer>
     </div>
 
@@ -127,35 +157,34 @@
         <div class="body">
           <p class="lead">
             EagleReach is an open-source civic assistant that helps U.S. residents quickly find their elected officials,
-            voting resources, and local contacts—all by ZIP code. The project prioritizes speed, clarity, and privacy, using
-            only trusted public data sources.
+            voting resources, and local contacts — all by ZIP code. The project prioritizes speed, clarity, and privacy,
+            using trusted public sources.
           </p>
           <div class="section">
             <div class="pill">What’s unique?</div>
             <ul>
-              <li>Fast, free, and simple—no logins, no tracking.</li>
-              <li>Verified sources (GovTrack, Zippopotam, WhoIsMyRepresentative, Wikidata).</li>
-              <li>Built for mobile and desktop with an accessible, clean UI.</li>
+              <li>Fast, free, no logins — optimized for mobile and desktop.</li>
+              <li>Verified official links (GovTrack, USA.gov) and clear attribution.</li>
+              <li>Simple UI with accessibility in mind.</li>
             </ul>
           </div>
           <div class="section">
             <div class="pill">Who is it for?</div>
-            <p>U.S. residents looking for clear, official links to their senators, representative, and local mayor, plus voter info.</p>
+            <p>Anyone in the United States who needs direct links to their senators, representative, mayor, and voter information.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- FOUNDER -->
+    <!-- FOUNDER (professional bio) -->
     <div id="page-founder" class="page">
       <div class="panel">
         <h3>Founder</h3>
         <div class="body">
-          <p class="lead"><b>Vikesh Sagar Bairam</b> is the creator of EagleReach—an engineer focused on data, DevOps, and AI/ML.
-            He builds practical, open-source tools that improve public access to information and civic engagement.</p>
+          <p class="lead"><b>Vikesh Sagar Bairam</b> is a data & DevOps engineer who builds practical, open-source tools that make public information easier to access. He works across Python, FastAPI, Docker, CI/CD, AWS/GCP, SQL, and real-time dashboards. Vikesh created EagleReach to help residents contact their representatives faster and participate more confidently in civic life.</p>
           <ul>
-            <li>Skills: Python, FastAPI, Docker, CI/CD, AWS/GCP, SQL, Excel/Power Query, dashboards.</li>
-            <li>Interests: civic tech, automation, and real-time data systems.</li>
+            <li>Specialties: data engineering, automation, cloud infrastructure, and AI-assisted development.</li>
+            <li>Selected projects: EagleReach (civic assistant), RackWiseAI (predictive ops), EC2/NGINX DevOps pipeline.</li>
           </ul>
           <p>
             GitHub: <a href="https://github.com/Vikesh2608" target="_blank" rel="noopener">Vikesh2608</a> ·
@@ -170,10 +199,10 @@
       <div class="panel">
         <h3>Contact</h3>
         <div class="body">
-          <p class="lead">Have a question or collaboration idea?</p>
+          <p class="lead">Collaboration or support?</p>
           <ul>
             <li>Email: <a href="mailto:vikesh2608@gmail.com">vikesh2608@gmail.com</a></li>
-            <li>GitHub Issues (bug reports & feature requests): <a href="https://github.com/Vikesh2608/EagleReach/issues" target="_blank" rel="noopener">Open an issue</a></li>
+            <li>Open an issue (bugs & features): <a href="https://github.com/Vikesh2608/EagleReach/issues" target="_blank" rel="noopener">GitHub Issues</a></li>
           </ul>
         </div>
       </div>
@@ -184,135 +213,135 @@
       <div class="panel">
         <h3>Feedback</h3>
         <div class="body">
-          <p class="lead">Help improve EagleReach by sharing feedback.</p>
+          <p class="lead">Help improve EagleReach by sharing your thoughts.</p>
           <ul>
             <li><a href="https://github.com/Vikesh2608/EagleReach/issues/new/choose" target="_blank" rel="noopener">Create a GitHub issue</a></li>
-            <li>Or send an email: <a href="mailto:vikesh2608@gmail.com?subject=EagleReach%20Feedback">vikesh2608@gmail.com</a></li>
+            <li>Or email: <a href="mailto:vikesh2608@gmail.com?subject=EagleReach%20Feedback">vikesh2608@gmail.com</a></li>
           </ul>
         </div>
       </div>
     </div>
-
   </div>
 
-  <script>
-    // ===========================
-    // Backend base (SET THIS!)
-    // ===========================
- const API_BASE = (window.location.hostname.includes('github.io'))
-  ? 'https://eaglereach-1.onrender.com'
+<script>
+// ===========================
+// Backend base (SET THIS!)
+// ===========================
+const API_BASE = (window.location.hostname.includes('github.io'))
+  ? 'https://YOUR-BACKEND-DOMAIN'   // ← REPLACE with your Render URL
   : 'http://localhost:8000';
 
+if (API_BASE.includes('YOUR-BACKEND-DOMAIN')) {
+  document.getElementById('apiWarning').style.display = 'block';
+}
 
-    // Basic warning if not set
-    if (API_BASE.includes('YOUR-BACKEND-DOMAIN')) {
-      document.getElementById('apiWarning').style.display = 'block';
-    }
+// Utilities
+const $ = id => document.getElementById(id);
+const escapeHTML = s => s?.toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) || '';
 
-    // Utilities
-    const $ = id => document.getElementById(id);
-    const escapeHTML = s => s?.toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) || '';
+function itemHTML(p){
+  const photo = p.photo ? `<img src="${escapeHTML(p.photo)}" alt="">` : `<img src="https://via.placeholder.com/48" alt="">`;
+  const role = [p.role, p.party, p.state && `(${p.state}${p.district?'-'+p.district:''})`].filter(Boolean).join(' · ');
+  const website = p.website ? `<a href="${escapeHTML(p.website)}" target="_blank" rel="noopener">Official website</a>` : '';
+  const phone = p.phone ? `<span> | ${escapeHTML(p.phone)}</span>` : '';
+  return `
+    <div class="official">
+      ${photo}
+      <div class="meta">
+        <div class="name">${escapeHTML(p.name || 'Unknown')}</div>
+        <div class="sub">${escapeHTML(role)}</div>
+        <div class="sub">${website}${phone}</div>
+      </div>
+    </div>`;
+}
+function mayorHTML(m){
+  if(!m) return `<div class="empty">No mayor info available for this city right now.</div>`;
+  const website = m.website ? `<a href="${escapeHTML(m.website)}" target="_blank" rel="noopener">Official website</a>` : '';
+  return `
+    <div class="official">
+      <img src="https://via.placeholder.com/48" alt="">
+      <div class="meta">
+        <div class="name">${escapeHTML(m.name)}</div>
+        <div class="sub">Mayor</div>
+        <div class="sub">${website}</div>
+      </div>
+    </div>`;
+}
 
-    function itemHTML(p){
-      const photo = p.photo ? `<img src="${escapeHTML(p.photo)}" alt="">` : `<img src="https://via.placeholder.com/48" alt="">`;
-      const role = [p.role, p.party, p.state && `(${p.state}${p.district?'-'+p.district:''})`].filter(Boolean).join(' · ');
-      const website = p.website ? `<a href="${escapeHTML(p.website)}" target="_blank" rel="noopener">Official website</a>` : '';
-      const phone = p.phone ? `<span> | ${escapeHTML(p.phone)}</span>` : '';
-      return `
-        <div class="official">
-          ${photo}
-          <div class="meta">
-            <div class="name">${escapeHTML(p.name || 'Unknown')}</div>
-            <div class="sub">${escapeHTML(role)}</div>
-            <div class="sub">${website}${phone}</div>
-          </div>
-        </div>`;
-    }
-    function mayorHTML(m){
-      if(!m) return `<div class="empty">No mayor info available for this city right now.</div>`;
-      const website = m.website ? `<a href="${escapeHTML(m.website)}" target="_blank" rel="noopener">Official website</a>` : '';
-      return `
-        <div class="official">
-          <img src="https://via.placeholder.com/48" alt="">
-          <div class="meta">
-            <div class="name">${escapeHTML(m.name)}</div>
-            <div class="sub">Mayor</div>
-            <div class="sub">${website}</div>
-          </div>
-        </div>`;
-    }
+async function loadOfficials(zip){
+  const r = await fetch(`${API_BASE}/officials?zip=${encodeURIComponent(zip)}`);
+  if(!r.ok) throw new Error(`Officials lookup failed (${r.status})`);
+  return r.json();
+}
 
-    async function loadOfficials(zip){
-      const r = await fetch(`${API_BASE}/officials?zip=${encodeURIComponent(zip)}`);
-      if(!r.ok) throw new Error(`Officials lookup failed (${r.status})`);
-      return r.json();
-    }
+async function doSearch(zip){
+  const statusBox=$('statusBox'), senEl=$('senators'), houseEl=$('house'), mayorEl=$('mayor'), locLine=$('locLine');
+  senEl.innerHTML = houseEl.innerHTML = mayorEl.innerHTML = '';
+  statusBox.innerHTML = `<div class="alert ok">Looking up officials for ZIP ${escapeHTML(zip)}…</div>`;
+  try{
+    const data = await loadOfficials(zip);
+    const loc = data.location;
+    locLine.hidden = false;
+    locLine.textContent = `${loc.zip} — ${loc.city}, ${loc.state_full}`;
+    senEl.innerHTML   = data.officials.senators?.length ? data.officials.senators.map(itemHTML).join('') : `<div class="empty">No senators returned.</div>`;
+    houseEl.innerHTML = data.officials.representatives?.length ? data.officials.representatives.map(itemHTML).join('') : `<div class="empty">District not available right now. Try again later.</div>`;
+    mayorEl.innerHTML = mayorHTML(data.officials.mayor);
+    statusBox.innerHTML = `<div class="alert ok">Done.</div>`;
+  }catch(err){
+    console.error(err);
+    statusBox.innerHTML = `<div class="alert err">Couldn’t load officials. Check your backend URL or try again.</div>`;
+  }
+}
 
-    async function doSearch(zip){
-      const statusBox = $('statusBox'), senEl = $('senators'), houseEl = $('house'), mayorEl = $('mayor'), locLine = $('locLine');
-      senEl.innerHTML = houseEl.innerHTML = mayorEl.innerHTML = '';
-      statusBox.innerHTML = `<div class="alert ok">Looking up officials for ZIP ${escapeHTML(zip)}…</div>`;
+// Buttons
+$('btnSearch').addEventListener('click', () => {
+  const z = $('zipInput').value.trim();
+  if(!/^\d{5}$/.test(z)){
+    $('statusBox').innerHTML = `<div class="alert err">Please enter a valid 5-digit ZIP.</div>`;
+    return;
+  }
+  doSearch(z);
+});
+$('zipInput').addEventListener('keydown', e => { if(e.key==='Enter') $('btnSearch').click(); });
+$('btnLocate').addEventListener('click', () => {
+  $('statusBox').innerHTML = `<div class="alert ok">Getting your ZIP from location…</div>`;
+  navigator.geolocation.getCurrentPosition(async pos => {
+    try{
+      const r = await fetch(`https://geocode.maps.co/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+      const j = await r.json();
+      const zip = j?.address?.postcode?.match(/\d{5}/)?.[0];
+      if(zip){ $('zipInput').value = zip; doSearch(zip); }
+      else $('statusBox').innerHTML = `<div class="alert err">Couldn’t determine a ZIP at your location.</div>`;
+    }catch{ $('statusBox').innerHTML = `<div class="alert err">Location lookup failed.</div>`; }
+  }, ()=> $('statusBox').innerHTML = `<div class="alert err">Location permission denied.</div>`, {timeout:8000});
+});
 
-      try{
-        const data = await loadOfficials(zip);
-        const loc = data.location;
-        locLine.hidden = false;
-        locLine.textContent = `${loc.zip} — ${loc.city}, ${loc.state_full}`;
+// Local news button opens Google News query for city/state after a search
+$('btnLocalNews')?.addEventListener('click', () => {
+  const tag = $('locLine')?.textContent || '';
+  if(tag.includes('—')){
+    const where = tag.split('—')[1].trim(); // "Cincinnati, Ohio"
+    const url = `https://news.google.com/search?q=${encodeURIComponent(where+' local news')}&hl=en-US&gl=US&ceid=US:en`;
+    window.open(url, '_blank', 'noopener');
+  }else{
+    const url = `https://news.google.com/search?q=local%20news&hl=en-US&gl=US&ceid=US:en`;
+    window.open(url, '_blank', 'noopener');
+  }
+});
 
-        senEl.innerHTML   = data.officials.senators?.length ? data.officials.senators.map(itemHTML).join('') : `<div class="empty">No senators returned.</div>`;
-        houseEl.innerHTML = data.officials.representatives?.length ? data.officials.representatives.map(itemHTML).join('') : `<div class="empty">District not available right now. Try again later.</div>`;
-        mayorEl.innerHTML = mayorHTML(data.officials.mayor);
-
-        statusBox.innerHTML = `<div class="alert ok">Done.</div>`;
-      }catch(err){
-        console.error(err);
-        statusBox.innerHTML = `<div class="alert err">Couldn’t load officials. Check your backend URL or try again.</div>`;
-      }
-    }
-
-    // Buttons
-    $('btnSearch').addEventListener('click', () => {
-      const z = $('zipInput').value.trim();
-      if(!/^\d{5}$/.test(z)){
-        $('statusBox').innerHTML = `<div class="alert err">Please enter a valid 5-digit ZIP.</div>`;
-        return;
-      }
-      doSearch(z);
-    });
-    $('zipInput').addEventListener('keydown', e => { if(e.key==='Enter') $('btnSearch').click(); });
-    $('btnLocate').addEventListener('click', () => {
-      $('statusBox').innerHTML = `<div class="alert ok">Getting your ZIP from location…</div>`;
-      navigator.geolocation.getCurrentPosition(async pos => {
-        try{
-          const r = await fetch(`https://geocode.maps.co/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
-          const j = await r.json();
-          const zip = j?.address?.postcode?.match(/\d{5}/)?.[0];
-          if(zip){ $('zipInput').value = zip; doSearch(zip); }
-          else $('statusBox').innerHTML = `<div class="alert err">Couldn’t determine a ZIP at your location.</div>`;
-        }catch{ $('statusBox').innerHTML = `<div class="alert err">Location lookup failed.</div>`; }
-      }, ()=> $('statusBox').innerHTML = `<div class="alert err">Location permission denied.</div>`, {timeout:8000});
-    });
-
-    // Simple hash routing for tabs
-    const routes = {
-      '/': 'page-home',
-      '/about': 'page-about',
-      '/founder': 'page-founder',
-      '/contact': 'page-contact',
-      '/feedback': 'page-feedback'
-    };
-    function renderRoute(){
-      const hash = location.hash.replace('#','') || '/';
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      const id = routes[hash] || routes['/'];
-      document.getElementById(id).classList.add('active');
-      const active = document.querySelector(`.tab[data-route="${hash}"]`) || document.querySelector(`.tab[data-route="/"]`);
-      if(active) active.classList.add('active');
-    }
-    window.addEventListener('hashchange', renderRoute);
-    document.addEventListener('DOMContentLoaded', () => { renderRoute(); $('zipInput').value = '45220'; });
-
-  </script>
+// Simple hash routing
+const routes={'/':'page-home','/about':'page-about','/founder':'page-founder','/contact':'page-contact','/feedback':'page-feedback'};
+function renderRoute(){
+  const hash = location.hash.replace('#','') || '/';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const id = routes[hash] || routes['/'];
+  document.getElementById(id).classList.add('active');
+  const active = document.querySelector(`.tab[data-route="${hash}"]`) || document.querySelector(`.tab[data-route="/"]`);
+  if(active) active.classList.add('active');
+}
+window.addEventListener('hashchange', renderRoute);
+document.addEventListener('DOMContentLoaded', () => { renderRoute(); $('zipInput').value='45220'; });
+</script>
 </body>
 </html>
