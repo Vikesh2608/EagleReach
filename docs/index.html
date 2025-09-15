@@ -12,31 +12,18 @@
       --ink:#0d1b2a;
       --muted:#6b7280;
       --card:#ffffff;
-      --bg:#f5f7fb;
-      --border:#e5e7eb;
-      --btn:#1f6feb;
+      --bg:#0b1220;            /* darker background to match your screenshot */
+      --border:#1f2937;
+      --btn:#3b82f6;
       --btn-ink:#fff;
-      --btn-subtle:#eef2ff;
-      --link:#1f6feb;
-      --shadow:0 4px 18px rgba(2,25,57,.08);
+      --btn-subtle:#0b1220;
+      --link:#60a5fa;
+      --shadow:0 8px 30px rgba(0,0,0,.35);
       --radius:14px;
-    }
-    @media (prefers-color-scheme: dark){
-      :root{
-        --card:#0f172a;
-        --bg:#0b1220;
-        --ink:#e5e7eb;
-        --muted:#9aa4b2;
-        --border:#1f2937;
-        --btn:#3b82f6;
-        --btn-subtle:#0b1220;
-        --link:#60a5fa;
-        --shadow:0 8px 30px rgba(0,0,0,.35);
-      }
     }
 
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+    html,body{margin:0;padding:0;background:var(--bg);color:#e5e7eb;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
     a{color:var(--link);text-decoration:none}
     a:hover{text-decoration:underline}
 
@@ -50,21 +37,43 @@
     .bar-wrap{
       max-width:1100px;margin:0 auto;
       display:flex;align-items:center;gap:18px;
+      flex-wrap:wrap;                 /* ✅ allow wrap so the blue bar grows */
       padding:12px 16px;
     }
     .brand{
       display:flex;align-items:center;gap:12px;
       font-weight:700;letter-spacing:.2px;
+      min-width:0;                   /* allow quote to clamp */
     }
     .brand .flag{font-size:18px}
-    .brand .name{font-size:18px}
-    .brand .quote{font-size:12px;opacity:.85}
-    .nav{margin-left:auto;display:flex;gap:18px}
+    .brand .name{font-size:18px;white-space:nowrap}
+    .brand .quote{
+      font-size:12px;opacity:.92;
+      max-width:520px;
+      white-space:nowrap;            /* ✅ single line */
+      overflow:hidden;text-overflow:ellipsis;
+    }
+    .nav{
+      margin-left:auto;display:flex;gap:18px;flex-wrap:wrap;
+    }
     .nav button{
       background:transparent;border:0;color:var(--brand-ink);
       font:inherit;cursor:pointer;padding:6px 6px;border-radius:8px;
+      white-space:nowrap;
     }
     .nav button:hover{background:rgba(255,255,255,.12)}
+
+    /* Mobile header refinements */
+    @media (max-width:900px){
+      .brand .quote{display:none}          /* ✅ hide long quote on small screens */
+    }
+    @media (max-width:520px){
+      .bar-wrap{gap:10px;padding:10px 12px}
+      .nav{gap:12px}
+      .brand .name{font-size:17px}
+      .brand .flag{font-size:17px}
+    }
+
     /* Container & cards */
     .wrap{max-width:1100px;margin:18px auto;padding:0 12px}
     .grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
@@ -72,16 +81,16 @@
     .card{
       background:var(--card);border:1px solid var(--border);
       border-radius:var(--radius);box-shadow:var(--shadow);
-      padding:14px 14px 10px 14px;
+      padding:14px 14px 10px 14px;color:#e5e7eb;
     }
     .card h3{
-      margin:0 0 10px 0;font-size:16px;letter-spacing:.2px;
+      margin:0 0 10px 0;font-size:16px;letter-spacing:.2px;color:#fff;
     }
-    .muted{color:var(--muted);font-size:13px}
+    .muted{color:#9aa4b2;font-size:13px}
     .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .controls .row{margin-top:8px}
     input[type="text"]{
-      width:100%;max-width:420px;background:var(--card);color:var(--ink);
+      width:100%;max-width:420px;background:#0f172a;color:#e5e7eb;
       border:1px solid var(--border);border-radius:12px;padding:10px 12px;
       outline:0;
     }
@@ -90,30 +99,30 @@
       border:0;border-radius:12px;padding:10px 12px;cursor:pointer;
       display:inline-flex;align-items:center;gap:6px;font-weight:600
     }
-    .btn.secondary{background:var(--btn-subtle);color:var(--ink);border:1px solid var(--border)}
-    .btn.ghost{background:transparent;color:var(--ink);border:1px dashed var(--border)}
+    .btn.secondary{background:var(--btn-subtle);color:#e5e7eb;border:1px solid var(--border)}
+    .btn.ghost{background:transparent;color:#e5e7eb;border:1px dashed var(--border)}
     .list .item{
       padding:10px;border:1px solid var(--border);
-      border-radius:12px;margin-bottom:8px;background:var(--card)
+      border-radius:12px;margin-bottom:8px;background:#0f172a
     }
-    .list .title{font-weight:700}
-    .note{color:var(--muted);font-size:13px}
+    .list .title{font-weight:700;color:#fff}
+    .note{color:#9aa4b2;font-size:13px}
     .kicker{font-weight:700}
     .pill{
       display:inline-flex;align-items:center;gap:6px;
-      padding:6px 10px;border-radius:999px;background:var(--btn-subtle);border:1px solid var(--border);font-size:13px
+      padding:6px 10px;border-radius:999px;background:#0b1220;border:1px solid var(--border);font-size:13px;color:#e5e7eb
     }
-    .footer{margin:18px auto 48px;max-width:1100px;color:var(--muted);font-size:12px;text-align:center}
+    .footer{margin:18px auto 48px;max-width:1100px;color:#9aa4b2;font-size:12px;text-align:center}
 
     /* Modal */
     .modal{position:fixed;inset:0;display:none;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:200}
     .modal.open{display:flex}
     .dialog{
-      width:min(760px,96vw);max-height:88vh;overflow:auto;background:var(--card);
-      border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px;
+      width:min(760px,96vw);max-height:88vh;overflow:auto;background:#0f172a;
+      border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px;color:#e5e7eb;
     }
     .dialog header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .dialog .x{background:transparent;border:0;color:var(--ink);font-size:22px;cursor:pointer}
+    .dialog .x{background:transparent;border:0;color:#e5e7eb;font-size:22px;cursor:pointer}
     ul{padding-left:18px;margin:.3rem 0}
     li{margin:.2rem 0}
     .stack{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -245,9 +254,7 @@
       </header>
 
       <p><b>EagleReach</b> helps every U.S. resident quickly find their elected representatives, voter information, local weather, and upcoming elections — <b>without any sign-in</b> or tracking.</p>
-
       <p><b>Why it matters:</b> Access to clear, trustworthy civic information makes it easier for people to participate, get help, and hold leaders accountable. When information is simple and fast, more people get involved — and communities benefit.</p>
-
       <p><b>What you can do here:</b></p>
       <ul>
         <li><b>Find your officials</b> — names, offices, party, website links, and tap-to-call phone numbers.</li>
@@ -257,7 +264,6 @@
         <li><b>Read news</b> — quick access to local and world news.</li>
         <li><b>Emergency contacts</b> — one-tap calling for 911, 988, 211, 311, 811, and Poison Control.</li>
       </ul>
-
       <p class="note">Built on reputable open data sources (GovTrack, WhoIsMyRepresentative, Open-Meteo, USA.gov, Zippopotam). No accounts. No paywalls.</p>
     </div>
   </div>
@@ -269,13 +275,9 @@
         <h3>Founder</h3>
         <button class="x" data-close="founder" aria-label="Close">×</button>
       </header>
-
       <p><b>Vikesh</b> — Master's graduate from the University of Illinois, Springfield in Information Systems &amp; Management and AI/ML. Bachelor's in Psychology and Arts from Osmania University and a Bachelor's in Computers from the University of Allahabad.</p>
-
       <p><b>Career:</b> Currently working at Jabil as a Data Specialist/Analyst; previously a Test Engineer. Also worked as a DevOps Engineering Intern at Surfaces by Pacific.</p>
-
       <p><b>Specialties:</b> Cloud specialist, DevOps, Data Engineering, and Generative AI — helping teams grow with practical automations.</p>
-
       <p><b>Why EagleReach:</b> EagleReach is a passion project built for civic access and the people it serves. Volunteering and service are core values, and I’m proud to build tools that support communities and better civic participation.</p>
     </div>
   </div>
@@ -287,7 +289,6 @@
         <h3>Contact</h3>
         <button class="x" data-close="contact" aria-label="Close">×</button>
       </header>
-
       <div class="list">
         <div class="item"><a href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank" rel="noopener">LinkedIn — Vikesh Bairam</a></div>
         <div class="item"><a href="https://github.com/vikesh2608" target="_blank" rel="noopener">GitHub — vikesh2608</a></div>
@@ -296,7 +297,7 @@
     </div>
   </div>
 
-  <!-- Feedback (email link) -->
+  <!-- Feedback -->
   <div class="modal" id="feedback">
     <div class="dialog">
       <header>
@@ -338,8 +339,6 @@
 
     // === State ===
     let lastZip = '';
-    let lastPlace = '';
-    let lastState = '';
     function setPlaceLine(z, place, st){
       $('#placeLine').innerText = z ? `${z} — ${place||''}${place?', ':''}${st||''}` : '';
     }
@@ -357,7 +356,7 @@
 
     $('#btnClear').addEventListener('click', ()=>{
       $('#zipInput').value='';
-      lastZip=''; lastPlace=''; lastState='';
+      lastZip='';
       setPlaceLine('','','');
       $('#officials').innerHTML='';
       $('#weatherList').innerHTML='';
@@ -395,8 +394,7 @@
 
       try{
         const info = await fetchJson('/zipinfo', {zip});
-        lastPlace = info.place||''; lastState = info.state||'';
-        setPlaceLine(zip, lastPlace, lastState);
+        setPlaceLine(zip, info.place||'', info.state||'');
       }catch(e){ setPlaceLine(zip, '', ''); }
 
       // Links that depend on zip/place/state
@@ -404,12 +402,10 @@
       $('#openWorldNews').href = `https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en`;
       $('#trafficLink').href    = `https://www.google.com/maps/@?api=1&map_action=map&layer=traffic&query=${encodeURIComponent(zip)}`;
 
-      // 311 convenience
       $('#concernPotholes').href = `https://www.google.com/search?q=${encodeURIComponent(zip+' report pothole')}`;
       $('#concernTrash').href    = `https://www.google.com/search?q=${encodeURIComponent(zip+' report trash pickup')}`;
       $('#concernLights').href   = `https://www.google.com/search?q=${encodeURIComponent(zip+' report street light')}`;
 
-      // Voter info links
       $('#howToVote').href   = 'https://www.usa.gov/how-to-vote';
       $('#registerVote').href= 'https://www.vote.gov/';
       $('#findOffice').href  = 'https://www.usa.gov/election-office';
@@ -426,13 +422,13 @@
           return;
         }
         data.officials.forEach(o=>{
-          const phone = (o.phones && o.phones[0]) ? fmtPhone(o.phones[0]) : '';
+          const phone = (o.phones && o.phones[0]) ? (o.phones[0]) : '';
           const row = el('div', {className:'item'}, [
             el('div', {className:'title', innerText: o.name || '—'}),
             el('div', {className:'note', innerText: `${o.office || ''}${o.party ? ' — '+o.party : ''}`}),
             el('div', {className:'row'}, [
               (o.urls && o.urls[0]) ? el('a', {href:o.urls[0], target:'_blank', rel:'noopener', className:'pill'}, 'Website') : null,
-              phone ? el('a', {href:`tel:${phone}`, className:'pill'}, 'Call') : null
+              phone ? el('a', {href:`tel:${phone.replace(/[^\d]/g,'')}`, className:'pill'}, 'Call') : null
             ])
           ]);
           box.append(row);
@@ -446,7 +442,7 @@
       const wxBox = $('#weatherList'); wxBox.innerHTML = '';
       try{
         const wx = await fetchJson('/weather', {zip});
-        const days = (wx.days || []).slice(0,7);      // ✅ show 7-day only
+        const days = (wx.days || []).slice(0,7);
         if(days.length===0){
           wxBox.append(el('div',{className:'note',innerText:'Weather forecast unavailable.'}));
           return;
@@ -475,7 +471,6 @@
 
     // === boot ===
     (function boot(){
-      // deep-link support ?zip=12345
       const qp = new URLSearchParams(location.search);
       const startZip = qp.get('zip') || '';
       if(startZip){
