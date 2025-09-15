@@ -1,311 +1,260 @@
+import re
+import os
 import time
-from typing import Any, Dict, List, Optional
+import json
+from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-APP_VERSION = "1.0.1"
-HTTP_TIMEOUT = 12.0
+# -----------------------------
+# Config
+# -----------------------------
+API_TIMEOUT = float(os.getenv("API_TIMEOUT", "8.0"))
+CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "900"))  # 15 minutes
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    # Add your GitHub Pages site (and local dev) here:
+    "*,https://vikesh2608.github.io,https://vikesh2608.github.io/EagleReach,https://*.github.dev,http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173"
+).split(",")
 
-# ---------- FastAPI & CORS ----------
-app = FastAPI(title="EagleReach API", version=APP_VERSION)
+ZIP_RE = re.compile(r"^\d{5}$")
+
+ZIPPOTAM_URL = "https://api.zippopotam.us/us/{zip}"
+WMR_HOUSE_URL = "https://whoismyrepresentative.com/getall_mems.php?zip={zip}&output=json"
+GOVTRACK_SENATE_URL = "https://www.govtrack.us/api/v2/role?current=true&role=senator&state={state}"
+GOVTRACK_HOUSE_URL = "https://www.govtrack.us/api/v2/role?current=true&role=representative&state={state}&district={district}"
+WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
+
+app = FastAPI(title="EagleReach API", version="1.0.0")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # tighten to your GitHub Pages origin if you prefer
+    allow_origins=[o for o in ALLOWED_ORIGINS if o],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ---------- Small TTL cache ----------
-CACHE: Dict[str, Dict[str, Any]] = {}
-DEFAULT_TTL = 60 * 10  # 10 minutes
+# -----------------------------
+# Simple in-memory TTL cache
+# -----------------------------
+_cache: Dict[str, Tuple[float, Any]] = {}
 
-def cache_get(key: str) -> Optional[Any]:
-    rec = CACHE.get(key)
-    if not rec:
+def cache_get(key: str):
+    now = time.time()
+    item = _cache.get(key)
+    if not item:
         return None
-    if time.time() > rec["exp"]:
-        CACHE.pop(key, None)
+    ts, value = item
+    if now - ts > CACHE_TTL_SECONDS:
+        _cache.pop(key, None)
         return None
-    return rec["val"]
+    return value
 
-def cache_set(key: str, val: Any, ttl: int = DEFAULT_TTL) -> None:
-    CACHE[key] = {"val": val, "exp": time.time() + ttl}
+def cache_set(key: str, value: Any):
+    _cache[key] = (time.time(), value)
 
-# ---------- HTTP helpers ----------
-UA = {"User-Agent": "EagleReach/1.0 (+mailto:vikebairam@gmail.com)"}
+# Shared HTTP client
+client = httpx.AsyncClient(timeout=API_TIMEOUT, headers={"User-Agent": "EagleReach/1.0 (https://github.com/Vikesh2608)"})
 
-async def fetch_json(url: str, params: Optional[dict] = None, headers: Optional[dict] = None) -> Any:
-    hdrs = {**UA, **(headers or {})}
-    async with httpx.AsyncClient(timeout=HTTP_TIMEOUT) as client:
-        r = await client.get(url, params=params, headers=hdrs)
+# -----------------------------
+# Helpers
+# -----------------------------
+def clean_party(p: Optional[str]) -> Optional[str]:
+    if not p:
+        return p
+    p = p.strip()
+    mapping = {"Democrat":"Democratic", "Democratic":"Democratic", "Republican":"Republican", "Independent":"Independent"}
+    return mapping.get(p, p)
+
+def govtrack_person_to_dict(role: Dict[str, Any]) -> Dict[str, Any]:
+    person = role.get("person", {}) or {}
+    pid = person.get("id")
+    website = role.get("website") or role.get("extra", {}).get("url") or person.get("link")
+    # GovTrack standard photo URL:
+    photo = f"https://www.govtrack.us/static/legisphotos/{pid}-200px.jpeg" if pid else None
+    twitter = None
+    extras = role.get("extras") or role.get("extra") or {}
+    if isinstance(extras, dict):
+        twitter = extras.get("twitter") or extras.get("twitter_id")
+    return {
+        "name": person.get("name"),
+        "party": clean_party(role.get("party")),
+        "state": role.get("state"),
+        "district": role.get("district"),
+        "role": role.get("role_type_label") or role.get("role_type"),
+        "website": website,
+        "phone": role.get("phone"),
+        "contact_form": role.get("contact_form"),
+        "twitter": twitter,
+        "photo": photo,
+        "govtrack_id": pid,
+    }
+
+async def fetch_json(url: str, cache_key: Optional[str] = None) -> Any:
+    if cache_key:
+        cached = cache_get(cache_key)
+        if cached is not None:
+            return cached
+    r = await client.get(url, follow_redirects=True)
+    r.raise_for_status()
+    data = r.json()
+    if cache_key:
+        cache_set(cache_key, data)
+    return data
+
+async def zippopotam_info(zipcode: str) -> Dict[str, Any]:
+    data = await fetch_json(ZIPPOTAM_URL.format(zip=zipcode), f"zippopotam:{zipcode}")
+    # Example structure:
+    # {"post code":"45220","country":"United States","places":[{"place name":"Cincinnati","state":"Ohio","state abbreviation":"OH","latitude":"39.1471","longitude":"-84.517"}]}
+    places = data.get("places") or []
+    if not places:
+        raise HTTPException(status_code=404, detail="ZIP not found.")
+    p = places[0]
+    return {
+        "zip": zipcode,
+        "city": p.get("place name"),
+        "state": p.get("state abbreviation"),
+        "state_full": p.get("state"),
+        "lat": float(p.get("latitude")),
+        "lon": float(p.get("longitude")),
+    }
+
+async def whois_house(zipcode: str) -> Optional[Dict[str, Any]]:
+    """
+    WhoIsMyRepresentative can be flaky. We use it only to quickly get district.
+    Returns {"district": "1"} or None.
+    """
+    try:
+        data = await fetch_json(WMR_HOUSE_URL.format(zip=zipcode), f"wmr:{zipcode}")
+    except Exception:
+        return None
+    results = data.get("results")
+    if not results:
+        return None
+    # pick first item that has a district
+    for r in results:
+        d = (r.get("district") or "").strip()
+        if d and d.isdigit():
+            return {"district": d}
+    return None
+
+async def govtrack_senators(state: str) -> List[Dict[str, Any]]:
+    data = await fetch_json(GOVTRACK_SENATE_URL.format(state=state), f"gvt_sen:{state}")
+    return [govtrack_person_to_dict(r) for r in data.get("objects", [])]
+
+async def govtrack_representative(state: str, district: str) -> List[Dict[str, Any]]:
+    data = await fetch_json(GOVTRACK_HOUSE_URL.format(state=state, district=district), f"gvt_house:{state}:{district}")
+    return [govtrack_person_to_dict(r) for r in data.get("objects", [])]
+
+async def wikidata_mayor(city: str, state_full: str) -> Optional[Dict[str, Any]]:
+    """
+    Best-effort: find head of government (P6) for a US city.
+    """
+    query = f"""
+    SELECT ?mayor ?mayorLabel ?website WHERE {{
+      ?city rdfs:label "{city}"@en ;
+            wdt:P17 wd:Q30 ;            # United States
+            wdt:P131 ?state .
+      ?state rdfs:label "{state_full}"@en .
+      OPTIONAL {{ ?city wdt:P6 ?mayor . }}
+      OPTIONAL {{ ?mayor wdt:P856 ?website . }}
+      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
+    }} LIMIT 1
+    """
+    try:
+        r = await client.get(
+            WIKIDATA_SPARQL,
+            params={"format": "json", "query": query},
+            headers={"Accept": "application/sparql-results+json"},
+        )
         r.raise_for_status()
-        # Some civic endpoints return application/text with JSON inside.
-        # Try JSON first; if it fails, fall back to manual parse.
-        try:
-            return r.json()
-        except Exception:
-            import json
-            return json.loads(r.text)
+        data = r.json()
+        b = data.get("results", {}).get("bindings", [])
+        if not b:
+            return None
+        row = b[0]
+        name = row.get("mayorLabel", {}).get("value")
+        website = row.get("website", {}).get("value")
+        if not name:
+            return None
+        return {"name": name, "website": website}
+    except Exception:
+        return None
 
-# ---------- Weather code → text (Open-Meteo) ----------
-WX_MAP = {
-    0: "Clear", 1: "Mainly clear", 2: "Partly cloudy", 3: "Cloudy",
-    45: "Fog", 48: "Rime fog",
-    51: "Light drizzle", 53: "Moderate drizzle", 55: "Dense drizzle",
-    56: "Freezing drizzle", 57: "Freezing drizzle",
-    61: "Light rain", 63: "Moderate rain", 65: "Heavy rain",
-    66: "Freezing rain", 67: "Freezing rain",
-    71: "Light snow", 73: "Moderate snow", 75: "Heavy snow",
-    77: "Snow grains",
-    80: "Rain showers", 81: "Rain showers", 82: "Violent showers",
-    85: "Snow showers", 86: "Snow showers",
-    95: "Thunderstorm", 96: "Thunderstorm (hail)", 99: "Thunderstorm (hail)",
-}
-
-# ---------- Health ----------
+# -----------------------------
+# Routes
+# -----------------------------
 @app.get("/health")
 async def health():
-    return {"ok": True, "service": "eaglereach-api", "version": APP_VERSION}
-
-# ---------- ZIP info (Zippopotam) ----------
-@app.get("/zipinfo")
-async def zipinfo(zip: str = Query(..., description="US ZIP code")):
-    key = f"zipinfo:{zip}"
-    cached = cache_get(key)
-    if cached:
-        return cached
-
-    url = f"https://api.zippopotam.us/us/{zip}"
-    try:
-        data = await fetch_json(url)
-    except httpx.HTTPError as e:
-        raise HTTPException(status_code=502, detail=f"ZIP lookup failed: {e}") from e
-
-    if not data or "places" not in data or not data["places"]:
-        raise HTTPException(status_code=404, detail="ZIP not found")
-
-    place = data["places"][0]
-    payload = {
-        "zip": data.get("post code") or zip,
-        "place": place.get("place name"),
-        "state": place.get("state"),
-        "state_abbr": place.get("state abbreviation"),
-        "lat": float(place.get("latitude")) if place.get("latitude") else None,
-        "lon": float(place.get("longitude")) if place.get("longitude") else None,
-    }
-    cache_set(key, payload, ttl=60 * 60)  # 1 hour
-    return payload
-
-# ---------- Reverse ZIP from lat/lon (BigDataCloud) ----------
-@app.get("/reverse-zip")
-async def reverse_zip(lat: float, lon: float):
-    key = f"revzip:{lat:.4f},{lon:.4f}"
-    cached = cache_get(key)
-    if cached:
-        return cached
-
-    url = "https://api.bigdatacloud.net/data/reverse-geocode-client"
-    params = {"latitude": lat, "longitude": lon, "localityLanguage": "en"}
-    try:
-        data = await fetch_json(url, params=params)
-    except httpx.HTTPError as e:
-        raise HTTPException(status_code=502, detail=f"Reverse geocode failed: {e}") from e
-
-    # Postcode may not be present in rural areas; return what we have.
-    zip_code = data.get("postcode") or None
-    payload = {
-        "zip": zip_code,
-        "place": data.get("city") or data.get("locality") or data.get("principalSubdivision"),
-        "state": data.get("principalSubdivision"),
-        "lat": lat,
-        "lon": lon,
-    }
-    cache_set(key, payload, ttl=60 * 30)
-    return payload
-
-# ---------- Elected officials ----------
-# Primary: whoismyrepresentative.com (ZIP → House + Senators)
-# Fallback: GovTrack (state senators) when ZIP source is unavailable/rate-limited
-def _fmt_official(name: str, office: str, party: Optional[str] = None,
-                  phone: Optional[str] = None, url: Optional[str] = None) -> Dict[str, Any]:
-    out = {"name": name, "office": office}
-    if party:
-        out["party"] = party
-    if phone:
-        out["phones"] = [phone]
-    if url:
-        out["urls"] = [url]
-    return out
+    return {"ok": True, "ts": int(time.time())}
 
 @app.get("/officials")
-async def officials(zip: str):
-    key = f"officials:{zip}"
-    cached = cache_get(key)
-    if cached:
-        return cached
+async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
+    if not ZIP_RE.match(zip):
+        raise HTTPException(status_code=400, detail="Invalid ZIP. Use 5 digits.")
+    loc = await zippopotam_info(zip)
 
-    officials: List[Dict[str, Any]] = []
+    # Parallel tasks
+    state = loc["state"]
+    state_full = loc["state_full"]
+    city = loc["city"]
 
-    # Try WIMR first (returns House + Senate for the ZIP)
+    # Try WMR for district, then query GovTrack for House by district,
+    # and GovTrack for Senators by state. Also try mayor via Wikidata.
     try:
-        wimr = await fetch_json(
-            "https://whoismyrepresentative.com/getall_mems.php",
-            params={"zip": zip, "output": "json"},
-            headers={"Accept": "application/json"}
-        )
-        results = wimr.get("results") or []
-        for r in results:
-            party = {"D": "Democrat", "R": "Republican"}.get(r.get("party", "").strip(), r.get("party"))
-            officials.append(_fmt_official(
-                name=r.get("name", "Unknown"),
-                office=r.get("office") or r.get("district") or "Representative",
-                party=party,
-                phone=r.get("phone"),
-                url=r.get("link")
-            ))
-    except Exception:
-        # ignore; fall back to GovTrack
-        pass
+        wmr_task = whois_house(zip)
+        senate_task = govtrack_senators(state)
+        mayor_task = wikidata_mayor(city, state_full)
 
-    # Fallback: senators via GovTrack
-    if not officials:
+        wmr, senators, mayor = await httpx.AsyncClient.gather(wmr_task, senate_task, mayor_task)  # type: ignore
+    except AttributeError:
+        # httpx.AsyncClient.gather doesn't exist; use asyncio.gather
+        import asyncio
+        wmr, senators, mayor = await asyncio.gather(whois_house(zip), govtrack_senators(state), wikidata_mayor(city, state_full))
+
+    # House by district (fallback to empty list if we couldn't get district)
+    representatives: List[Dict[str, Any]] = []
+    if wmr and wmr.get("district"):
         try:
-            z = await zipinfo(zip)
-            abbr = (z.get("state_abbr") or "").upper()
-            if abbr:
-                gt = await fetch_json(
-                    "https://www.govtrack.us/api/v2/role",
-                    params={"current": "true", "role_type": "senator", "state": abbr}
-                )
-                for role in gt.get("objects", []):
-                    person = role.get("person", {})
-                    officials.append(_fmt_official(
-                        name=f"{person.get('firstname', '')} {person.get('lastname', '')}".strip(),
-                        office="United States Senator",
-                        party=role.get("party"),
-                        phone=role.get("phone"),
-                        url=person.get("link")
-                    ))
+            representatives = await govtrack_representative(state, wmr["district"])
         except Exception:
-            pass
+            representatives = []
 
-    # Helpful Mayor link (best effort) so there is always a city-level entry
-    try:
-        z = await zipinfo(zip)
-        place = z.get("place") or ""
-        state = z.get("state_abbr") or z.get("state") or ""
-        if place:
-            officials.append(_fmt_official(
-                name=f"{place} Mayor",
-                office="Mayor",
-                url=f"https://www.google.com/search?q={place.replace(' ', '+')}+{state}+mayor+official+site"
-            ))
-    except Exception:
-        pass
-
-    payload = {"count": len(officials), "officials": officials}
-    cache_set(key, payload, ttl=60 * 30)
-    return payload
-
-# ---------- Weather (Open-Meteo daily) ----------
-@app.get("/weather")
-async def weather(zip: str):
-    key = f"wx:{zip}"
-    cached = cache_get(key)
-    if cached:
-        return cached
-
-    z = await zipinfo(zip)
-    lat, lon = z.get("lat"), z.get("lon")
-    if lat is None or lon is None:
-        raise HTTPException(status_code=400, detail="No lat/lon for ZIP")
-
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "daily": "temperature_2m_max,temperature_2m_min,weathercode",
-        "timezone": "auto"
+    result = {
+        "location": {
+            "zip": loc["zip"],
+            "city": loc["city"],
+            "state": state,
+            "state_full": state_full,
+            "lat": loc["lat"],
+            "lon": loc["lon"],
+        },
+        "officials": {
+            "senators": senators,
+            "representatives": representatives,
+            "mayor": mayor,  # may be None if not found
+        },
+        "sources": {
+            "zip": "Zippopotam.us",
+            "district": "WhoIsMyRepresentative (for ZIP→district shortcut)",
+            "congress": "GovTrack.us (official data & websites)",
+            "mayor": "Wikidata (best-effort)"
+        }
     }
-    try:
-        data = await fetch_json(url, params=params)
-        daily = data.get("daily") or {}
-        days = []
-        for i, date in enumerate(daily.get("time", [])):
-            code = int((daily.get("weathercode") or [0])[i])
-            tmax = (daily.get("temperature_2m_max") or [None])[i]
-            tmin = (daily.get("temperature_2m_min") or [None])[i]
-            days.append({
-                "date": date,
-                "summary": WX_MAP.get(code, "Weather"),
-                "max": tmax,
-                "min": tmin,
-            })
-    except httpx.HTTPError as e:
-        raise HTTPException(status_code=502, detail=f"Weather fetch failed: {e}") from e
+    # If we have absolutely nothing, surface a helpful message.
+    if not senators and not representatives and not mayor:
+        raise HTTPException(
+            status_code=502,
+            detail="Upstream civic data providers unavailable. Try again shortly."
+        )
+    return result
 
-    payload = {"source": "open-meteo", "location": {"lat": lat, "lon": lon}, "days": days}
-    cache_set(key, payload, ttl=60 * 30)
-    return payload
-
-# ---------- Elections (simple helper text) ----------
-def next_federal_election() -> str:
-    # Helper text for the next federal general—adjust as new cycle approaches.
-    return "November 3, 2025"
-
-@app.get("/elections")
-async def elections(zip: str):
-    return {"next": {"federal": next_federal_election()}}
-
-# ---------- City Updates (demo: NYC & Chicago open data) ----------
-@app.get("/city/updates")
-async def city_updates(zip: str):
-    key = f"city:{zip}"
-    cached = cache_get(key)
-    if cached:
-        return cached
-
-    z = await zipinfo(zip)
-    place = (z.get("place") or "").lower()
-    state = (z.get("state_abbr") or z.get("state") or "").upper()
-
-    items: List[Dict[str, Any]] = []
-    try:
-        if "new york" in place and state == "NY":
-            url = "https://data.cityofnewyork.us/resource/erm2-nwe9.json"
-            params = {"$limit": 10, "incident_zip": zip}
-            data = await fetch_json(url, params=params)
-            for r in data:
-                items.append({
-                    "type": r.get("complaint_type") or "311",
-                    "detail": r.get("descriptor") or r.get("incident_address") or "Issue",
-                    "status": r.get("status") or "",
-                    "created": r.get("created_date") or "",
-                    "source": "NYC Open Data (311)"
-                })
-        elif "chicago" in place and state == "IL":
-            url = "https://data.cityofchicago.org/resource/v6vf-nfxy.json"
-            params = {"$limit": 10, "zip_code": zip}
-            data = await fetch_json(url, params=params)
-            for r in data:
-                items.append({
-                    "type": r.get("service_request_type") or "311",
-                    "detail": r.get("description") or "Issue",
-                    "status": r.get("status") or "",
-                    "created": r.get("created_date") or "",
-                    "source": "City of Chicago (311)"
-                })
-    except Exception:
-        # soft-fail; show no updates if the open-data API is unavailable
-        pass
-
-    payload = {
-        "count": len(items),
-        "items": items,
-        "note": "City updates supported for NYC & Chicago; more cities coming."
-    }
-    cache_set(key, payload, ttl=60 * 10)
-    return payload
+# -----------------------------
+# Graceful shutdown
+# -----------------------------
+@app.on_event("shutdown")
+async def shutdown_event():
+    await client.aclose()
