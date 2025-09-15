@@ -199,9 +199,10 @@
     // ===========================
     // Backend base (SET THIS!)
     // ===========================
-    const API_BASE = (window.location.hostname.includes('github.io'))
-      ? 'https://YOUR-BACKEND-DOMAIN'   // <— REPLACE with your FastAPI deploy URL
-      : 'http://localhost:8000';
+ const API_BASE = (window.location.hostname.includes('github.io'))
+  ? 'https://eaglereach-1.onrender.com'
+  : 'http://localhost:8000';
+
 
     // Basic warning if not set
     if (API_BASE.includes('YOUR-BACKEND-DOMAIN')) {
