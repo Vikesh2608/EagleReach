@@ -1,463 +1,254 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>EagleReach</title>
-<meta name="color-scheme" content="light only" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%230b3d91' d='M0 0h64v64H0z'/%3E%3Cpath fill='%23fff' d='M0 8h64v8H0zm0 16h64v8H0zm0 16h64v8H0z'/%3E%3Crect x='0' y='0' width='28' height='28' fill='%230b3d91'/%3E%3Cg fill='%23fff'%3E%3Cpath d='M5 4h3l-2 6h3l-5 5 2-6H3zM15 4h3l-2 6h3l-5 5 2-6h-3zM25 4h3l-2 6h3l-5 5 2-6h-3zM5 14h3l-2 6h3l-5 5 2-6H3zM15 14h3l-2 6h3l-5 5 2-6h-3zM25 14h3l-2 6h3l-5 5 2-6h-3z'/%3E%3C/g%3E%3C/svg%3E" />
-<style>
-  :root{
-    --navy:#0b3d91; --ink:#0f172a; --bg:#f6f8fc; --card:#fff; --muted:#6b7280;
-    --ring:#e8eef7; --blue:#1d4ed8; --chip:#eef3ff; --chip-ink:#2b4bb5; --radius:14px;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:#fff;color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",sans-serif}
-  a{color:var(--blue)} a:hover{opacity:.9}
-
-  /* ===== Header (responsive, no overlap) ===== */
-  .header{background:var(--navy);color:#fff}
-  .header-inner{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .brand{display:flex;align-items:center;gap:10px;min-width:0}
-  .brand .flag{height:20px}
-  .brand .eagle{height:20px;opacity:.95}
-  .brand .name{font-weight:800;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .nav{display:flex;gap:20px}
-  .nav a{color:#e8f0ff;text-decoration:none;font-weight:600;font-size:14px}
-  .nav a:hover{color:#fff}
-  .menu-btn{display:none;background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:8px 10px;font-weight:700}
-  .menu-panel{display:none;flex-direction:column;gap:10px;background:#0a3680;color:#fff;padding:12px;border-top:1px solid rgba(255,255,255,.15)}
-  .menu-panel a{color:#fff;text-decoration:none;font-weight:600}
-  .tagline{background:#0b3d91;color:#e9efff;font-size:12px;padding:6px 16px;text-align:center}
-
-  @media (max-width:760px){
-    .nav{display:none}
-    .menu-btn{display:inline-flex}
-    .brand .name{max-width:48vw}
-  }
-  .menu-open .menu-panel{display:flex}
-
-  /* ===== Layout ===== */
-  .container{max-width:1080px;margin:0 auto;padding:16px}
-  .grid{display:grid;gap:14px}
-  .grid-2{grid-template-columns:1fr 1fr}
-  @media(max-width:960px){.grid-2{grid-template-columns:1fr}}
-
-  .card{background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:0 1px 0 rgba(16,24,40,.03);padding:16px}
-  .card h3{margin:.2rem 0 1rem 0;font-size:16px}
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .muted{color:var(--muted)}
-  .chip{background:var(--chip);color:var(--chip-ink);border-radius:999px;padding:3px 10px;font-size:12px}
-
-  .btn{background:#fff;border:1px solid var(--ring);color:#0f172a;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:8px}
-  .btn:hover{border-color:#dbe7ff}
-  .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
-  .btn.sm{padding:6px 9px;border-radius:8px;font-size:13px}
-  .btn.block{width:100%;justify-content:center}
-  .btn.ghost{background:#f7faff;border-color:#d9e6ff}
-
-  input[type="text"]{
-    width:100%;height:44px;border-radius:10px;border:1px solid var(--ring);padding:10px 12px;outline:0;font-size:16px
-  }
-  .control-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .control-row .shrink{flex:0 0 auto}
-
-  .official{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--ring);border-radius:12px;background:#fff;padding:10px 12px;margin-bottom:10px}
-  .official .name{font-weight:700}
-  .official .actions .btn{margin-left:8px}
-  .wx-item{border:1px solid var(--ring);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;font-size:14px}
-
-  dialog{border:none;border-radius:18px;max-width:720px;width:min(92vw,720px);padding:0;box-shadow:0 20px 60px rgba(2,6,23,.25)}
-  dialog::backdrop{background:rgba(15,23,42,.55)}
-  .dlg header{padding:16px 18px;background:#f7f9ff;border-bottom:1px solid var(--ring);border-radius:18px 18px 0 0}
-  .dlg header h3{margin:0}
-  .dlg .body{padding:18px}
-  .dlg .footer{padding:12px 18px;border-top:1px solid var(--ring);display:flex;justify-content:flex-end;border-radius:0 0 18px 18px}
-  .close-x{all:unset;cursor:pointer;font-weight:700;margin-left:auto}
-
-  footer{color:var(--muted);font-size:12px;text-align:center;margin:24px 0}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EagleReach</title>
+  <style>
+    :root{
+      --bg:#f6f9ff;--card:#ffffff;--ink:#0b2347;--muted:#6b7a90;--brand:#2251ff;--ring:#dfe8ff;--ok:#1f9d59;--err:#c62828;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    a{color:var(--brand);text-decoration:none}
+    .nav{position:sticky;top:0;background:#0f3b86;color:#fff;padding:.6rem 1rem;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .nav .brand{display:flex;gap:.5rem;align-items:center;font-weight:700}
+    .wrap{max-width:1060px;margin:1rem auto;padding:0 1rem}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:0 2px 10px rgba(16,24,40,.04)}
+    .card h3{margin:0;padding:14px 16px;border-bottom:1px solid var(--ring);font-size:1rem}
+    .card .body{padding:14px 16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input[type="text"]{flex:1;min-width:220px;padding:.7rem .8rem;border:1px solid var(--ring);border-radius:10px;font-size:1rem}
+    button{border:0;background:var(--brand);color:#fff;padding:.7rem .95rem;border-radius:10px;font-weight:600;cursor:pointer}
+    button.secondary{background:#eef3ff;color:#1b3aa6}
+    .pill{display:inline-block;padding:.25rem .55rem;border:1px solid var(--ring);border-radius:999px;font-size:.82rem;color:var(--muted);background:#fbfcff}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .official{display:flex;gap:12px;align-items:center;border:1px solid var(--ring);border-radius:12px;padding:10px}
+    .official img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:1px solid var(--ring)}
+    .official .meta{min-width:0}
+    .official .meta .name{font-weight:700}
+    .official .meta .sub{color:var(--muted);font-size:.9rem}
+    .empty{color:var(--muted);font-style:italic}
+    .alert{padding:.7rem .9rem;border-radius:10px}
+    .alert.ok{background:#eaf7ef;color:#0a5f35;border:1px solid #ccebd9}
+    .alert.err{background:#fdebea;color:#7a1818;border:1px solid #f6c7c5}
+    footer{color:var(--muted);font-size:.9rem;padding:26px 0;text-align:center}
+  </style>
 </head>
 <body>
-
-<!-- ===== Header (no overlap; hamburger on mobile) ===== -->
-<div class="header">
-  <div class="header-inner" id="hdr">
-    <div class="brand">
-      <img class="flag" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_States.svg/160px-Flag_of_the_United_States.svg.png" alt="US Flag" />
-      <img class="eagle" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/US_Great_Seal_Reverse.png/80px-US_Great_Seal_Reverse.png" alt="Eagle" />
-      <div class="name">EagleReach</div>
+  <div class="nav">
+    <div class="wrap">
+      <div class="brand">🇺🇸 EagleReach</div>
     </div>
-    <nav class="nav">
-      <a href="#" data-open="about">About</a>
-      <a href="#" data-open="founder">Founder</a>
-      <a href="#" data-open="contact">Contact</a>
-      <a href="#" data-open="feedback">Feedback</a>
-    </nav>
-    <button class="menu-btn" id="menuBtn">Menu</button>
   </div>
-  <div class="menu-panel" id="menuPanel">
-    <a href="#" data-open="about">About</a>
-    <a href="#" data-open="founder">Founder</a>
-    <a href="#" data-open="contact">Contact</a>
-    <a href="#" data-open="feedback">Feedback</a>
-  </div>
-</div>
-<div class="tagline">Civic info, fast &amp; free — built for everyone.</div>
 
-<div class="container">
-  <div class="card">
-    <h3>Enter ZIP</h3>
-    <div class="control-row">
-      <div style="flex:1">
-        <input id="zipInput" type="text" inputmode="numeric" placeholder="ZIP (e.g., 45220)" />
-        <div class="muted" id="placeLine" style="padding-top:6px"></div>
+  <div class="wrap">
+    <!-- Search -->
+    <div class="card" id="searchCard">
+      <h3>Enter ZIP</h3>
+      <div class="body">
+        <div class="row">
+          <input id="zipInput" type="text" inputmode="numeric" maxlength="5" placeholder="e.g., 45220" />
+          <button id="btnSearch">Search</button>
+          <button id="btnLocate" class="secondary">Use my location</button>
+        </div>
+        <div style="margin-top:10px" id="locLine" class="pill" hidden></div>
+        <div id="statusBox" style="margin-top:10px"></div>
       </div>
-      <button class="btn ghost shrink" id="btnLocate">📍 Use my location</button>
-      <button class="btn primary shrink" id="btnSearch">🔎 Search</button>
     </div>
-    <div class="control-row" style="margin-top:10px">
-      <button class="btn sm ghost" id="btnCopy">🔗 Copy Share Link</button>
-      <button class="btn sm ghost" id="btnClear">🧹 Clear history</button>
-    </div>
-  </div>
 
-  <div class="grid grid-2">
-    <div class="grid">
+    <div class="grid" style="margin-top:12px">
+      <!-- Officials -->
       <div class="card">
         <h3>Elected Representatives</h3>
-        <div class="muted" style="margin-bottom:8px">
-          Sources: Zippopotam (ZIP), WhoIsMyRepresentative (House), GovTrack (Senate, fallback), Open-Meteo (weather).
-        </div>
-        <div id="officialsBox" class="muted">Enter a ZIP to load officials…</div>
-      </div>
-
-      <div class="card">
-        <h3>News</h3>
-        <div class="muted">Opens news in a new tab.</div>
-        <div class="control-row" style="margin-top:10px">
-          <a class="btn block primary" target="_blank" rel="noopener" href="https://news.google.com/?hl=en-US&gl=US&ceid=US:en">Open Local News</a>
-          <a class="btn block ghost" target="_blank" rel="noopener" href="https://www.reuters.com/world/us/">World News</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Traffic</h3>
-        <div class="muted">Open live traffic for your area in Google Maps.</div>
-        <div style="margin-top:10px">
-          <a id="trafficBtn" class="btn primary">Open Traffic Map</a>
+        <div class="body">
+          <div class="list" id="senList">
+            <div class="pill">Senators</div>
+            <div id="senators"></div>
+          </div>
+          <div class="list" style="margin-top:12px">
+            <div class="pill">House Representative</div>
+            <div id="house"></div>
+          </div>
+          <div class="list" style="margin-top:12px">
+            <div class="pill">Mayor</div>
+            <div id="mayor"></div>
+          </div>
+          <p style="margin-top:12px;color:var(--muted);font-size:.9rem">
+            Sources: Zippopotam (ZIP), WhoIsMyRepresentative (district), GovTrack (websites & photos), Wikidata (mayor).
+          </p>
         </div>
       </div>
 
+      <!-- Civic resources -->
       <div class="card">
-        <h3>Raise a Concern</h3>
-        <div class="muted">Report city issues (311), contact your city hall, or write to your representatives.</div>
-        <div class="control-row" style="margin-top:10px">
-          <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/search?q=report+potholes+311">Potholes</a>
-          <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/search?q=trash+pickup+311">Trash</a>
-          <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/search?q=street+lights+311">Street lights</a>
+        <h3>Voter Info & Education</h3>
+        <div class="body">
+          <div class="list">
+            <a class="official" href="https://www.usa.gov/how-to-vote" target="_blank" rel="noopener">
+              <div class="meta">
+                <div class="name">How to vote (USA.gov)</div>
+                <div class="sub">Registration, deadlines, ID rules</div>
+              </div>
+            </a>
+            <a class="official" href="https://www.vote.gov/" target="_blank" rel="noopener">
+              <div class="meta">
+                <div class="name">Register to vote</div>
+                <div class="sub">Official state portals</div>
+              </div>
+            </a>
+            <a class="official" href="https://www.usa.gov/election-office" target="_blank" rel="noopener">
+              <div class="meta">
+                <div class="name">Find your Election Office</div>
+                <div class="sub">Local contact details</div>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <h3>Voter Info &amp; Education</h3>
-        <div class="grid">
-          <a class="btn block primary" target="_blank" rel="noopener" href="https://www.usa.gov/how-to-vote">How to vote (USA.gov)</a>
-          <a class="btn block primary" target="_blank" rel="noopener" href="https://www.usa.gov/register-to-vote">Register to vote</a>
-          <a class="btn block primary" target="_blank" rel="noopener" href="https://www.usa.gov/election-office">Find your Election Office</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Upcoming Elections</h3>
-        <div id="electionsBox" class="muted">—</div>
-      </div>
-
-      <div class="card">
-        <h3>Local Weather (7-day)</h3>
-        <div id="weatherBox" class="muted">—</div>
-      </div>
-    </div>
+    <footer>© 2025 EagleReach — Civic info, fast & free — built for everyone in the United States.</footer>
   </div>
 
-  <footer>© 2025 EagleReach</footer>
-</div>
+  <script>
+    // ----------------------------
+    // Backend base
+    // ----------------------------
+    const API_BASE = (window.location.hostname.includes('github.io'))
+      ? 'https://YOUR-BACKEND-DOMAIN'   // <— REPLACE with your FastAPI deploy URL
+      : 'http://localhost:8000';
 
-<!-- ===== Dialogs ===== -->
-<dialog id="dlg-about" class="dlg">
-  <header><h3>About EagleReach</h3><button class="close-x" data-close>✕</button></header>
-  <div class="body">
-    <p><strong>EagleReach</strong> helps Americans quickly find civic information—representatives, voting resources, weather, news, and traffic—without creating an account. The goal is to make public information easy to access, understandable, and pleasant to use.</p>
-    <ul>
-      <li><strong>ZIP or GPS search</strong> with auto-detected city &amp; state.</li>
-      <li><strong>Elected officials</strong> with direct links to official websites and phone numbers.</li>
-      <li><strong>Voter education</strong> via trusted sources (USA.gov).</li>
-      <li><strong>Local weather</strong> (7-day) and quick links to news &amp; traffic.</li>
-      <li>No sign-in, no tracking—just fast public info.</li>
-    </ul>
-  </div>
-  <div class="footer"><button class="btn" data-close>Close</button></div>
-</dialog>
-
-<dialog id="dlg-founder" class="dlg">
-  <header><h3>Founder</h3><button class="close-x" data-close>✕</button></header>
-  <div class="body">
-    <p><strong>Vikesh Sagar Bairam</strong> is the founder of EagleReach. He holds a Master’s degree in Information Systems &amp; Management from the University of Illinois Springfield, and a background in Psychology and Computers.</p>
-    <p>Professionally, Vikesh has served as a Data Specialist/Analyst at Jabil and previously as a Test Engineer. His experience includes DevOps engineering at Surfaces by Pacific and TechTate, Supply Chain Specialist at Auscomp Computers, and Data Analyst at S&amp;P Global (IHS Markit). He is a certified <strong>Google Cloud Professional Data Engineer</strong>.</p>
-    <p>Vikesh enjoys building tools that turn complex datasets into simple, reliable experiences. EagleReach reflects his belief that public services should feel modern, fast, and welcoming.</p>
-  </div>
-  <div class="footer"><button class="btn" data-close>Close</button></div>
-</dialog>
-
-<dialog id="dlg-contact" class="dlg">
-  <header><h3>Contact</h3><button class="close-x" data-close>✕</button></header>
-  <div class="body">
-    <p>
-      <a class="btn ghost" target="_blank" rel="noopener" href="https://www.linkedin.com/in/vikesh-bairam-219769258/">LinkedIn</a>
-      <a class="btn ghost" target="_blank" rel="noopener" href="https://github.com/vikesh2608">GitHub</a>
-      <a class="btn ghost" href="mailto:vikebairam@gmail.com">Email</a>
-    </p>
-  </div>
-  <div class="footer"><button class="btn" data-close>Close</button></div>
-</dialog>
-
-<dialog id="dlg-feedback" class="dlg">
-  <header><h3>Feedback</h3><button class="close-x" data-close>✕</button></header>
-  <div class="body">
-    <p>Spotted a bug or have a suggestion? I’d love to hear from you.</p>
-    <p><a class="btn primary" href="mailto:vikebairam@gmail.com?subject=EagleReach%20Feedback">Email feedback</a></p>
-  </div>
-  <div class="footer"><button class="btn" data-close>Close</button></div>
-</dialog>
-
-<script>
-/* ===============================
-   CONFIG
-   =============================== */
-
-// Set to your FastAPI base URL (no trailing slash).
-// If left blank, the page still works for ZIP & weather, but /officials needs your backend.
-const API_BASE = 'https://YOUR_FASTAPI_BASE_URL';
-
-/* ===============================
-   DOM
-   =============================== */
-const zipInput = document.getElementById('zipInput');
-const btnLocate = document.getElementById('btnLocate');
-const btnSearch = document.getElementById('btnSearch');
-const btnCopy = document.getElementById('btnCopy');
-const btnClear = document.getElementById('btnClear');
-const placeLine = document.getElementById('placeLine');
-const officialsBox = document.getElementById('officialsBox');
-const weatherBox = document.getElementById('weatherBox');
-const electionsBox = document.getElementById('electionsBox');
-const trafficBtn = document.getElementById('trafficBtn');
-
-const menuBtn = document.getElementById('menuBtn');
-const menuPanel = document.getElementById('menuPanel');
-menuBtn.addEventListener('click', () => {
-  document.body.classList.toggle('menu-open');
-});
-
-/* Dialogs */
-function setupDialogs() {
-  document.querySelectorAll('[data-open]').forEach(a=>{
-    a.addEventListener('click', e=>{
-      e.preventDefault();
-      document.body.classList.remove('menu-open');
-      const dlg = document.getElementById('dlg-'+a.getAttribute('data-open'));
-      if (dlg) dlg.showModal();
-    });
-  });
-  document.querySelectorAll('[data-close]').forEach(b=>{
-    b.addEventListener('click', ()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close()));
-  });
-}
-setupDialogs();
-
-/* ===============================
-   HELPERS
-   =============================== */
-function setPlaceLine(z){
-  if (!z){ placeLine.textContent=''; return; }
-  const city = z.place || ''; const st = z.state || z.state_abbr || '';
-  if (z.zip && (city||st)) placeLine.textContent = `${z.zip} — ${city}${city&&st?', ':''}${st}`;
-  else if (z.zip) placeLine.textContent = z.zip; else placeLine.textContent='';
-}
-
-function copyLink(){
-  const url = new URL(location.href);
-  url.searchParams.set('zip', zipInput.value.trim());
-  navigator.clipboard.writeText(url.toString()).then(()=>alert('Share link copied.'));
-}
-function clearHistory(){
-  localStorage.removeItem('er.lastZip');
-  zipInput.value=''; placeLine.textContent='';
-  officialsBox.textContent='Enter a ZIP to load officials…';
-  weatherBox.textContent='—'; electionsBox.textContent='—';
-  history.replaceState({},'',location.pathname);
-}
-
-/* ===============================
-   API WRAPPERS (resilient)
-   =============================== */
-async function fetchJSON(u, opts){ const r = await fetch(u, opts); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
-
-async function getZipInfo(zip){
-  // Try backend first (if configured), else Zippopotam fallback
-  if (API_BASE){
-    try{ return await fetchJSON(`${API_BASE}/zipinfo?zip=${encodeURIComponent(zip)}`); }catch(e){}
-  }
-  // Fallback: Zippopotam
-  const z = await fetchJSON(`https://api.zippopotam.us/us/${encodeURIComponent(zip)}`);
-  const place = z?.places?.[0] || {};
-  return {
-    zip: z['post code'] || zip,
-    place: place['place name'] || '',
-    state: place['state'] || '',
-    state_abbr: place['state abbreviation'] || '',
-    lat: place['latitude'] ? parseFloat(place['latitude']) : null,
-    lon: place['longitude'] ? parseFloat(place['longitude']) : null
-  };
-}
-async function getReverseZip(lat,lon){
-  // Backend reverse (BigDataCloud via API)
-  if (API_BASE){
-    try{ return await fetchJSON(`${API_BASE}/reverse-zip?lat=${lat}&lon=${lon}`); }catch(e){}
-  }
-  // Client direct BigDataCloud
-  try{
-    const r = await fetchJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-    if (r?.postcode) return {zip:r.postcode, place:r.city||r.locality||r.principalSubdivision, state:r.principalSubdivision};
-  }catch(e){}
-  // Nominatim fallback
-  try{
-    const u = new URL('https://nominatim.openstreetmap.org/reverse');
-    u.search = new URLSearchParams({format:'jsonv2',lat,lon,addressdetails:'1'}).toString();
-    const j = await fetchJSON(u.toString(),{headers:{'Accept-Language':'en'}});
-    const z = j?.address?.postcode;
-    const city = j?.address?.city || j?.address?.town || j?.address?.village || j?.address?.hamlet;
-    const state = j?.address?.state;
-    if (z) return {zip:z, place:city, state};
-  }catch(e){}
-  return null;
-}
-async function getOfficials(zip){
-  if (!API_BASE) throw new Error('Officials require backend API.');
-  return fetchJSON(`${API_BASE}/officials?zip=${encodeURIComponent(zip)}`);
-}
-async function getWeather(zip){
-  if (API_BASE){
-    try{ return await fetchJSON(`${API_BASE}/weather?zip=${encodeURIComponent(zip)}`);}catch(e){}
-  }
-  // Simple Open-Meteo direct fallback using ZIP lat/lon
-  const z = await getZipInfo(zip);
-  if (!(z.lat && z.lon)) return {days:[]};
-  const u = new URL('https://api.open-meteo.com/v1/forecast');
-  u.search = new URLSearchParams({
-    latitude:z.lat, longitude:z.lon, daily:'temperature_2m_max,temperature_2m_min,weathercode', timezone:'auto'
-  }).toString();
-  const j = await fetchJSON(u.toString());
-  const map = {0:'Clear',1:'Mainly clear',2:'Partly cloudy',3:'Cloudy',45:'Fog',48:'Rime fog',51:'Light drizzle',53:'Moderate drizzle',55:'Dense drizzle',61:'Light rain',63:'Moderate rain',65:'Heavy rain',71:'Light snow',73:'Moderate snow',75:'Heavy snow',80:'Rain showers',81:'Rain showers',82:'Violent showers',95:'Thunderstorm',96:'Thunderstorm (hail)',99:'Thunderstorm (hail)'};
-  const d = j?.daily||{};
-  const out = (d.time||[]).map((date,i)=>({
-    date, summary: map[(d.weathercode||[])[i]||0] || 'Weather',
-    max:(d.temperature_2m_max||[])[i], min:(d.temperature_2m_min||[])[i]
-  }));
-  return {days:out};
-}
-async function getElections(zip){
-  if (API_BASE){
-    try{ return await fetchJSON(`${API_BASE}/elections?zip=${encodeURIComponent(zip)}`);}catch(e){}
-  }
-  return {next:{federal:'November 3, 2025'}}; // safe default
-}
-
-/* ===============================
-   RENDER
-   =============================== */
-function renderOfficials(data){
-  if (!data || !data.officials || data.officials.length===0){
-    officialsBox.innerHTML = '<div class="muted">No officials found for this ZIP.</div>'; return;
-  }
-  officialsBox.innerHTML = data.officials.map(o=>{
-    const party = o.party ? `<span class="chip">${o.party}</span>` : '';
-    const site = o.official_url ? `<a class="btn sm ghost" target="_blank" rel="noopener" href="${o.official_url}">Website</a>` : '';
-    const tel = (o.phones && o.phones[0]) ? `<a class="btn sm ghost" href="tel:${o.phones[0]}">Call</a>` : '';
-    return `<div class="official"><div><div class="name">${o.name}</div><div class="muted">${o.office} ${party}</div></div><div class="actions">${site} ${tel}</div></div>`;
-  }).join('');
-}
-function renderWeather(data){
-  if (!data || !data.days || data.days.length===0){ weatherBox.textContent='—'; return; }
-  weatherBox.innerHTML = data.days.map(d=>`<div class="wx-item">${d.date}: ${d.summary} (High ${d.max}° / Low ${d.min}°)</div>`).join('');
-}
-function renderElections(data){
-  if (!data || !data.next){ electionsBox.textContent='—'; return; }
-  electionsBox.textContent = `Next Federal: ${data.next.federal || '—'}`;
-}
-
-/* ===============================
-   FLOWS
-   =============================== */
-async function doSearchZip(zip){
-  const clean = (zip||'').trim();
-  if (!/^\d{5}$/.test(clean)){ alert('Please enter a valid 5-digit ZIP.'); return; }
-  try{
-    const z = await getZipInfo(clean);
-    setPlaceLine(z);
-    localStorage.setItem('er.lastZip', clean);
-    const u = new URL(location.href); u.searchParams.set('zip', clean); history.replaceState({},'',u);
-
-    officialsBox.innerHTML = '<div class="muted">Loading officials…</div>';
-    try{
-      const off = await getOfficials(clean);
-      renderOfficials(off);
-    }catch(e){
-      officialsBox.innerHTML = '<div class="muted">Officials require backend API. Please set API_BASE.</div>';
+    // ----------------------------
+    // Helpers
+    // ----------------------------
+    function $(id){ return document.getElementById(id); }
+    function htmlEscape(s){ return s?.toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) || ''; }
+    function clear(el){ el.innerHTML=''; }
+    function itemHTML(p){
+      const photo = p.photo ? `<img src="${htmlEscape(p.photo)}" alt="">` : `<img src="https://via.placeholder.com/44" alt="">`;
+      const role = [p.role, p.party, p.state && `(${p.state}${p.district?'-'+p.district:''})`].filter(Boolean).join(' · ');
+      const website = p.website ? `<a href="${htmlEscape(p.website)}" target="_blank" rel="noopener">Official website</a>` : '';
+      const phone = p.phone ? `<span> | ${htmlEscape(p.phone)}</span>` : '';
+      return `
+        <div class="official">
+          ${photo}
+          <div class="meta">
+            <div class="name">${htmlEscape(p.name || 'Unknown')}</div>
+            <div class="sub">${htmlEscape(role)}</div>
+            <div class="sub">${website}${phone}</div>
+          </div>
+        </div>`;
     }
 
-    weatherBox.innerHTML = '<div class="muted">Loading weather…</div>';
-    renderWeather(await getWeather(clean));
+    function mayorHTML(m){
+      if(!m) return `<div class="empty">No mayor info available for this city right now.</div>`;
+      const website = m.website ? `<a href="${htmlEscape(m.website)}" target="_blank" rel="noopener">Official website</a>` : '';
+      return `
+        <div class="official">
+          <img src="https://via.placeholder.com/44" alt="">
+          <div class="meta">
+            <div class="name">${htmlEscape(m.name)}</div>
+            <div class="sub">Mayor</div>
+            <div class="sub">${website}</div>
+          </div>
+        </div>`;
+    }
 
-    electionsBox.textContent = 'Loading…';
-    renderElections(await getElections(clean));
+    // ----------------------------
+    // API
+    // ----------------------------
+    async function loadOfficials(zip) {
+      const r = await fetch(`${API_BASE}/officials?zip=${encodeURIComponent(zip)}`);
+      if (!r.ok) throw new Error(`Officials lookup failed (${r.status})`);
+      return r.json();
+    }
 
-    const q = encodeURIComponent(`${z.place||''} ${z.state||''} ${clean}`.trim());
-    trafficBtn.setAttribute('href', `https://www.google.com/maps/@?api=1&map_action=pano&query=${q}`);
-  }catch(e){ console.error(e); alert('Search failed: '+(e.message||e)); }
-}
+    // ----------------------------
+    // UI wiring
+    // ----------------------------
+    async function doSearch(zip) {
+      const statusBox = $('statusBox');
+      const senatorsEl = $('senators');
+      const houseEl = $('house');
+      const mayorEl = $('mayor');
+      const locLine = $('locLine');
 
-async function useMyLocation(){
-  if (!navigator.geolocation){ alert('Geolocation not supported. You can type a ZIP manually.'); return; }
-  btnLocate.disabled=true; btnLocate.textContent='Locating…';
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    try{
-      const {latitude:lat, longitude:lon} = pos.coords;
-      const rev = await getReverseZip(lat,lon);
-      if (!rev || !rev.zip){ alert('Could not resolve ZIP from your location. You can type a ZIP manually.'); }
-      else { zipInput.value = rev.zip; setPlaceLine(rev); await doSearchZip(rev.zip); }
-    }catch(e){ console.error(e); alert('Could not resolve ZIP from your location. You can type a ZIP manually.'); }
-    finally{ btnLocate.disabled=false; btnLocate.textContent='📍 Use my location'; }
-  }, err=>{ alert('Location error: '+err.message); btnLocate.disabled=false; btnLocate.textContent='📍 Use my location'; }, {enableHighAccuracy:true,timeout:12000,maximumAge:0});
-}
+      clear(senatorsEl); clear(houseEl); clear(mayorEl);
+      statusBox.innerHTML = `<div class="alert ok">Looking up officials for ZIP ${htmlEscape(zip)}…</div>`;
 
-/* ===============================
-   EVENTS
-   =============================== */
-btnSearch.addEventListener('click', ()=>doSearchZip(zipInput.value));
-zipInput.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearchZip(zipInput.value); });
-btnLocate.addEventListener('click', useMyLocation);
-btnCopy.addEventListener('click', copyLink);
-btnClear.addEventListener('click', clearHistory);
+      try{
+        const data = await loadOfficials(zip);
+        const loc = data.location;
+        locLine.hidden = false;
+        locLine.textContent = `${loc.zip} — ${loc.city}, ${loc.state_full}`;
 
-/* Boot: load zip from URL or last value */
-(function boot(){
-  const u = new URL(location.href);
-  const z = u.searchParams.get('zip') || localStorage.getItem('er.lastZip') || '';
-  if (z){ zipInput.value=z; doSearchZip(z); }
-})();
-</script>
+        // senators
+        if (data.officials.senators?.length){
+          senatorsEl.innerHTML = data.officials.senators.map(itemHTML).join('');
+        } else {
+          senatorsEl.innerHTML = `<div class="empty">No senators returned.</div>`;
+        }
+
+        // house
+        if (data.officials.representatives?.length){
+          houseEl.innerHTML = data.officials.representatives.map(itemHTML).join('');
+        } else {
+          houseEl.innerHTML = `<div class="empty">District not available right now. Try again later.</div>`;
+        }
+
+        // mayor
+        mayorEl.innerHTML = mayorHTML(data.officials.mayor);
+
+        statusBox.innerHTML = `<div class="alert ok">Done.</div>`;
+      }catch(err){
+        console.error(err);
+        statusBox.innerHTML = `<div class="alert err">Couldn’t load officials. Check your backend URL or try again.</div>`;
+      }
+    }
+
+    $('btnSearch').addEventListener('click', () => {
+      const z = $('zipInput').value.trim();
+      if(!/^\d{5}$/.test(z)){
+        $('statusBox').innerHTML = `<div class="alert err">Please enter a valid 5-digit ZIP.</div>`;
+        return;
+      }
+      doSearch(z);
+    });
+
+    $('zipInput').addEventListener('keydown', e => {
+      if(e.key === 'Enter') $('btnSearch').click();
+    });
+
+    $('btnLocate').addEventListener('click', async () => {
+      $('statusBox').innerHTML = `<div class="alert ok">Getting your ZIP from location…</div>`;
+      try{
+        // Simple ZIP from lat/lon using geocode.maps.co (free/no key) via reverse geocode
+        // If you don't want an extra call, you can remove this feature.
+        navigator.geolocation.getCurrentPosition(async pos => {
+          const {latitude, longitude} = pos.coords;
+          // Use a lightweight reverse-geo service
+          const r = await fetch(`https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`);
+          const j = await r.json();
+          const zip = j?.address?.postcode?.match(/\d{5}/)?.[0];
+          if(zip){ $('zipInput').value = zip; doSearch(zip); }
+          else $('statusBox').innerHTML = `<div class="alert err">Couldn’t determine a ZIP at your location.</div>`;
+        }, () => {
+          $('statusBox').innerHTML = `<div class="alert err">Location permission denied.</div>`;
+        }, {timeout:8000});
+      }catch{
+        $('statusBox').innerHTML = `<div class="alert err">Location lookup failed.</div>`;
+      }
+    });
+
+    // Optional: prefill a demo ZIP
+    document.addEventListener('DOMContentLoaded', () => {
+      const demo = '45220';
+      $('zipInput').value = demo;
+    });
+  </script>
 </body>
 </html>
