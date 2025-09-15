@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EagleReach</title>
 
-  <!-- ===== Styles (embedded) ===== -->
   <style>
     :root{
       --bg:#ffffff;
@@ -15,104 +14,55 @@
       --blue:#1b5fd1;
       --blue-600:#174fb0;
       --ghost:#e8eefb;
-      --dark:#121a2c;
-      --chip:#eef2f7;
       --border:#e5e7eb;
-      --shadow:0 6px 18px rgba(16, 24, 40, .06);
+      --shadow:0 6px 18px rgba(16,24,40,.06);
+      --danger:#be123c;
+      --ok:#0f8a3b;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:var(--bg); color:var(--ink);
-      font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
-    }
-    /* Header */
-    .topbar{
-      position:sticky; top:0; z-index:10;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 18px; background:#0f3f8c; color:#fff; box-shadow:var(--shadow);
-    }
-    .brand{display:flex; align-items:center; gap:10px; font-weight:700}
+    body{margin:0;background:var(--bg);color:var(--ink);
+      font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#0f3f8c;color:#fff;box-shadow:var(--shadow)}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
     .flag{font-size:20px}
     .name{font-size:18px}
-    .nav a{color:#fff; text-decoration:none; margin-left:18px; opacity:.95}
-    .nav a:hover{opacity:1; text-decoration:underline}
-    .subhead{ text-align:center; font-size:12px; color:#d7e3ff; background:#0f3f8c; padding-bottom:10px; }
-
-    /* Layout */
-    .container{max-width:1080px; margin:22px auto; padding:0 12px}
-    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:18px}
+    .nav a{color:#fff;text-decoration:none;margin-left:18px;opacity:.95}
+    .nav a:hover{opacity:1;text-decoration:underline}
+    .subhead{text-align:center;font-size:12px;color:#d7e3ff;background:#0f3f8c;padding-bottom:10px}
+    .container{max-width:1080px;margin:22px auto;padding:0 12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     @media (max-width:900px){.grid{grid-template-columns:1fr}}
-
-    .card{
-      background:var(--card); border:1px solid var(--border); border-radius:14px;
-      padding:16px; box-shadow:var(--shadow);
-    }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
     .card h3{margin:0 0 12px 0}
-
-    /* Inputs / buttons */
-    .zip-row{display:flex; gap:10px; flex-wrap:wrap}
-    #zipInput{
-      flex:1 1 260px; min-width:260px;
-      padding:11px 12px; border:1px solid var(--border); border-radius:10px; font-size:16px;
-    }
-    .btn{
-      border:none; border-radius:10px; padding:10px 14px; cursor:pointer;
-      text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
-      font-weight:600; color:#fff; transition:all .1s ease;
-    }
-    .btn.primary{background:var(--blue)}
-    .btn.primary:hover{background:var(--blue-600)}
-    .btn.ghost{background:var(--ghost); color:#0f2b64}
+    .zip-row{display:flex;gap:10px;flex-wrap:wrap}
+    #zipInput{flex:1 1 320px;min-width:320px;padding:11px 12px;border:1px solid var(--border);border-radius:10px;font-size:16px}
+    .btn{border:none;border-radius:10px;padding:10px 14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;font-weight:600;color:#fff;transition:all .1s ease}
+    .btn.primary{background:var(--blue)} .btn.primary:hover{background:var(--blue-600)}
+    .btn.ghost{background:var(--ghost);color:#0f2b64}
     .btn.dark{background:#18233b}
     .btn.block{width:100%}
-    .row{display:flex; align-items:center}
-    .wrap{flex-wrap:wrap}
-    .gap{gap:10px}
-    .stack{display:flex; flex-direction:column; gap:10px}
-    .muted{color:var(--muted); margin-top:8px}
-    .zip-actions{margin-top:8px; display:flex; gap:10px; flex-wrap:wrap}
-
-    /* Chips & pills */
-    .chip{background:var(--chip); border-radius:999px; padding:8px 14px; color:#1d2a45; text-decoration:none}
-    .pill{color:#fff; text-decoration:none; border-radius:999px; padding:8px 14px}
-    .red{background:#d9373f}
-    .purple{background:#7526d9}
-    .green{background:#0f8a3b}
-    .blue{background:#1c4fd7}
-    .orange{background:#d47500}
-    .amber{background:#d18f00}
-
-    /* Officials */
-    #officials .official{
-      border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px;
-    }
-    .official .title{font-size:12px; color:var(--muted); margin-bottom:4px}
-    .official .name{font-weight:700; margin-bottom:8px}
+    .row{display:flex;align-items:center}.wrap{flex-wrap:wrap}.gap{gap:10px}.stack{display:flex;flex-direction:column;gap:10px}
+    .muted{color:var(--muted);margin-top:8px}
+    .zip-actions{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
+    .chip{background:#eef2f7;border-radius:999px;padding:8px 14px;color:#1d2a45;text-decoration:none}
+    .pill{color:#fff;text-decoration:none;border-radius:999px;padding:8px 14px}
+    .red{background:#d9373f}.purple{background:#7526d9}.green{background:#0f8a3b}.blue{background:#1c4fd7}.orange{background:#d47500}.amber{background:#d18f00}
+    #officials .official{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px}
+    .official .title{font-size:12px;color:var(--muted);margin-bottom:4px}
+    .official .name{font-weight:700;margin-bottom:8px}
     .official .row{gap:8px}
-
-    /* Weather items */
-    .weather-item{
-      border:1px solid var(--border); border-radius:10px; padding:10px; margin-bottom:8px; background:#fff;
-    }
-
-    /* Modal */
-    .modal{border:none; border-radius:16px; padding:0; width:min(760px, 92%)}
-    .modal::backdrop{background:rgba(0,0,0,.45)}
-    .modal-body{padding:20px; position:relative}
-    .close{
-      position:absolute; right:12px; top:10px; background:#f2f4f8; border:none; border-radius:8px; padding:6px 10px; cursor:pointer
-    }
-    .footer{color:#8a93a7; text-align:center; padding:28px 8px}
+    .weather-item{border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff}
+    .note{margin-top:10px;font-size:13px;color:var(--muted)}
+    .alert{margin-top:10px;border-left:4px solid var(--danger);background:#fff1f2;color:#7f1d1d;padding:10px;border-radius:8px}
+    .ok{border-left:4px solid var(--ok);background:#ecfdf5;color:#064e3b}
+    .footer{color:#8a93a7;text-align:center;padding:28px 8px}
+    dialog.modal{border:none;border-radius:16px;padding:0;width:min(760px,92%)} dialog::backdrop{background:rgba(0,0,0,.45)}
+    .modal-body{padding:20px;position:relative}.close{position:absolute;right:12px;top:10px;background:#f2f4f8;border:none;border-radius:8px;padding:6px 10px;cursor:pointer}
   </style>
 </head>
 <body>
-  <!-- Header -->
   <header class="topbar">
-    <div class="brand">
-      <span class="flag">🇺🇸</span>
-      <span class="name">EagleReach</span>
-    </div>
+    <div class="brand"><span class="flag">🇺🇸</span><span class="name">EagleReach</span></div>
     <nav class="nav">
       <a href="#" data-open="about">About</a>
       <a href="#" data-open="founder">Founder</a>
@@ -122,9 +72,7 @@
   </header>
   <div class="subhead">Civic info, fast &amp; free — built for everyone.</div>
 
-  <!-- Main container -->
   <main class="container">
-    <!-- ZIP/Search -->
     <section class="card">
       <h3>Enter ZIP</h3>
       <div class="zip-row">
@@ -137,17 +85,17 @@
         <button id="btnClear" class="btn ghost">🧹 Clear history</button>
       </div>
       <div id="placeLabel" class="muted"></div>
+      <div id="zipAlert"></div>
     </section>
 
     <div class="grid">
-      <!-- Representatives -->
       <section class="card">
         <h3>Elected Representatives</h3>
         <div id="officials"></div>
-        <div class="sources">Sources: Zippopotam (ZIP), WhoIsMyRepresentative (House), GovTrack (Senate, fallback), Open-Meteo (weather).</div>
+        <div id="officialsAlert"></div>
+        <div class="note">Sources: Zippopotam (ZIP), WhoIsMyRepresentative (House), GovTrack (Senate fallback), Open-Meteo (weather).</div>
       </section>
 
-      <!-- Voter info -->
       <aside class="card">
         <h3>Voter Info &amp; Education</h3>
         <div class="stack">
@@ -159,7 +107,6 @@
     </div>
 
     <div class="grid">
-      <!-- News -->
       <section class="card">
         <h3>News</h3>
         <p class="muted">Opens news in a new tab.</p>
@@ -169,7 +116,6 @@
         </div>
       </section>
 
-      <!-- Elections -->
       <aside class="card">
         <h3>Upcoming Elections</h3>
         <div id="elections"></div>
@@ -177,14 +123,12 @@
     </div>
 
     <div class="grid">
-      <!-- Traffic -->
       <section class="card">
         <h3>Traffic</h3>
         <p class="muted">Open live traffic for your area in Google Maps.</p>
         <a id="openTraffic" class="btn primary" target="_blank" rel="noopener">Open Traffic Map</a>
       </section>
 
-      <!-- Weather -->
       <aside class="card">
         <h3>Local Weather (7-day)</h3>
         <div id="weather"></div>
@@ -241,11 +185,11 @@
       <p>
         Vikesh Sagar Bairam is a technology professional with expertise in <strong>Data Engineering,
         Cloud Platforms, DevOps, and AI/ML solutions</strong>. He holds a <strong>Master’s in Information Systems &amp; Management</strong>
-        from the <strong>University of Illinois, Springfield</strong>, along with Bachelor’s degrees in <strong>Psychology and Arts</strong>
+        from the <strong>University of Illinois, Springfield</strong>, along with Bachelor’s degrees in <strong>Psychology &amp; Arts</strong>
         (Osmania University) and <strong>Computer Science</strong>.
       </p>
       <p>
-        His career spans multiple industries, having served as a <strong>Data Specialist / Analyst</strong> at <strong>Jabil</strong>,
+        His career spans multiple industries, having served as a <strong>Data Specialist/Analyst</strong> at <strong>Jabil</strong>,
         <strong> Data Analyst</strong> at <strong>S&amp;P Global (IHS Markit)</strong>, <strong>DevOps Engineer</strong> at <strong>Techtate Systems</strong>,
         <strong> DevOps Intern</strong> at <strong>Surfaces by Pacific</strong>, and <strong>Supply Chain Specialist</strong> at <strong>Auscomp Computers</strong>.
         He is a <strong>Google Cloud Certified Professional Data Engineer</strong> with experience across AWS and GCP.
@@ -276,10 +220,9 @@
     </div>
   </dialog>
 
-  <!-- ===== App JS (embedded) ===== -->
   <script>
-    // ---- CONFIG ----
-    const API_BASE = "https://eaglereach.fly.dev"; // change if your backend URL differs
+    // -------- CONFIG --------
+    const API_BASE = "https://eaglereach.fly.dev"; // used first; UI falls back automatically if unavailable
 
     // Elements
     const zipInput = document.getElementById("zipInput");
@@ -287,16 +230,15 @@
     const btnLocate = document.getElementById("btnLocate");
     const btnCopy = document.getElementById("btnCopy");
     const btnClear = document.getElementById("btnClear");
-
     const placeLabel = document.getElementById("placeLabel");
+    const zipAlert = document.getElementById("zipAlert");
     const officialsEl = document.getElementById("officials");
+    const officialsAlert = document.getElementById("officialsAlert");
     const weatherEl = document.getElementById("weather");
     const electionsEl = document.getElementById("elections");
-
     const openLocalNews = document.getElementById("openLocalNews");
     const openWorldNews = document.getElementById("openWorldNews");
     const openTraffic = document.getElementById("openTraffic");
-
     const concernPotholes = document.getElementById("concernPotholes");
     const concernTrash = document.getElementById("concernTrash");
     const concernLights = document.getElementById("concernLights");
@@ -309,178 +251,202 @@
       feedback: document.getElementById("feedbackModal"),
     };
     document.querySelectorAll('[data-open]').forEach(a=>{
-      a.addEventListener('click', e=>{
-        e.preventDefault();
-        modals[a.dataset.open]?.showModal();
-      });
+      a.addEventListener('click', e=>{ e.preventDefault(); modals[a.dataset.open]?.showModal(); });
     });
     document.querySelectorAll('[data-close]').forEach(btn=>{
       btn.addEventListener('click', ()=> btn.closest('dialog').close());
     });
 
-    // Utilities
-    const ok = (r)=> { if(!r.ok) throw new Error(\`HTTP \${r.status}\`); return r; };
-    const j = (r)=> r.json();
+    // Helpers
+    const ok = r => { if(!r.ok) throw new Error(`HTTP ${r.status}`); return r; };
+    const j  = r => r.json();
+    const sleep = (ms)=> new Promise(res=>setTimeout(res, ms));
 
-    function alertMsg(msg){
-      if (window.matchMedia("(max-width: 900px)").matches) {
-        alert(msg);
-      } else {
-        const div = document.createElement('div');
-        div.textContent = msg;
-        div.style.cssText="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0f3f8c;color:#fff;padding:10px 14px;border-radius:10px;z-index:99;box-shadow:0 8px 18px rgba(0,0,0,.25)";
-        document.body.appendChild(div);
-        setTimeout(()=>div.remove(), 2400);
+    function setAlert(node, type, msg){
+      node.innerHTML = msg ? `<div class="alert ${type==='ok'?'ok':''}">${msg}</div>` : "";
+    }
+    function setPlaceLabel(obj){
+      const { zip, place, state } = obj || {};
+      placeLabel.textContent = zip ? `${zip} — ${place||""}${place?", ":""}${state||""}` : "";
+    }
+
+    // Fallbackable fetchers
+    async function fetchZipinfo(zip){
+      // Try backend
+      try { return await fetch(`${API_BASE}/zipinfo?zip=${zip}`).then(ok).then(j); }
+      catch(_) {}
+      // Fallback: Zippopotam (CORS OK)
+      const z = await fetch(`https://api.zippopotam.us/us/${zip}`).then(ok).then(j);
+      const p = z.places && z.places[0] || {};
+      return {
+        zip: z["post code"] || zip,
+        place: p["place name"],
+        state: p["state"],
+        state_abbr: p["state abbreviation"],
+        lat: p["latitude"] ? parseFloat(p["latitude"]) : null,
+        lon: p["longitude"] ? parseFloat(p["longitude"]) : null,
+      };
+    }
+
+    async function fetchReverseZip(lat, lon){
+      try { return await fetch(`${API_BASE}/reverse-zip?lat=${lat}&lon=${lon}`).then(ok).then(j); }
+      catch(_) {}
+      const data = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`).then(ok).then(j);
+      return {
+        zip: data.postcode,
+        place: data.city || data.locality || data.principalSubdivision,
+        state: data.principalSubdivision,
+        lat, lon
+      };
+    }
+
+    async function fetchWeather(zipinfo){
+      const {lat, lon} = zipinfo || {};
+      if (lat==null || lon==null) return {days:[]};
+      try { return await fetch(`${API_BASE}/weather?zip=${zipinfo.zip}`).then(ok).then(j); }
+      catch(_) {}
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto`;
+      const wx = await fetch(url).then(ok).then(j);
+      const map = {
+        0:"Clear",1:"Mainly clear",2:"Partly cloudy",3:"Cloudy",45:"Fog",48:"Rime fog",51:"Light drizzle",53:"Moderate drizzle",55:"Dense drizzle",
+        56:"Freezing drizzle",57:"Freezing drizzle",61:"Light rain",63:"Moderate rain",65:"Heavy rain",66:"Freezing rain",67:"Freezing rain",
+        71:"Light snow",73:"Moderate snow",75:"Heavy snow",77:"Snow grains",80:"Rain showers",81:"Rain showers",82:"Violent showers",
+        85:"Snow showers",86:"Snow showers",95:"Thunderstorm",96:"Thunderstorm (hail)",99:"Thunderstorm (hail)"
+      };
+      const days = (wx.daily.time||[]).map((d,i)=>({
+        date: d,
+        summary: map[(wx.daily.weathercode||[])[i]] || "Weather",
+        max: (wx.daily.temperature_2m_max||[])[i],
+        min: (wx.daily.temperature_2m_min||[])[i],
+      }));
+      return {days};
+    }
+
+    async function fetchOfficials(zip, state_abbr){
+      // Try backend (includes House via WIMR)
+      try { return await fetch(`${API_BASE}/officials?zip=${zip}`).then(ok).then(j); }
+      catch(_) {}
+      // Fallback: Senators from GovTrack; Mayor link helper
+      const res = {officials:[]};
+      if (state_abbr){
+        try{
+          const gt = await fetch(`https://www.govtrack.us/api/v2/role?current=true&role_type=senator&state=${state_abbr}`).then(ok).then(j);
+          for(const role of (gt.objects||[])){
+            const person = role.person||{};
+            res.officials.push({
+              name:`${person.firstname||""} ${person.lastname||""}`.trim(),
+              office:"United States Senator",
+              party:role.party,
+              phones: role.phone ? [role.phone] : [],
+              urls: person.link ? [person.link] : []
+            });
+          }
+        }catch(_){}
       }
+      // Add mayor helper link; actual mayor API usually needs backend due to CORS
+      res.officials.push({
+        name:`${state_abbr||""} City Mayor`,
+        office:"Mayor",
+        party:"",
+        phones:[],
+        urls:[`https://www.google.com/search?q=${encodeURIComponent((placeLabel.textContent||"").split("—")[1]||"city")+" mayor official site"}`]
+      });
+      return res;
     }
 
-    function setPlaceLabel({zip, place, state}){
-      placeLabel.textContent = zip ? \`\${zip} — \${place || ""}\${place ? ", " : ""}\${state || ""}\` : "";
-    }
-
-    // Renderers
     function renderOfficials(payload){
       officialsEl.innerHTML = "";
-      if (!payload || !payload.officials || !payload.officials.length){
-        officialsEl.innerHTML = \`<div class="muted">No officials found for this ZIP right now.</div>\`;
+      setAlert(officialsAlert, "", "");
+      const list = (payload && payload.officials) || [];
+      if (!list.length){
+        setAlert(officialsAlert,"", "No officials found for this ZIP right now.");
         return;
       }
-
-      payload.officials.forEach(o=>{
+      list.forEach(o=>{
         const card = document.createElement("div");
-        card.className = "official";
-
-        const title = document.createElement("div");
-        title.className = "title";
-        title.textContent = o.office || "Official";
-
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = \`\${o.name || "Unknown"}\${o.party ? \` — \${o.party}\` : ""}\`;
-
-        const row = document.createElement("div");
-        row.className = "row";
-
-        if (o.urls && o.urls.length){
-          const a = document.createElement("a");
-          a.className = "btn ghost";
-          a.href = o.urls[0];
-          a.target = "_blank";
-          a.rel = "noopener";
-          a.textContent = "Website";
-          row.appendChild(a);
-        }
-
-        if (o.phones && o.phones.length){
-          const call = document.createElement("a");
-          call.className = "btn ghost";
-          call.href = \`tel:\${o.phones[0].replace(/[^0-9+]/g,"")}\`;
-          call.textContent = "Call";
-          row.appendChild(call);
-        }
-
-        card.appendChild(title);
-        card.appendChild(name);
-        card.appendChild(row);
-        officialsEl.appendChild(card);
+        card.className="official";
+        const title = document.createElement("div"); title.className="title"; title.textContent=o.office||"Official";
+        const name  = document.createElement("div"); name.className="name"; name.textContent=`${o.name||"Unknown"}${o.party?` — ${o.party}`:""}`;
+        const row   = document.createElement("div"); row.className="row"; row.style.gap="8px";
+        if (o.urls && o.urls[0]){ const a=document.createElement("a"); a.className="btn ghost"; a.href=o.urls[0]; a.target="_blank"; a.textContent="Website"; row.appendChild(a); }
+        if (o.phones && o.phones[0]){ const a=document.createElement("a"); a.className="btn ghost"; a.href=`tel:${o.phones[0].replace(/[^0-9+]/g,"")}`; a.textContent="Call"; row.appendChild(a); }
+        card.append(title,name,row); officialsEl.appendChild(card);
       });
     }
 
     function renderWeather(payload){
-      weatherEl.innerHTML = "";
-      const days = (payload && payload.days) || [];
-      if (!days.length){
-        weatherEl.innerHTML = \`<div class="muted">Weather unavailable for this ZIP right now.</div>\`;
-        return;
-      }
+      weatherEl.innerHTML="";
+      const days=(payload&&payload.days)||[];
+      if (!days.length){ weatherEl.innerHTML=`<div class="muted">Weather unavailable for this ZIP right now.</div>`; return; }
       days.forEach(d=>{
-        const div = document.createElement("div");
-        div.className = "weather-item";
-        div.textContent = \`\${d.date}: \${d.summary} (High \${d.max}° / Low \${d.min}°)\`;
-        weatherEl.appendChild(div);
+        const div=document.createElement("div"); div.className="weather-item";
+        div.textContent=`${d.date}: ${d.summary} (High ${d.max}° / Low ${d.min}°)`; weatherEl.appendChild(div);
       });
     }
 
-    function renderElections(payload){
-      electionsEl.innerHTML = "";
-      const next = payload && payload.next && payload.next.federal;
-      const div = document.createElement("div");
-      div.className = "chip";
-      div.textContent = \`Next Federal: \${next || "—"}\`;
-      electionsEl.appendChild(div);
+    function renderElections(){
+      electionsEl.innerHTML="";
+      const div=document.createElement("div"); div.className="chip";
+      div.textContent="Next Federal: November 3, 2025"; electionsEl.appendChild(div);
     }
 
-    // Load everything for a ZIP
-    async function loadForZip(zip){
-      if (!/^\\d{5}$/.test(zip)) {
-        alertMsg("Please enter a valid 5-digit ZIP.");
-        return;
-      }
+    function wireContextLinks(z){
+      const loc = z.place || z.zip || "";
+      openLocalNews.href = `https://news.google.com/search?q=${encodeURIComponent(loc)}&hl=en-US&gl=US&ceid=US:en`;
+      openWorldNews.href = `https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en`;
+      openTraffic.href    = `https://www.google.com/maps/@?api=1&map_action=map&layer=traff&query=${encodeURIComponent(loc)}`;
+      const cityState = `${z.place||""} ${z.state||""}`.trim();
+      concernPotholes.href = `https://www.google.com/search?q=${encodeURIComponent(cityState+" pothole report")}`;
+      concernTrash.href    = `https://www.google.com/search?q=${encodeURIComponent(cityState+" bulk trash pickup")}`;
+      concernLights.href   = `https://www.google.com/search?q=${encodeURIComponent(cityState+" street light report")}`;
+    }
 
-      // Label (city/state) + helpful links
-      try {
-        const z = await fetch(\`\${API_BASE}/zipinfo?zip=\${zip}\`).then(ok).then(j);
-        setPlaceLabel({ zip: z.zip, place: z.place, state: z.state });
-        openLocalNews.href = \`https://news.google.com/search?q=\${encodeURIComponent(z.place || zip)}&hl=en-US&gl=US&ceid=US:en\`;
-        openWorldNews.href = \`https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en\`;
-        openTraffic.href = \`https://www.google.com/maps/@?api=1&map_action=map&layer=traff&query=\${encodeURIComponent(z.place || zip)}\`;
-        concernPotholes.href = \`https://www.google.com/search?q=\${encodeURIComponent((z.place||"")+" "+(z.state||"")+" pothole report")}\`;
-        concernTrash.href = \`https://www.google.com/search?q=\${encodeURIComponent((z.place||"")+" "+(z.state||"")+" bulk trash pickup")}\`;
-        concernLights.href = \`https://www.google.com/search?q=\${encodeURIComponent((z.place||"")+" "+(z.state||"")+" street light report")}\`;
-      } catch (e) {
-        setPlaceLabel({ zip });
-      }
+    async function loadForZip(zip){
+      if (!/^\d{5}$/.test(zip)){ setAlert(zipAlert,"", "Please enter a valid 5-digit ZIP."); return; }
+      setAlert(zipAlert,"ok","Loading…"); await sleep(50);
+
+      let z;
+      try{ z = await fetchZipinfo(zip); }
+      catch(e){ setAlert(zipAlert,"", "Could not resolve city/state for this ZIP."); return; }
+
+      setPlaceLabel({zip:z.zip, place:z.place, state:z.state});
+      wireContextLinks(z);
 
       // Officials
       try{
-        const officials = await fetch(\`\${API_BASE}/officials?zip=\${zip}\`).then(ok).then(j);
-        renderOfficials(officials);
+        const o = await fetchOfficials(z.zip, (z.state_abbr||"").toUpperCase());
+        renderOfficials(o);
       }catch(e){
         renderOfficials(null);
+        setAlert(officialsAlert,"", "Officials could not be loaded right now.");
       }
 
       // Weather
-      try{
-        const wx = await fetch(\`\${API_BASE}/weather?zip=\${zip}\`).then(ok).then(j);
-        renderWeather(wx);
-      }catch(e){
-        renderWeather(null);
-      }
+      try{ const w = await fetchWeather(z); renderWeather(w); } catch(_){ renderWeather(null); }
 
-      // Elections
-      try{
-        const el = await fetch(\`\${API_BASE}/elections?zip=\${zip}\`).then(ok).then(j);
-        renderElections(el);
-      }catch(e){
-        renderElections(null);
-      }
+      // Elections (static helper)
+      renderElections();
 
-      // write zip to URL
-      const url = new URL(location.href);
-      url.searchParams.set("zip", zip);
-      history.replaceState({}, "", url.toString());
+      // Update URL
+      const url=new URL(location.href); url.searchParams.set("zip",z.zip); history.replaceState({}, "", url);
+      setAlert(zipAlert,"ok","Ready");
+      setTimeout(()=>setAlert(zipAlert,"",""), 1000);
     }
 
-    // Geolocation → reverse ZIP
     async function useMyLocation(){
-      if (!("geolocation" in navigator)){
-        alertMsg("Location not supported on this device.");
-        return;
-      }
+      if (!("geolocation" in navigator)){ setAlert(zipAlert,"", "Location not supported on this device."); return; }
+      setAlert(zipAlert,"ok","Resolving your location…");
       navigator.geolocation.getCurrentPosition(async pos=>{
         try{
-          const { latitude, longitude } = pos.coords;
-          const rev = await fetch(\`\${API_BASE}/reverse-zip?lat=\${latitude}&lon=\${longitude}\`).then(ok).then(j);
-          const zip = rev.zip;
-          if (!zip) throw new Error("No ZIP for location.");
-          zipInput.value = zip;
-          await loadForZip(zip);
+          const {latitude, longitude}=pos.coords;
+          const rev=await fetchReverseZip(latitude, longitude);
+          if (!rev.zip) throw new Error("No ZIP for location");
+          zipInput.value = String(rev.zip).slice(0,5);
+          await loadForZip(zipInput.value);
         }catch(e){
-          alertMsg("Could not resolve ZIP from your location. You can type a ZIP manually.");
+          setAlert(zipAlert,"", "Could not resolve ZIP from your location. You can type a ZIP manually.");
         }
-      }, err=>{
-        alertMsg("Permission denied or location unavailable.");
-      }, { enableHighAccuracy:true, timeout:12000, maximumAge:0 });
+      }, _=> setAlert(zipAlert,"", "Permission denied or location unavailable."), {enableHighAccuracy:true, timeout:12000, maximumAge:0});
     }
 
     // Events
@@ -489,33 +455,23 @@
     btnCopy.addEventListener("click", ()=>{
       const url = new URL(location.href);
       const zip = zipInput.value.trim();
-      if (/^\\d{5}$/.test(zip)) url.searchParams.set("zip", zip);
-      navigator.clipboard.writeText(url.toString()).then(()=> alertMsg("Share link copied!"));
+      if (/^\d{5}$/.test(zip)) url.searchParams.set("zip", zip);
+      navigator.clipboard.writeText(url.toString()).then(()=> setAlert(zipAlert,"ok","Share link copied!"));
+      setTimeout(()=>setAlert(zipAlert,"",""), 1000);
     });
     btnClear.addEventListener("click", ()=>{
-      zipInput.value = "";
-      placeLabel.textContent = "";
-      history.replaceState({}, "", location.pathname);
-      officialsEl.innerHTML = "";
-      weatherEl.innerHTML = "";
-      electionsEl.innerHTML = "";
+      zipInput.value=""; placeLabel.textContent=""; history.replaceState({}, "", location.pathname);
+      officialsEl.innerHTML=""; weatherEl.innerHTML=""; electionsEl.innerHTML=""; setAlert(zipAlert,"","")
     });
-
-    // Auto-search when user types exactly 5 digits
     zipInput.addEventListener("input", ()=>{
-      const v = zipInput.value.replace(/\\D/g,"").slice(0,5);
-      if (zipInput.value !== v) zipInput.value = v;
-      if (v.length === 5) loadForZip(v);
+      const v = zipInput.value.replace(/\D/g,"").slice(0,5);
+      if (zipInput.value!==v) zipInput.value=v;
+      if (v.length===5) loadForZip(v);
     });
 
-    // Boot from URL ?zip=
     (function init(){
-      const url = new URL(location.href);
-      const z = (url.searchParams.get("zip") || "").trim();
-      if (/^\\d{5}$/.test(z)) {
-        zipInput.value = z;
-        loadForZip(z);
-      }
+      const url=new URL(location.href); const z=(url.searchParams.get("zip")||"").trim();
+      if (/^\d{5}$/.test(z)){ zipInput.value=z; loadForZip(z); }
     })();
   </script>
 </body>
