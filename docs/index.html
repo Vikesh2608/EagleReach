@@ -1,471 +1,476 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>EagleReach</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light dark">
+  <title>EagleReach</title>
+  <meta name="description" content="EagleReach — fast, trustworthy civic info for U.S. residents." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --brand:#0b3b8c;         /* Navy bar */
-      --brand-ink:#ffffff;     /* Text on navy */
-      --ink:#0d1b2a;
-      --muted:#6b7280;
+      --brand:#0b5ed7;            /* primary blue */
+      --brand-600:#094caf;
+      --ink:#0b1220;              /* text */
+      --muted:#6b7280;            /* secondary text */
+      --bg:#ffffff;               /* page bg */
       --card:#ffffff;
-      --bg:#0b1220;
-      --border:#1f2937;
-      --btn:#3b82f6;
-      --btn-ink:#fff;
-      --btn-subtle:#0b1220;
-      --link:#60a5fa;
-      --shadow:0 8px 30px rgba(0,0,0,.35);
+      --card-border:#e5e7eb;
+      --pill:#e9f2ff;
+      --shadow:0 10px 20px rgba(0,0,0,.05), 0 2px 6px rgba(0,0,0,.04);
       --radius:14px;
     }
-
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:#e5e7eb;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans",Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
-    a{color:var(--link);text-decoration:none}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--ink);
+      background:var(--bg);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    a{color:var(--brand);text-decoration:none}
     a:hover{text-decoration:underline}
 
-    /* Header (quote removed) */
-    .sitebar{
+    /* Header */
+    .hdr{
       position:sticky;top:0;z-index:50;
-      background:var(--brand);
-      color:var(--brand-ink);
-      box-shadow:0 1px 0 rgba(255,255,255,.05);
+      background:#0a3d91;       /* Navy band */
+      color:#fff;
+      box-shadow:var(--shadow);
     }
-    .bar-wrap{
-      max-width:1100px;margin:0 auto;
-      display:flex;align-items:center;gap:18px;
-      flex-wrap:wrap;                 /* wrap if needed */
-      padding:12px 16px;
+    .hdr-in{
+      max-width:1160px;margin:0 auto;
+      padding:12px 16px;display:flex;align-items:center;gap:14px;
     }
-    .brand{
-      display:flex;align-items:center;gap:12px;
-      font-weight:700;letter-spacing:.2px;min-width:0;
-    }
-    .brand .flag{font-size:18px}
-    .brand .name{font-size:18px;white-space:nowrap}
-    .nav{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
-    .nav button{
-      background:transparent;border:0;color:var(--brand-ink);
-      font:inherit;cursor:pointer;padding:6px 6px;border-radius:8px;
-      white-space:nowrap;
-    }
-    .nav button:hover{background:rgba(255,255,255,.12)}
-    @media (max-width:520px){
-      .bar-wrap{gap:10px;padding:10px 12px}
-      .nav{gap:12px}
-      .brand .name{font-size:17px}
-      .brand .flag{font-size:17px}
+    .flag{font-size:18px}
+    .title{font-weight:800;letter-spacing:.2px;font-size:18px}
+    .quote{margin-left:auto;font-size:13px;opacity:.9;white-space:nowrap}
+    .nav{display:flex;gap:20px;margin-left:20px}
+    .nav a{color:#fff;opacity:.9;font-weight:600}
+    .nav a:hover{opacity:1}
+
+    /* Mobile top row wrap */
+    @media (max-width:840px){
+      .hdr-in{flex-wrap:wrap;row-gap:8px}
+      .quote{order:3;width:100%;margin-left:0;white-space:normal}
+      .nav{order:2;margin-left:0}
     }
 
-    /* Container & cards */
-    .wrap{max-width:1100px;margin:18px auto;padding:0 12px}
-    .grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
-    @media (max-width:960px){.grid{grid-template-columns:1fr}}
+    /* Layout */
+    .wrap{max-width:1160px;margin:28px auto;padding:0 16px}
+    .row{display:grid;grid-template-columns:1.3fr .9fr;gap:20px}
+    @media (max-width:980px){.row{grid-template-columns:1fr}}
+
+    /* Cards & buttons */
     .card{
-      background:var(--card);border:1px solid var(--border);
+      background:var(--card);border:1px solid var(--card-border);
       border-radius:var(--radius);box-shadow:var(--shadow);
-      padding:14px 14px 10px 14px;color:#e5e7eb;
     }
+    .card-body{padding:18px}
     .card h3{
-      margin:0 0 10px 0;font-size:16px;letter-spacing:.2px;color:#fff;
-    }
-    .muted{color:#9aa4b2;font-size:13px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .controls .row{margin-top:8px}
-    input[type="text"]{
-      width:100%;max-width:420px;background:#0f172a;color:#e5e7eb;
-      border:1px solid var(--border);border-radius:12px;padding:10px 12px;
-      outline:0;
+      margin:0 0 12px;font-size:16px;font-weight:800;color:#1f2937;
+      letter-spacing:.2px
     }
     .btn{
-      background:var(--btn);color:var(--btn-ink);
-      border:0;border-radius:12px;padding:10px 12px;cursor:pointer;
-      display:inline-flex;align-items:center;gap:6px;font-weight:600
+      display:inline-flex;align-items:center;gap:8px;
+      background:var(--brand);color:#fff;border:0;border-radius:12px;
+      padding:10px 14px;font-weight:700;cursor:pointer
     }
-    .btn.secondary{background:var(--btn-subtle);color:#e5e7eb;border:1px solid var(--border)}
-    .btn.ghost{background:transparent;color:#e5e7eb;border:1px dashed var(--border)}
-    .list .item{
-      padding:10px;border:1px solid var(--border);
-      border-radius:12px;margin-bottom:8px;background:#0f172a
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .btn:hover{background:var(--brand-600)}
+    .btn-alt{
+      background:#eef2ff;color:#1f3a8a;border:1px solid #c7d2fe
     }
-    .list .title{font-weight:700;color:#fff}
-    .note{color:#9aa4b2;font-size:13px}
-    .kicker{font-weight:700}
+    .btn-alt:hover{background:#e0e7ff}
+    .btn-ghost{
+      background:#f8fafc;color:#0f172a;border:1px solid #e5e7eb
+    }
+    .input{
+      width:100%;padding:12px 14px;border:1px solid #dfe3ea;border-radius:12px;
+      outline:none;font-weight:600
+    }
+    .stack{display:flex;gap:10px;flex-wrap:wrap}
+
+    /* Officials list */
+    .official{border:1px solid var(--card-border);border-radius:12px;padding:12px;margin:8px 0}
+    .official h4{margin:0 0 8px;font-size:15px}
+    .sm{font-size:13px;color:var(--muted)}
     .pill{
       display:inline-flex;align-items:center;gap:6px;
-      padding:6px 10px;border-radius:999px;background:#0b1220;border:1px solid var(--border);font-size:13px;color:#e5e7eb
+      padding:8px 12px;border-radius:999px;background:var(--pill);
+      border:1px solid #cfe2ff;color:#0b3b8f;font-weight:700
     }
-    .footer{margin:18px auto 48px;max-width:1100px;color:#9aa4b2;font-size:12px;text-align:center}
 
-    /* Modal */
-    .modal{position:fixed;inset:0;display:none;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px;z-index:200}
-    .modal.open{display:flex}
-    .dialog{
-      width:min(760px,96vw);max-height:88vh;overflow:auto;background:#0f172a;
-      border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:16px;color:#e5e7eb;
+    /* Footer */
+    .ft{color:var(--muted);font-size:12px;text-align:center;margin:28px 0}
+
+    /* Modal (About / Founder / Contact) */
+    .modal-back{
+      position:fixed;inset:0;background:rgba(2,6,23,.5);
+      display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:60
     }
-    .dialog header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .dialog .x{background:transparent;border:0;color:#e5e7eb;font-size:22px;cursor:pointer}
-    ul{padding-left:18px;margin:.3rem 0}
-    li{margin:.2rem 0}
-    .stack{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    @media (max-width:960px){.stack{grid-template-columns:1fr}}
-    .section-title{font-weight:800;margin-bottom:6px}
+    .modal{width:min(760px,100%);background:#fff;border-radius:16px;box-shadow:var(--shadow)}
+    .modal-h{
+      padding:16px 18px;border-bottom:1px solid #edf2f7;display:flex;align-items:center;gap:10px
+    }
+    .modal-h h3{margin:0;font-size:18px}
+    .modal-x{margin-left:auto;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;cursor:pointer}
+    .modal-b{padding:16px 18px;line-height:1.6}
+    .modal-back.show{display:flex}
   </style>
 </head>
 <body>
-  <!-- Header (no quote) -->
-  <div class="sitebar">
-    <div class="bar-wrap">
-      <div class="brand">
-        <span class="flag">🇺🇸</span>
-        <span class="name">EagleReach</span>
-        <span class="flag" title="Eagle">🦅</span>
-      </div>
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-in">
+      <span class="flag" aria-hidden="true">🇺🇸</span>
+      <span class="title">EagleReach</span>
       <nav class="nav">
-        <button data-open="about">About</button>
-        <button data-open="founder">Founder</button>
-        <button data-open="contact">Contact</button>
-        <button data-open="feedback">Feedback</button>
+        <a href="#" data-open="about">About</a>
+        <a href="#" data-open="founder">Founder</a>
+        <a href="#" data-open="contact">Contact</a>
+        <a href="#" data-open="feedback">Feedback</a>
       </nav>
+      <div class="quote">Civic info, fast &amp; free — built for everyone.</div>
     </div>
-  </div>
+  </header>
 
-  <!-- Main -->
-  <div class="wrap">
-    <!-- Controls -->
-    <div class="card controls">
-      <h3>Enter ZIP</h3>
-      <input id="zipInput" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="ZIP (e.g., 62704)">
-      <div id="placeLine" class="muted" style="margin-top:6px;"></div>
-
-      <div class="row" style="margin-top:10px">
-        <button id="btnLocate" class="btn secondary">📍 Use my location</button>
-        <button id="btnSearch" class="btn">🔎 Search</button>
-        <button id="btnCopyLink" class="btn secondary">🔗 Copy Share Link</button>
-        <button id="btnClear" class="btn ghost">🗑️ Clear history</button>
+  <main class="wrap">
+    <!-- Search -->
+    <section class="card" aria-labelledby="zipsearch">
+      <div class="card-body">
+        <h3 id="zipsearch">Enter ZIP</h3>
+        <div class="stack" style="align-items:center">
+          <input id="zip" class="input" placeholder="ZIP (e.g., 45220)" inputmode="numeric" />
+          <button id="btnLocate" class="btn" title="Use my location">📍 Use my location</button>
+          <button id="btnSearch" class="btn">🔎 Search</button>
+          <button id="btnCopy" class="btn-ghost" title="Copy a shareable link">🔗 Copy Share Link</button>
+          <button id="btnClear" class="btn-alt" title="Clear search">🧹 Clear history</button>
+        </div>
+        <div id="placeLine" class="sm" style="margin-top:10px"></div>
       </div>
-    </div>
+    </section>
 
-    <div class="grid" style="margin-top:12px">
-      <div class="stack">
+    <div class="row" style="margin-top:14px">
+      <!-- LEFT COLUMN -->
+      <div class="col">
         <!-- Officials -->
-        <div class="card">
-          <h3><span class="kicker">Elected Representatives</span></h3>
-          <div class="muted" style="margin-bottom:6px">Sources: GovTrack (Congress), WhoIsMyRepresentative (House), FCC, Zippopotam.</div>
-          <div id="officials" class="list"></div>
-        </div>
-
-        <!-- Voter Info -->
-        <div class="card">
-          <h3><span class="kicker">Voter Info &amp; Education</span></h3>
-          <div class="list">
-            <div class="item"><a id="howToVote" target="_blank" rel="noopener">How to vote (USA.gov)</a></div>
-            <div class="item"><a id="registerVote" target="_blank" rel="noopener">Register to vote</a></div>
-            <div class="item"><a id="findOffice" target="_blank" rel="noopener">Find your Election Office</a></div>
+        <section class="card" aria-labelledby="reps">
+          <div class="card-body">
+            <h3 id="reps">Elected Representatives</h3>
+            <div id="officials"></div>
+            <div class="sm" style="margin-top:10px">
+              Sources: GovTrack (Congress), WhoIsMyRepresentative (House), FCC, Zippopotam.
+            </div>
           </div>
-        </div>
-
-        <!-- Weather -->
-        <div class="card">
-          <h3><span class="kicker">Local Weather (7-day)</span></h3>
-          <div id="weatherList" class="list"></div>
-        </div>
-
-        <!-- Elections -->
-        <div class="card">
-          <h3><span class="kicker">Upcoming Elections</span></h3>
-          <div class="list" id="elections">
-            <div class="item" id="fedElection">Next Federal: —</div>
-          </div>
-        </div>
+        </section>
 
         <!-- News -->
-        <div class="card">
-          <h3><span class="kicker">News</span></h3>
-          <div class="row">
-            <a id="openLocalNews" class="btn secondary" target="_blank" rel="noopener">Open Local News</a>
-            <a id="openWorldNews" class="btn secondary" target="_blank" rel="noopener">World News</a>
+        <section class="card" style="margin-top:14px" aria-labelledby="news">
+          <div class="card-body">
+            <h3 id="news">News</h3>
+            <div class="stack">
+              <a class="pill" target="_blank" rel="noopener" id="btnLocalNews">Open Local News</a>
+              <a class="pill" target="_blank" rel="noopener" id="btnWorldNews">World News</a>
+            </div>
+            <div class="sm" style="margin-top:8px">Opens news in a new tab.</div>
           </div>
-          <div class="note" style="margin-top:8px">Opens news in a new tab.</div>
-        </div>
-
-        <!-- Traffic -->
-        <div class="card">
-          <h3><span class="kicker">Traffic</span></h3>
-          <div class="note" style="margin-bottom:8px">Open live traffic for your area in Google Maps.</div>
-          <a id="trafficLink" class="btn" target="_blank" rel="noopener">Open Traffic Map</a>
-        </div>
+        </section>
 
         <!-- Raise a Concern -->
-        <div class="card" style="grid-column:1/-1">
-          <h3><span class="kicker">Raise a Concern</span></h3>
-          <div class="note" style="margin-bottom:8px">Report city issues (311), contact your city hall, or write to your representatives.</div>
-          <div class="row">
-            <a class="btn secondary" id="concernPotholes" target="_blank" rel="noopener">Potholes</a>
-            <a class="btn secondary" id="concernTrash" target="_blank" rel="noopener">Trash</a>
-            <a class="btn secondary" id="concernLights" target="_blank" rel="noopener">Street lights</a>
+        <section class="card" style="margin-top:14px" aria-labelledby="concern">
+          <div class="card-body">
+            <h3 id="concern">Raise a Concern</h3>
+            <div class="stack">
+              <a class="pill" href="#" id="conc-potholes">Potholes</a>
+              <a class="pill" href="#" id="conc-trash">Trash</a>
+              <a class="pill" href="#" id="conc-lights">Street lights</a>
+            </div>
+            <div class="sm" style="margin-top:8px">
+              Report city issues (311), contact your city hall, or write to your representatives.
+            </div>
           </div>
-        </div>
+        </section>
 
         <!-- Emergency -->
-        <div class="card" style="grid-column:1/-1">
-          <h3><span class="kicker">Emergency</span></h3>
-          <div class="row" style="gap:10px;flex-wrap:wrap">
-            <a class="btn" href="tel:911">911 — Emergency</a>
-            <a class="btn" style="background:#9333ea" href="tel:988">988 — Suicide &amp; Crisis</a>
-            <a class="btn" style="background:#059669" href="tel:211">211 — Community Services</a>
-            <a class="btn" style="background:#2563eb" href="tel:311">311 — City Services</a>
-            <a class="btn" style="background:#b45309" href="tel:811">811 — Before You Dig</a>
-            <a class="btn" style="background:#ea580c" href="tel:18002221222">Poison Control</a>
+        <section class="card" style="margin-top:14px" aria-labelledby="emerg">
+          <div class="card-body">
+            <h3 id="emerg">Emergency</h3>
+            <div class="stack">
+              <a class="pill" href="tel:911">911 — Emergency</a>
+              <a class="pill" href="tel:988">988 — Suicide &amp; Crisis</a>
+              <a class="pill" href="tel:211">211 — Community Services</a>
+              <a class="pill" href="tel:311">311 — City Services</a>
+              <a class="pill" href="tel:811">811 — Before You Dig</a>
+              <a class="pill" href="tel:+18002221222">Poison Control</a>
+            </div>
           </div>
-          <div class="note" style="margin-top:8px">Tap a number to call.</div>
-        </div>
+        </section>
+
+        <div class="ft">© 2025 EagleReach</div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col">
+        <!-- Voter Info -->
+        <section class="card" aria-labelledby="vote">
+          <div class="card-body">
+            <h3 id="vote">Voter Info &amp; Education</h3>
+            <div class="stack">
+              <a class="btn" target="_blank" rel="noopener" href="https://www.usa.gov/how-to-vote">How to vote (USA.gov)</a>
+              <a class="btn" target="_blank" rel="noopener" href="https://www.usa.gov/register-to-vote">Register to vote</a>
+              <a class="btn" target="_blank" rel="noopener" href="https://www.usa.gov/election-office">Find your Election Office</a>
+            </div>
+          </div>
+        </section>
+
+        <!-- Elections -->
+        <section class="card" style="margin-top:14px" aria-labelledby="elex">
+          <div class="card-body">
+            <h3 id="elex">Upcoming Elections</h3>
+            <div id="elexNext" class="btn-ghost" style="padding:10px 12px;border-radius:12px;display:inline-block">Next Federal: —</div>
+          </div>
+        </section>
+
+        <!-- Traffic -->
+        <section class="card" style="margin-top:14px" aria-labelledby="traffic">
+          <div class="card-body">
+            <h3 id="traffic">Traffic</h3>
+            <div class="sm" style="margin-bottom:10px">Open live traffic for your area in Google Maps.</div>
+            <a id="btnTraffic" class="btn" target="_blank" rel="noopener">Open Traffic Map</a>
+          </div>
+        </section>
+
+        <!-- Weather -->
+        <section class="card" style="margin-top:14px" aria-labelledby="wx">
+          <div class="card-body">
+            <h3 id="wx">Local Weather (7-day)</h3>
+            <div id="weather"></div>
+          </div>
+        </section>
       </div>
     </div>
+  </main>
 
-    <div class="footer">© 2025 EagleReach. Built open-source.</div>
-  </div>
-
-  <!-- About -->
-  <div class="modal" id="about">
-    <div class="dialog">
-      <header>
-        <h3>About EagleReach</h3>
-        <button class="x" data-close="about" aria-label="Close">×</button>
-      </header>
-
-      <p><b>EagleReach</b> helps every U.S. resident quickly find their elected representatives, voter information, local weather, and upcoming elections — <b>without any sign-in</b> or tracking.</p>
-      <p><b>Why it matters:</b> Access to clear, trustworthy civic information makes it easier for people to participate, get help, and hold leaders accountable. When information is simple and fast, more people get involved — and communities benefit.</p>
-      <p><b>What you can do here:</b></p>
-      <ul>
-        <li><b>Find your officials</b> — names, offices, party, website links, and tap-to-call phone numbers.</li>
-        <li><b>Get voter info</b> — official USA.gov links to learn how to vote, register, and find your election office.</li>
-        <li><b>See your weather</b> — simple 7-day forecast.</li>
-        <li><b>Know what’s next</b> — upcoming election timing at a glance.</li>
-        <li><b>Read news</b> — quick access to local and world news.</li>
-        <li><b>Emergency contacts</b> — one-tap calling for 911, 988, 211, 311, 811, and Poison Control.</li>
-      </ul>
-      <p class="note">Built on reputable open data sources (GovTrack, WhoIsMyRepresentative, Open-Meteo, USA.gov, Zippopotam). No accounts. No paywalls.</p>
-    </div>
-  </div>
-
-  <!-- Founder (UPDATED) -->
-  <div class="modal" id="founder">
-    <div class="dialog">
-      <header>
-        <h3>Founder</h3>
-        <button class="x" data-close="founder" aria-label="Close">×</button>
-      </header>
-
-      <p><b>Vikesh</b> is a technology evangelist and business solutions architect with a focus on <b>DevOps</b>, <b>Data Engineering</b>, <b>Cloud</b>, and <b>Generative AI</b>. He holds a Master’s degree in Information Systems &amp; Management (with AI/ML) from the University of Illinois Springfield and also completed a Bachelor’s in Computers.</p>
-
-      <p><b>Certifications:</b> Google Cloud <b>Professional Data Engineer</b>.</p>
-
-      <p><b>Experience highlights:</b></p>
-      <ul>
-        <li><b>Jabil</b> — Data Specialist / Analyst</li>
-        <li><b>S&amp;P Global (IHS Markit)</b> — Data Analyst</li>
-        <li><b>Techtate</b> — DevOps Engineer</li>
-        <li><b>Auscomp Computers</b> — Supply Chain Specialist</li>
-        <li><b>Surfaces by Pacific</b> — DevOps Engineering Intern</li>
-      </ul>
-
-      <p><b>Why EagleReach:</b> This project reflects a commitment to community and public service — making civic information fast, respectful, and accessible to everyone.</p>
-    </div>
-  </div>
-
-  <!-- Contact -->
-  <div class="modal" id="contact">
-    <div class="dialog">
-      <header>
-        <h3>Contact</h3>
-        <button class="x" data-close="contact" aria-label="Close">×</button>
-      </header>
-      <div class="list">
-        <div class="item"><a href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank" rel="noopener">LinkedIn — Vikesh Bairam</a></div>
-        <div class="item"><a href="https://github.com/vikesh2608" target="_blank" rel="noopener">GitHub — vikesh2608</a></div>
-        <div class="item"><a href="mailto:vikebairam@gmail.com">Email — vikebairam@gmail.com</a></div>
+  <!-- ABOUT MODAL -->
+  <div class="modal-back" id="aboutModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutHd">
+      <div class="modal-h">
+        <h3 id="aboutHd">About EagleReach</h3>
+        <button class="modal-x" data-close>Close</button>
+      </div>
+      <div class="modal-b">
+        <p><strong>EagleReach</strong> is a civic engagement platform created by <strong>Vikesh Sagar Bairam</strong> to
+          help residents quickly find their elected representatives, voter education, weather, and local resources using a
+          simple ZIP-code search. The app is free to use and requires no sign-in.</p>
+        <p>Our purpose is to make civic information <strong>transparent, accessible, and user-friendly</strong> — so anyone
+          can participate in their democracy with confidence. EagleReach aggregates open data from trusted sources and
+          presents it in a clean, mobile-friendly interface.</p>
+        <p><strong>What you get:</strong> representatives and contact links, voter education (How to vote, Register, and Find
+          your election office), timely local weather, an easy way to raise city concerns, and one-tap access to emergency
+          numbers.</p>
       </div>
     </div>
   </div>
 
-  <!-- Feedback -->
-  <div class="modal" id="feedback">
-    <div class="dialog">
-      <header>
-        <h3>Feedback</h3>
-        <button class="x" data-close="feedback" aria-label="Close">×</button>
-      </header>
-      <p>Have ideas or found a bug? I’d love to hear from you.</p>
-      <p><a class="btn" href="mailto:vikebairam@gmail.com?subject=EagleReach%20Feedback">Send feedback by email</a></p>
+  <!-- FOUNDER MODAL -->
+  <div class="modal-back" id="founderModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="founderHd">
+      <div class="modal-h">
+        <h3 id="founderHd">Founder</h3>
+        <button class="modal-x" data-close>Close</button>
+      </div>
+      <div class="modal-b">
+        <p><strong>Vikesh Sagar Bairam</strong> is a Data Analyst and Cloud Specialist with experience across
+          analytics, DevOps, and civic-focused product development. He is passionate about building solutions that are
+          simple, reliable, and useful for everyone.</p>
+        <p><strong>Current &amp; previous roles:</strong> Data Specialist/Analyst at Jabil; Data Analyst at
+          S&amp;P Global (IHS Markit); DevOps Engineer at Techtate; Supply Chain Specialist at Auscomp Computers; and
+          DevOps Engineering Intern at Surfaces by Pacific.</p>
+        <p><strong>Education &amp; certifications:</strong> Master’s in Information Systems &amp; Management from the
+          University of Illinois, Springfield — with focus areas spanning AI/ML and cloud technologies. He also completed a
+          bachelor’s in Psychology and Arts (Osmania University) and a bachelor’s in Computers. He is certified as a
+          <em>Google Cloud Professional Data Engineer</em>.</p>
+        <p>Vikesh enjoys leading by example, collaborating across teams, and turning ideas into products that make civic
+          participation easier and more inclusive.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT / FEEDBACK MODAL (shared) -->
+  <div class="modal-back" id="contactModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="contactHd">
+      <div class="modal-h">
+        <h3 id="contactHd">Contact</h3>
+        <button class="modal-x" data-close>Close</button>
+      </div>
+      <div class="modal-b">
+        <p>Email: <a href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a></p>
+        <p>LinkedIn: <a target="_blank" rel="noopener" href="https://www.linkedin.com/in/vikesh-bairam-219769258/">linkedin.com/in/vikesh-bairam-219769258/</a></p>
+        <p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/vikesh2608">github.com/vikesh2608</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-back" id="feedbackModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="fbHd">
+      <div class="modal-h">
+        <h3 id="fbHd">Feedback</h3>
+        <button class="modal-x" data-close>Close</button>
+      </div>
+      <div class="modal-b">
+        <p>Have suggestions? Send a quick note: <a href="mailto:vikebairam@gmail.com?subject=EagleReach%20Feedback">vikebairam@gmail.com</a></p>
+      </div>
     </div>
   </div>
 
   <script>
-    const API_BASE = 'https://eaglereach-1.onrender.com';  // backend
+    // ==== CONFIG ====
+    const API_BASE = (location.hostname.endsWith('github.io'))
+      ? 'https://eaglereach-api.fly.dev'   // <- your deployed API base (change if needed)
+      : 'http://localhost:8000';
+
+    // If you deploy at some other domain, update API_BASE above.
+    // =================
 
     const $ = sel => document.querySelector(sel);
-    const el = (tag, attrs={}, children=[])=>{
-      const n = document.createElement(tag);
-      Object.entries(attrs||{}).forEach(([k,v])=>{
-        if(k==='className') n.className=v;
-        else if(k==='innerText') n.innerText=v;
-        else if(k==='html') n.innerHTML=v;
-        else n.setAttribute(k,v);
-      });
-      (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=>n.append(c));
-      return n;
-    };
-    const copy = async text => { try{ await navigator.clipboard.writeText(text); alert('Copied!'); } catch(e){ prompt('Copy:', text); } };
+    const officialsEl = $('#officials');
+    const weatherEl  = $('#weather');
+    const nextEl     = $('#elexNext');
+    const zipInput   = $('#zip');
+    const placeLine  = $('#placeLine');
 
-    async function fetchJson(path, params){
+    // ===== Helpers =====
+    function setPlaceLine(z) {
+      placeLine.textContent = z?.zip ? `${z.zip} — ${z.place || ''}${z.state ? ', ' + z.state : ''}` : '';
+    }
+    function shareLinkFromZip(zip) {
+      const url = new URL(location.href);
+      if (zip) url.searchParams.set('zip', zip); else url.searchParams.delete('zip');
+      return url.toString();
+    }
+    function openModal(id){ document.getElementById(id).classList.add('show'); }
+    function closeModals(){ document.querySelectorAll('.modal-back').forEach(m=>m.classList.remove('show')); }
+
+    document.querySelectorAll('[data-open]').forEach(a=>{
+      a.addEventListener('click',e=>{
+        e.preventDefault();
+        const id=a.dataset.open;
+        if(id==='about') openModal('aboutModal');
+        if(id==='founder') openModal('founderModal');
+        if(id==='contact') openModal('contactModal');
+        if(id==='feedback') openModal('feedbackModal');
+      });
+    });
+    document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeModals));
+    document.querySelectorAll('.modal-back').forEach(back=>{
+      back.addEventListener('click',e=>{
+        if(e.target===back) closeModals();
+      });
+    });
+
+    // ===== API calls =====
+    async function getJSON(path, params={}){
       const url = new URL(API_BASE + path);
-      Object.entries(params||{}).forEach(([k,v])=>url.searchParams.set(k,v));
-      const r = await fetch(url, {mode:'cors'});
-      if(!r.ok) throw new Error(await r.text());
+      Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
+      const r = await fetch(url.toString());
+      if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
       return r.json();
     }
 
-    let lastZip = '';
-    function setPlaceLine(z, place, st){
-      $('#placeLine').innerText = z ? `${z} — ${place||''}${place?', ':''}${st||''}` : '';
+    async function loadAll(zip){
+      // zip info
+      const z = await getJSON('/zipinfo', {zip});
+      setPlaceLine(z);
+
+      // officials
+      const reps = await getJSON('/officials', {zip});
+      officialsEl.innerHTML = (reps.officials || []).map(o => `
+        <div class="official">
+          <h4>${o.name || 'Unknown'}</h4>
+          <div class="sm">${o.office || ''}${o.party ? ' — ' + o.party : ''}</div>
+          <div class="stack" style="margin-top:8px">
+            ${ (o.urls||[]).map(u=>`<a class="pill" target="_blank" rel="noopener" href="${u}">Website</a>`).join('') }
+            ${ (o.phones||[]).map(p=>`<a class="pill" href="tel:${p.replace(/[^+0-9]/g,'')}">Call</a>`).join('') }
+          </div>
+        </div>
+      `).join('') || '<div class="sm">No officials found.</div>';
+
+      // weather
+      const wx = await getJSON('/weather', {zip});
+      weatherEl.innerHTML = (wx.days||[]).map(d => `
+        <div class="official" style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>${d.date}</strong><div class="sm">${d.summary||''}</div></div>
+          <div class="sm">${d.max ?? '—'}° / ${d.min ?? '—'}°</div>
+        </div>
+      `).join('') || '<div class="sm">Weather unavailable.</div>';
+
+      // elections
+      const elx = await getJSON('/elections', {zip});
+      nextEl.textContent = `Next Federal: ${elx?.next?.federal || '—'}`;
+
+      // news buttons (open in new tab)
+      const q = encodeURIComponent(`${z.place || ''} ${z.state || ''} local news`);
+      $('#btnLocalNews').href = `https://news.google.com/search?q=${q}`;
+      $('#btnWorldNews').href = `https://news.google.com/home?hl=en-US&gl=US&ceid=US:en`;
+
+      // traffic
+      const mapLatLng = (z.lat && z.lon) ? `${z.lat},${z.lon}` : '';
+      $('#btnTraffic').href = `https://www.google.com/maps/@?api=1&map_action=map&layer=traffic&center=${mapLatLng}`;
     }
 
-    document.querySelectorAll('[data-open]').forEach(b=>{
-      b.addEventListener('click', ()=> $('#'+b.dataset.open).classList.add('open'));
-    });
-    document.querySelectorAll('[data-close]').forEach(b=>{
-      b.addEventListener('click', ()=> $('#'+b.dataset.close).classList.remove('open'));
-    });
-    document.querySelectorAll('.modal').forEach(m=>{
-      m.addEventListener('click', (e)=>{ if(e.target===m) m.classList.remove('open');});
-    });
+    // ===== Actions =====
+    async function searchZip(){
+      const zip = zipInput.value.trim();
+      if(!zip) return;
+      try{
+        await loadAll(zip);
+        history.replaceState({}, '', shareLinkFromZip(zip));
+      }catch(err){
+        alert('Could not load data for that ZIP. Please try another.');
+        console.error(err);
+      }
+    }
 
+    async function useMyLocation(){
+      try{
+        $('#btnLocate').disabled = true;
+        const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:10000}));
+        const data = await getJSON('/reverse-zip', {lat:pos.coords.latitude, lon:pos.coords.longitude});
+        if(!data.zip) throw new Error('ZIP not found from location');
+        zipInput.value = data.zip;
+        await searchZip();
+      }catch(err){
+        alert('Could not resolve ZIP from your location. You can type a ZIP manually.');
+        console.warn(err);
+      }finally{
+        $('#btnLocate').disabled = false;
+      }
+    }
+
+    // Share / Clear
+    $('#btnCopy').addEventListener('click', async ()=>{
+      const zip = zipInput.value.trim();
+      const link = shareLinkFromZip(zip);
+      try{ await navigator.clipboard.writeText(link); alert('Link copied!'); }
+      catch{ prompt('Copy this link:', link); }
+    });
     $('#btnClear').addEventListener('click', ()=>{
-      $('#zipInput').value='';
-      lastZip='';
-      setPlaceLine('','','');
-      $('#officials').innerHTML='';
-      $('#weatherList').innerHTML='';
-      $('#fedElection').innerText='Next Federal: —';
+      zipInput.value=''; placeLine.textContent=''; officialsEl.innerHTML=''; weatherEl.innerHTML=''; nextEl.textContent='Next Federal: —';
+      history.replaceState({}, '', shareLinkFromZip(''));
     });
 
-    $('#btnCopyLink').addEventListener('click', ()=>{
-      const z = $('#zipInput').value.trim();
-      const url = z ? `${location.origin}${location.pathname}?zip=${encodeURIComponent(z)}` : `${location.origin}${location.pathname}`;
-      copy(url);
-    });
+    $('#btnSearch').addEventListener('click', searchZip);
+    $('#btnLocate').addEventListener('click', useMyLocation);
+    zipInput.addEventListener('keydown', e=>{ if(e.key==='Enter') searchZip(); });
 
-    $('#btnSearch').addEventListener('click', ()=> doSearch($('#zipInput').value.trim()));
-    $('#zipInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') $('#btnSearch').click(); });
-
-    $('#btnLocate').addEventListener('click', async ()=>{
-      if(!navigator.geolocation){ alert('Geolocation not available'); return; }
-      navigator.geolocation.getCurrentPosition(async pos=>{
-        try{
-          const rev = await fetchJson('/reverse-zip', {lat:pos.coords.latitude, lon:pos.coords.longitude});
-          if(!rev.zip){ alert('Could not resolve ZIP from your location.'); return; }
-          $('#zipInput').value = rev.zip;
-          setPlaceLine(rev.zip, rev.place, rev.state);
-          await doSearch(rev.zip);
-        }catch(e){ alert('Could not resolve ZIP from your location.'); }
-      }, err=>{
-        alert('Location permission denied or unavailable.');
-      }, {enableHighAccuracy:true, timeout:10000});
-    });
-
-    async function doSearch(zip){
-      if(!zip){ alert('Enter a ZIP'); return; }
-      lastZip = zip;
-
-      try{
-        const info = await fetchJson('/zipinfo', {zip});
-        setPlaceLine(zip, info.place||'', info.state||'');
-      }catch(e){ setPlaceLine(zip, '', ''); }
-
-      $('#openLocalNews').href = `https://news.google.com/search?q=${encodeURIComponent(zip)}&hl=en-US&gl=US&ceid=US:en`;
-      $('#openWorldNews').href = `https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en`;
-      $('#trafficLink').href    = `https://www.google.com/maps/@?api=1&map_action=map&layer=traffic&query=${encodeURIComponent(zip)}`;
-
-      $('#concernPotholes').href = `https://www.google.com/search?q=${encodeURIComponent(zip+' report pothole')}`;
-      $('#concernTrash').href    = `https://www.google.com/search?q=${encodeURIComponent(zip+' report trash pickup')}`;
-      $('#concernLights').href   = `https://www.google.com/search?q=${encodeURIComponent(zip+' report street light')}`;
-
-      $('#howToVote').href   = 'https://www.usa.gov/how-to-vote';
-      $('#registerVote').href= 'https://www.vote.gov/';
-      $('#findOffice').href  = 'https://www.usa.gov/election-office';
-
-      await Promise.all([loadOfficials(zip), loadWeather(zip), loadElections(zip)]);
-    }
-
-    async function loadOfficials(zip){
-      const box = $('#officials'); box.innerHTML = '';
-      try{
-        const data = await fetchJson('/officials', {zip});
-        if(!data.officials || data.officials.length===0){
-          box.append(el('div', {className:'note', innerText:'Enter a ZIP to load officials…'}));
-          return;
-        }
-        data.officials.forEach(o=>{
-          const phone = (o.phones && o.phones[0]) ? (o.phones[0]) : '';
-          const row = el('div', {className:'item'}, [
-            el('div', {className:'title', innerText: o.name || '—'}),
-            el('div', {className:'note', innerText: `${o.office || ''}${o.party ? ' — '+o.party : ''}`}),
-            el('div', {className:'row'}, [
-              (o.urls && o.urls[0]) ? el('a', {href:o.urls[0], target:'_blank', rel:'noopener', className:'pill'}, 'Website') : null,
-              phone ? el('a', {href:`tel:${phone.replace(/[^\d]/g,'')}`, className:'pill'}, 'Call') : null
-            ])
-          ]);
-          box.append(row);
-        });
-      }catch(e){
-        box.append(el('div',{className:'note',innerText:'Could not load officials.'}));
-      }
-    }
-
-    async function loadWeather(zip){
-      const wxBox = $('#weatherList'); wxBox.innerHTML = '';
-      try{
-        const wx = await fetchJson('/weather', {zip});
-        const days = (wx.days || []).slice(0,7);
-        if(days.length===0){
-          wxBox.append(el('div',{className:'note',innerText:'Weather forecast unavailable.'}));
-          return;
-        }
-        days.forEach(d=>{
-          const hi = (d.max!=null)? Math.round(d.max) : '—';
-          const lo = (d.min!=null)? Math.round(d.min) : '—';
-          wxBox.append(el('div',{className:'item'},[
-            el('div',{className:'title',innerText:`${d.date} — ${d.summary}`}),
-            el('div',{className:'note',innerText:`High ${hi}°  •  Low ${lo}°`})
-          ]));
-        });
-      }catch(e){
-        wxBox.append(el('div',{className:'note',innerText:'Weather unavailable.'}));
-      }
-    }
-
-    async function loadElections(zip){
-      try{
-        const data = await fetchJson('/elections', {zip});
-        $('#fedElection').innerText = `Next Federal: ${data?.next?.federal || '—'}`;
-      }catch(e){
-        $('#fedElection').innerText = 'Next Federal: —';
-      }
-    }
-
-    (function boot(){
-      const qp = new URLSearchParams(location.search);
-      const startZip = qp.get('zip') || '';
-      if(startZip){
-        $('#zipInput').value = startZip;
-        doSearch(startZip);
-      }
-    })();
+    // Init from ?zip=
+    const startZip = new URL(location.href).searchParams.get('zip');
+    if(startZip){ zipInput.value = startZip; searchZip(); }
   </script>
 </body>
 </html>
