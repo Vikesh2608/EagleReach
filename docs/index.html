@@ -1,476 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
   <title>EagleReach</title>
-  <meta name="description" content="EagleReach — fast, trustworthy civic info for U.S. residents." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <style>
-    :root{
-      --brand:#0b5ed7;            /* primary blue */
-      --brand-600:#094caf;
-      --ink:#0b1220;              /* text */
-      --muted:#6b7280;            /* secondary text */
-      --bg:#ffffff;               /* page bg */
-      --card:#ffffff;
-      --card-border:#e5e7eb;
-      --pill:#e9f2ff;
-      --shadow:0 10px 20px rgba(0,0,0,.05), 0 2px 6px rgba(0,0,0,.04);
-      --radius:14px;
+    body { background: #f8f9fa; }
+    header {
+      background: #0d47a1;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--ink);
-      background:var(--bg);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+    header .brand { display: flex; align-items: center; gap: 0.5rem; }
+    header img.flag { height: 22px; }
+    header nav a {
+      color: white; margin-left: 20px;
+      text-decoration: none; font-weight: 500;
     }
-    a{color:var(--brand);text-decoration:none}
-    a:hover{text-decoration:underline}
+    header nav a:hover { text-decoration: underline; }
 
-    /* Header */
-    .hdr{
-      position:sticky;top:0;z-index:50;
-      background:#0a3d91;       /* Navy band */
-      color:#fff;
-      box-shadow:var(--shadow);
-    }
-    .hdr-in{
-      max-width:1160px;margin:0 auto;
-      padding:12px 16px;display:flex;align-items:center;gap:14px;
-    }
-    .flag{font-size:18px}
-    .title{font-weight:800;letter-spacing:.2px;font-size:18px}
-    .quote{margin-left:auto;font-size:13px;opacity:.9;white-space:nowrap}
-    .nav{display:flex;gap:20px;margin-left:20px}
-    .nav a{color:#fff;opacity:.9;font-weight:600}
-    .nav a:hover{opacity:1}
+    .container { margin-top: 1rem; max-width: 1100px; }
+    .card { margin-bottom: 1rem; }
 
-    /* Mobile top row wrap */
-    @media (max-width:840px){
-      .hdr-in{flex-wrap:wrap;row-gap:8px}
-      .quote{order:3;width:100%;margin-left:0;white-space:normal}
-      .nav{order:2;margin-left:0}
+    /* Button color fix */
+    .btn-primary {
+      background-color: #0d6efd !important;
+      border-color: #0d6efd !important;
     }
 
-    /* Layout */
-    .wrap{max-width:1160px;margin:28px auto;padding:0 16px}
-    .row{display:grid;grid-template-columns:1.3fr .9fr;gap:20px}
-    @media (max-width:980px){.row{grid-template-columns:1fr}}
-
-    /* Cards & buttons */
-    .card{
-      background:var(--card);border:1px solid var(--card-border);
-      border-radius:var(--radius);box-shadow:var(--shadow);
+    footer {
+      text-align: center; margin-top: 2rem;
+      padding: 1rem; font-size: 0.9rem; color: #666;
     }
-    .card-body{padding:18px}
-    .card h3{
-      margin:0 0 12px;font-size:16px;font-weight:800;color:#1f2937;
-      letter-spacing:.2px
-    }
-    .btn{
-      display:inline-flex;align-items:center;gap:8px;
-      background:var(--brand);color:#fff;border:0;border-radius:12px;
-      padding:10px 14px;font-weight:700;cursor:pointer
-    }
-    .btn:disabled{opacity:.55;cursor:not-allowed}
-    .btn:hover{background:var(--brand-600)}
-    .btn-alt{
-      background:#eef2ff;color:#1f3a8a;border:1px solid #c7d2fe
-    }
-    .btn-alt:hover{background:#e0e7ff}
-    .btn-ghost{
-      background:#f8fafc;color:#0f172a;border:1px solid #e5e7eb
-    }
-    .input{
-      width:100%;padding:12px 14px;border:1px solid #dfe3ea;border-radius:12px;
-      outline:none;font-weight:600
-    }
-    .stack{display:flex;gap:10px;flex-wrap:wrap}
-
-    /* Officials list */
-    .official{border:1px solid var(--card-border);border-radius:12px;padding:12px;margin:8px 0}
-    .official h4{margin:0 0 8px;font-size:15px}
-    .sm{font-size:13px;color:var(--muted)}
-    .pill{
-      display:inline-flex;align-items:center;gap:6px;
-      padding:8px 12px;border-radius:999px;background:var(--pill);
-      border:1px solid #cfe2ff;color:#0b3b8f;font-weight:700
-    }
-
-    /* Footer */
-    .ft{color:var(--muted);font-size:12px;text-align:center;margin:28px 0}
-
-    /* Modal (About / Founder / Contact) */
-    .modal-back{
-      position:fixed;inset:0;background:rgba(2,6,23,.5);
-      display:none;align-items:flex-start;justify-content:center;padding:20px;z-index:60
-    }
-    .modal{width:min(760px,100%);background:#fff;border-radius:16px;box-shadow:var(--shadow)}
-    .modal-h{
-      padding:16px 18px;border-bottom:1px solid #edf2f7;display:flex;align-items:center;gap:10px
-    }
-    .modal-h h3{margin:0;font-size:18px}
-    .modal-x{margin-left:auto;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;cursor:pointer}
-    .modal-b{padding:16px 18px;line-height:1.6}
-    .modal-back.show{display:flex}
   </style>
 </head>
 <body>
-
-  <!-- Header -->
-  <header class="hdr">
-    <div class="hdr-in">
-      <span class="flag" aria-hidden="true">🇺🇸</span>
-      <span class="title">EagleReach</span>
-      <nav class="nav">
-        <a href="#" data-open="about">About</a>
-        <a href="#" data-open="founder">Founder</a>
-        <a href="#" data-open="contact">Contact</a>
-        <a href="#" data-open="feedback">Feedback</a>
-      </nav>
-      <div class="quote">Civic info, fast &amp; free — built for everyone.</div>
+  <header>
+    <div class="brand">
+      <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
+           alt="US Flag" class="flag">
+      <strong>EagleReach</strong>
     </div>
+    <small>Civic info, fast & free — built for everyone.</small>
+    <nav>
+      <a href="#" onclick="showTab('about')">About</a>
+      <a href="#" onclick="showTab('founder')">Founder</a>
+      <a href="#" onclick="showTab('contact')">Contact</a>
+      <a href="#" onclick="showTab('feedback')">Feedback</a>
+    </nav>
   </header>
 
-  <main class="wrap">
-    <!-- Search -->
-    <section class="card" aria-labelledby="zipsearch">
-      <div class="card-body">
-        <h3 id="zipsearch">Enter ZIP</h3>
-        <div class="stack" style="align-items:center">
-          <input id="zip" class="input" placeholder="ZIP (e.g., 45220)" inputmode="numeric" />
-          <button id="btnLocate" class="btn" title="Use my location">📍 Use my location</button>
-          <button id="btnSearch" class="btn">🔎 Search</button>
-          <button id="btnCopy" class="btn-ghost" title="Copy a shareable link">🔗 Copy Share Link</button>
-          <button id="btnClear" class="btn-alt" title="Clear search">🧹 Clear history</button>
+  <div class="container" id="main">
+    <!-- ZIP input -->
+    <div class="card p-3">
+      <label for="zipInput" class="form-label fw-bold">Enter ZIP</label>
+      <div class="input-group">
+        <input id="zipInput" class="form-control" placeholder="ZIP (e.g., 45220)">
+        <button class="btn btn-danger" id="btnLocate" onclick="useMyLocation()">📍 Use my location</button>
+        <button class="btn btn-primary" onclick="searchZip()">🔍 Search</button>
+        <button class="btn btn-outline-secondary" onclick="copyLink()">📋 Copy Share Link</button>
+        <button class="btn btn-outline-secondary" onclick="clearHistory()">🗑 Clear history</button>
+      </div>
+    </div>
+
+    <!-- Elected reps -->
+    <div class="row">
+      <div class="col-md-8">
+        <div class="card p-3">
+          <h5 class="fw-bold">Elected Representatives</h5>
+          <div id="officials"></div>
+          <small class="text-muted">Sources: GovTrack (Congress), WhoIsMyRepresentative (House), FCC, Zippopotam.</small>
         </div>
-        <div id="placeLine" class="sm" style="margin-top:10px"></div>
-      </div>
-    </section>
-
-    <div class="row" style="margin-top:14px">
-      <!-- LEFT COLUMN -->
-      <div class="col">
-        <!-- Officials -->
-        <section class="card" aria-labelledby="reps">
-          <div class="card-body">
-            <h3 id="reps">Elected Representatives</h3>
-            <div id="officials"></div>
-            <div class="sm" style="margin-top:10px">
-              Sources: GovTrack (Congress), WhoIsMyRepresentative (House), FCC, Zippopotam.
-            </div>
-          </div>
-        </section>
-
-        <!-- News -->
-        <section class="card" style="margin-top:14px" aria-labelledby="news">
-          <div class="card-body">
-            <h3 id="news">News</h3>
-            <div class="stack">
-              <a class="pill" target="_blank" rel="noopener" id="btnLocalNews">Open Local News</a>
-              <a class="pill" target="_blank" rel="noopener" id="btnWorldNews">World News</a>
-            </div>
-            <div class="sm" style="margin-top:8px">Opens news in a new tab.</div>
-          </div>
-        </section>
-
-        <!-- Raise a Concern -->
-        <section class="card" style="margin-top:14px" aria-labelledby="concern">
-          <div class="card-body">
-            <h3 id="concern">Raise a Concern</h3>
-            <div class="stack">
-              <a class="pill" href="#" id="conc-potholes">Potholes</a>
-              <a class="pill" href="#" id="conc-trash">Trash</a>
-              <a class="pill" href="#" id="conc-lights">Street lights</a>
-            </div>
-            <div class="sm" style="margin-top:8px">
-              Report city issues (311), contact your city hall, or write to your representatives.
-            </div>
-          </div>
-        </section>
-
-        <!-- Emergency -->
-        <section class="card" style="margin-top:14px" aria-labelledby="emerg">
-          <div class="card-body">
-            <h3 id="emerg">Emergency</h3>
-            <div class="stack">
-              <a class="pill" href="tel:911">911 — Emergency</a>
-              <a class="pill" href="tel:988">988 — Suicide &amp; Crisis</a>
-              <a class="pill" href="tel:211">211 — Community Services</a>
-              <a class="pill" href="tel:311">311 — City Services</a>
-              <a class="pill" href="tel:811">811 — Before You Dig</a>
-              <a class="pill" href="tel:+18002221222">Poison Control</a>
-            </div>
-          </div>
-        </section>
-
-        <div class="ft">© 2025 EagleReach</div>
       </div>
 
-      <!-- RIGHT COLUMN -->
-      <div class="col">
-        <!-- Voter Info -->
-        <section class="card" aria-labelledby="vote">
-          <div class="card-body">
-            <h3 id="vote">Voter Info &amp; Education</h3>
-            <div class="stack">
-              <a class="btn" target="_blank" rel="noopener" href="https://www.usa.gov/how-to-vote">How to vote (USA.gov)</a>
-              <a class="btn" target="_blank" rel="noopener" href="https://www.usa.gov/register-to-vote">Register to vote</a>
-              <a class="btn" target="_blank" rel="noopener" href="https://www.usa.gov/election-office">Find your Election Office</a>
-            </div>
-          </div>
-        </section>
-
-        <!-- Elections -->
-        <section class="card" style="margin-top:14px" aria-labelledby="elex">
-          <div class="card-body">
-            <h3 id="elex">Upcoming Elections</h3>
-            <div id="elexNext" class="btn-ghost" style="padding:10px 12px;border-radius:12px;display:inline-block">Next Federal: —</div>
-          </div>
-        </section>
-
-        <!-- Traffic -->
-        <section class="card" style="margin-top:14px" aria-labelledby="traffic">
-          <div class="card-body">
-            <h3 id="traffic">Traffic</h3>
-            <div class="sm" style="margin-bottom:10px">Open live traffic for your area in Google Maps.</div>
-            <a id="btnTraffic" class="btn" target="_blank" rel="noopener">Open Traffic Map</a>
-          </div>
-        </section>
-
-        <!-- Weather -->
-        <section class="card" style="margin-top:14px" aria-labelledby="wx">
-          <div class="card-body">
-            <h3 id="wx">Local Weather (7-day)</h3>
-            <div id="weather"></div>
-          </div>
-        </section>
+      <!-- Voter info -->
+      <div class="col-md-4">
+        <div class="card p-3">
+          <h6 class="fw-bold">Voter Info & Education</h6>
+          <button class="btn btn-primary w-100 mb-2" onclick="window.open('https://www.usa.gov/how-to-vote','_blank')">How to vote (USA.gov)</button>
+          <button class="btn btn-primary w-100 mb-2" onclick="window.open('https://www.nass.org/can-I-vote','_blank')">Register to vote</button>
+          <button class="btn btn-primary w-100" onclick="window.open('https://www.nass.org/can-I-vote','_blank')">Find your Election Office</button>
+        </div>
       </div>
     </div>
-  </main>
 
-  <!-- ABOUT MODAL -->
-  <div class="modal-back" id="aboutModal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutHd">
-      <div class="modal-h">
-        <h3 id="aboutHd">About EagleReach</h3>
-        <button class="modal-x" data-close>Close</button>
+    <!-- News + Elections -->
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h6 class="fw-bold">News</h6>
+          <button class="btn btn-dark me-2" onclick="window.open('https://news.google.com','_blank')">Open Local News</button>
+          <button class="btn btn-dark" onclick="window.open('https://www.bbc.com/news','_blank')">World News</button>
+        </div>
       </div>
-      <div class="modal-b">
-        <p><strong>EagleReach</strong> is a civic engagement platform created by <strong>Vikesh Sagar Bairam</strong> to
-          help residents quickly find their elected representatives, voter education, weather, and local resources using a
-          simple ZIP-code search. The app is free to use and requires no sign-in.</p>
-        <p>Our purpose is to make civic information <strong>transparent, accessible, and user-friendly</strong> — so anyone
-          can participate in their democracy with confidence. EagleReach aggregates open data from trusted sources and
-          presents it in a clean, mobile-friendly interface.</p>
-        <p><strong>What you get:</strong> representatives and contact links, voter education (How to vote, Register, and Find
-          your election office), timely local weather, an easy way to raise city concerns, and one-tap access to emergency
-          numbers.</p>
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h6 class="fw-bold">Upcoming Elections</h6>
+          <div id="elections">Next Federal: —</div>
+        </div>
       </div>
+    </div>
+
+    <!-- Traffic + Weather -->
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h6 class="fw-bold">Traffic</h6>
+          <p>Open live traffic for your area in Google Maps.</p>
+          <button class="btn btn-primary" onclick="openTraffic()">Open Traffic Map</button>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card p-3">
+          <h6 class="fw-bold">Local Weather (7-day)</h6>
+          <div id="weather"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Concerns -->
+    <div class="card p-3">
+      <h6 class="fw-bold">Raise a Concern</h6>
+      <button class="btn btn-primary me-2">Potholes</button>
+      <button class="btn btn-primary me-2">Trash</button>
+      <button class="btn btn-primary">Street lights</button>
+      <p class="text-muted small">Report city issues (311), contact your city hall, or write to your representatives.</p>
+    </div>
+
+    <!-- Emergency -->
+    <div class="card p-3">
+      <h6 class="fw-bold">Emergency</h6>
+      <button class="btn btn-primary me-2">911 — Emergency</button>
+      <button class="btn btn-primary me-2">988 — Suicide & Crisis</button>
+      <button class="btn btn-primary me-2">211 — Community Services</button>
+      <button class="btn btn-primary me-2">311 — City Services</button>
+      <button class="btn btn-primary me-2">811 — Before You Dig</button>
+      <button class="btn btn-primary">Poison Control</button>
     </div>
   </div>
 
-  <!-- FOUNDER MODAL -->
-  <div class="modal-back" id="founderModal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="founderHd">
-      <div class="modal-h">
-        <h3 id="founderHd">Founder</h3>
-        <button class="modal-x" data-close>Close</button>
-      </div>
-      <div class="modal-b">
-        <p><strong>Vikesh Sagar Bairam</strong> is a Data Analyst and Cloud Specialist with experience across
-          analytics, DevOps, and civic-focused product development. He is passionate about building solutions that are
-          simple, reliable, and useful for everyone.</p>
-        <p><strong>Current &amp; previous roles:</strong> Data Specialist/Analyst at Jabil; Data Analyst at
-          S&amp;P Global (IHS Markit); DevOps Engineer at Techtate; Supply Chain Specialist at Auscomp Computers; and
-          DevOps Engineering Intern at Surfaces by Pacific.</p>
-        <p><strong>Education &amp; certifications:</strong> Master’s in Information Systems &amp; Management from the
-          University of Illinois, Springfield — with focus areas spanning AI/ML and cloud technologies. He also completed a
-          bachelor’s in Psychology and Arts (Osmania University) and a bachelor’s in Computers. He is certified as a
-          <em>Google Cloud Professional Data Engineer</em>.</p>
-        <p>Vikesh enjoys leading by example, collaborating across teams, and turning ideas into products that make civic
-          participation easier and more inclusive.</p>
-      </div>
+  <!-- Tabs -->
+  <div class="container" id="about" style="display:none">
+    <div class="card p-3">
+      <h4>About EagleReach</h4>
+      <p>
+        EagleReach is a civic information assistant designed to help residents quickly access
+        their elected officials, voter resources, weather, traffic, and news — all without
+        needing to log in. Built for society and individuals alike, it empowers people with
+        trustworthy data at their fingertips.
+      </p>
+      <p>
+        Features include ZIP-based lookup, one-tap location detection, links to official resources,
+        live traffic, and weather updates. The mission is to make civic access fast, free,
+        and accessible for everyone.
+      </p>
     </div>
   </div>
 
-  <!-- CONTACT / FEEDBACK MODAL (shared) -->
-  <div class="modal-back" id="contactModal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="contactHd">
-      <div class="modal-h">
-        <h3 id="contactHd">Contact</h3>
-        <button class="modal-x" data-close>Close</button>
-      </div>
-      <div class="modal-b">
-        <p>Email: <a href="mailto:vikebairam@gmail.com">vikebairam@gmail.com</a></p>
-        <p>LinkedIn: <a target="_blank" rel="noopener" href="https://www.linkedin.com/in/vikesh-bairam-219769258/">linkedin.com/in/vikesh-bairam-219769258/</a></p>
-        <p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/vikesh2608">github.com/vikesh2608</a></p>
-      </div>
+  <div class="container" id="founder" style="display:none">
+    <div class="card p-3">
+      <h4>Founder</h4>
+      <p>
+        <strong>Vikesh Sagar Bairam</strong> is a Master's graduate from the University of Illinois, Springfield,
+        specializing in Information Systems and Management with a focus on AI & ML. He also holds
+        Bachelor's degrees in Psychology, Arts, and Computers. Certified as a
+        <em>Professional Data Engineer (Google Cloud Platform)</em>, Vikesh has worked across roles
+        including Data Analyst at S&P Global (IHS Markit), Supply Chain Specialist at Auscomp Computers,
+        DevOps Engineer at Techtate, and Test Engineer at Jabil.
+      </p>
+      <p>
+        With strong leadership skills and a passion for automation, data, and AI/ML cloud solutions,
+        Vikesh built EagleReach as a service to the community. His vision is to create technologies
+        that delight end users, simplify access to critical information, and optimize processes
+        regardless of time or complexity.
+      </p>
     </div>
   </div>
 
-  <div class="modal-back" id="feedbackModal">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="fbHd">
-      <div class="modal-h">
-        <h3 id="fbHd">Feedback</h3>
-        <button class="modal-x" data-close>Close</button>
-      </div>
-      <div class="modal-b">
-        <p>Have suggestions? Send a quick note: <a href="mailto:vikebairam@gmail.com?subject=EagleReach%20Feedback">vikebairam@gmail.com</a></p>
-      </div>
+  <div class="container" id="contact" style="display:none">
+    <div class="card p-3">
+      <h4>Contact</h4>
+      <p>You can reach the team at <a href="mailto:vikesh2608@gmail.com">vikesh2608@gmail.com</a></p>
     </div>
   </div>
+
+  <div class="container" id="feedback" style="display:none">
+    <div class="card p-3">
+      <h4>Feedback</h4>
+      <p>We welcome your suggestions to improve EagleReach. Please share your ideas to help us grow.</p>
+    </div>
+  </div>
+
+  <footer>© 2025 EagleReach</footer>
 
   <script>
-    // ==== CONFIG ====
-    const API_BASE = (location.hostname.endsWith('github.io'))
-      ? 'https://eaglereach-api.fly.dev'   // <- your deployed API base (change if needed)
-      : 'http://localhost:8000';
+    const apiBase = "https://your-backend-here"; // replace with Render/hosted backend URL
+    const zipInput = document.getElementById('zipInput');
 
-    // If you deploy at some other domain, update API_BASE above.
-    // =================
-
-    const $ = sel => document.querySelector(sel);
-    const officialsEl = $('#officials');
-    const weatherEl  = $('#weather');
-    const nextEl     = $('#elexNext');
-    const zipInput   = $('#zip');
-    const placeLine  = $('#placeLine');
-
-    // ===== Helpers =====
-    function setPlaceLine(z) {
-      placeLine.textContent = z?.zip ? `${z.zip} — ${z.place || ''}${z.state ? ', ' + z.state : ''}` : '';
-    }
-    function shareLinkFromZip(zip) {
-      const url = new URL(location.href);
-      if (zip) url.searchParams.set('zip', zip); else url.searchParams.delete('zip');
-      return url.toString();
-    }
-    function openModal(id){ document.getElementById(id).classList.add('show'); }
-    function closeModals(){ document.querySelectorAll('.modal-back').forEach(m=>m.classList.remove('show')); }
-
-    document.querySelectorAll('[data-open]').forEach(a=>{
-      a.addEventListener('click',e=>{
-        e.preventDefault();
-        const id=a.dataset.open;
-        if(id==='about') openModal('aboutModal');
-        if(id==='founder') openModal('founderModal');
-        if(id==='contact') openModal('contactModal');
-        if(id==='feedback') openModal('feedbackModal');
-      });
-    });
-    document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeModals));
-    document.querySelectorAll('.modal-back').forEach(back=>{
-      back.addEventListener('click',e=>{
-        if(e.target===back) closeModals();
-      });
-    });
-
-    // ===== API calls =====
     async function getJSON(path, params={}){
-      const url = new URL(API_BASE + path);
-      Object.entries(params).forEach(([k,v]) => url.searchParams.set(k,v));
-      const r = await fetch(url.toString());
-      if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
-      return r.json();
+      const url = new URL(apiBase + path);
+      Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+      const res = await fetch(url);
+      if(!res.ok) throw new Error(await res.text());
+      return res.json();
     }
 
-    async function loadAll(zip){
-      // zip info
-      const z = await getJSON('/zipinfo', {zip});
-      setPlaceLine(z);
-
-      // officials
-      const reps = await getJSON('/officials', {zip});
-      officialsEl.innerHTML = (reps.officials || []).map(o => `
-        <div class="official">
-          <h4>${o.name || 'Unknown'}</h4>
-          <div class="sm">${o.office || ''}${o.party ? ' — ' + o.party : ''}</div>
-          <div class="stack" style="margin-top:8px">
-            ${ (o.urls||[]).map(u=>`<a class="pill" target="_blank" rel="noopener" href="${u}">Website</a>`).join('') }
-            ${ (o.phones||[]).map(p=>`<a class="pill" href="tel:${p.replace(/[^+0-9]/g,'')}">Call</a>`).join('') }
-          </div>
-        </div>
-      `).join('') || '<div class="sm">No officials found.</div>';
-
-      // weather
-      const wx = await getJSON('/weather', {zip});
-      weatherEl.innerHTML = (wx.days||[]).map(d => `
-        <div class="official" style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>${d.date}</strong><div class="sm">${d.summary||''}</div></div>
-          <div class="sm">${d.max ?? '—'}° / ${d.min ?? '—'}°</div>
-        </div>
-      `).join('') || '<div class="sm">Weather unavailable.</div>';
-
-      // elections
-      const elx = await getJSON('/elections', {zip});
-      nextEl.textContent = `Next Federal: ${elx?.next?.federal || '—'}`;
-
-      // news buttons (open in new tab)
-      const q = encodeURIComponent(`${z.place || ''} ${z.state || ''} local news`);
-      $('#btnLocalNews').href = `https://news.google.com/search?q=${q}`;
-      $('#btnWorldNews').href = `https://news.google.com/home?hl=en-US&gl=US&ceid=US:en`;
-
-      // traffic
-      const mapLatLng = (z.lat && z.lon) ? `${z.lat},${z.lon}` : '';
-      $('#btnTraffic').href = `https://www.google.com/maps/@?api=1&map_action=map&layer=traffic&center=${mapLatLng}`;
-    }
-
-    // ===== Actions =====
     async function searchZip(){
       const zip = zipInput.value.trim();
       if(!zip) return;
       try{
-        await loadAll(zip);
-        history.replaceState({}, '', shareLinkFromZip(zip));
-      }catch(err){
-        alert('Could not load data for that ZIP. Please try another.');
-        console.error(err);
-      }
+        const officials = await getJSON('/officials',{zip});
+        renderOfficials(officials);
+
+        const wx = await getJSON('/weather',{zip});
+        renderWeather(wx);
+
+        const elect = await getJSON('/elections',{zip});
+        document.getElementById('elections').innerText =
+          "Next Federal: " + (elect.next.federal || "—");
+      }catch(e){ alert("Search failed: "+e); }
     }
+
+    function renderOfficials(data){
+      const div = document.getElementById('officials');
+      div.innerHTML = "";
+      (data.officials||[]).forEach(o=>{
+        const card = document.createElement('div');
+        card.className = "border rounded p-2 mb-2";
+        card.innerHTML = `<strong>${o.name}</strong><br>${o.office || ""}<br>
+          ${o.party||""}<br>
+          ${o.phones?`<a href="tel:${o.phones[0]}" class="btn btn-sm btn-outline-dark">Call</a>`:""}
+          ${o.urls?`<a href="${o.urls[0]}" target="_blank" class="btn btn-sm btn-outline-dark">Website</a>`:""}`;
+        div.appendChild(card);
+      });
+    }
+
+    function renderWeather(wx){
+      const div = document.getElementById('weather');
+      div.innerHTML = "";
+      (wx.days||[]).forEach(d=>{
+        const p = document.createElement('div');
+        p.className = "border rounded p-1 mb-1";
+        p.innerText = `${d.date}: ${d.summary} (High ${d.max}° / Low ${d.min}°)`;
+        div.appendChild(p);
+      });
+    }
+
+    function copyLink(){
+      const url = location.origin + location.pathname + "?zip=" + zipInput.value;
+      navigator.clipboard.writeText(url);
+      alert("Link copied: "+url);
+    }
+    function clearHistory(){ zipInput.value=""; document.getElementById('officials').innerHTML=""; }
 
     async function useMyLocation(){
+      const btn = document.getElementById('btnLocate');
       try{
-        $('#btnLocate').disabled = true;
-        const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:10000}));
-        const data = await getJSON('/reverse-zip', {lat:pos.coords.latitude, lon:pos.coords.longitude});
-        if(!data.zip) throw new Error('ZIP not found from location');
-        zipInput.value = data.zip;
-        await searchZip();
+        btn.disabled = true;
+        const pos = await new Promise((res,rej)=>
+          navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:12000})
+        );
+        try{
+          const data = await getJSON('/reverse-zip',{lat:pos.coords.latitude,lon:pos.coords.longitude});
+          if(data?.zip){ zipInput.value=data.zip; await searchZip(); return; }
+        }catch(e){ console.warn("reverse-zip failed",e); }
+        // IP fallback
+        const r = await fetch('https://ipapi.co/json/');
+        const j = await r.json();
+        if(j?.postal){ zipInput.value=j.postal; await searchZip(); return; }
+        alert("Could not resolve ZIP from your location. You can type a ZIP manually.");
       }catch(err){
-        alert('Could not resolve ZIP from your location. You can type a ZIP manually.');
-        console.warn(err);
-      }finally{
-        $('#btnLocate').disabled = false;
-      }
+        console.warn("geo fail",err);
+        try{
+          const r = await fetch('https://ipapi.co/json/'); const j=await r.json();
+          if(j?.postal){ zipInput.value=j.postal; await searchZip(); return; }
+        }catch(e){}
+        alert("Could not resolve ZIP from your location. You can type a ZIP manually.");
+      }finally{ btn.disabled=false; }
     }
 
-    // Share / Clear
-    $('#btnCopy').addEventListener('click', async ()=>{
+    function openTraffic(){
       const zip = zipInput.value.trim();
-      const link = shareLinkFromZip(zip);
-      try{ await navigator.clipboard.writeText(link); alert('Link copied!'); }
-      catch{ prompt('Copy this link:', link); }
-    });
-    $('#btnClear').addEventListener('click', ()=>{
-      zipInput.value=''; placeLine.textContent=''; officialsEl.innerHTML=''; weatherEl.innerHTML=''; nextEl.textContent='Next Federal: —';
-      history.replaceState({}, '', shareLinkFromZip(''));
-    });
+      if(!zip){ alert("Enter ZIP first"); return; }
+      window.open(`https://www.google.com/maps/search/${zip}+traffic`,"_blank");
+    }
 
-    $('#btnSearch').addEventListener('click', searchZip);
-    $('#btnLocate').addEventListener('click', useMyLocation);
-    zipInput.addEventListener('keydown', e=>{ if(e.key==='Enter') searchZip(); });
+    // Tab navigation
+    function showTab(id){
+      ["main","about","founder","contact","feedback"].forEach(t=>document.getElementById(t).style.display="none");
+      document.getElementById(id).style.display="block";
+    }
 
-    // Init from ?zip=
-    const startZip = new URL(location.href).searchParams.get('zip');
-    if(startZip){ zipInput.value = startZip; searchZip(); }
+    // Auto search from ?zip=
+    window.onload = ()=>{
+      const params = new URLSearchParams(location.search);
+      const zip = params.get("zip");
+      if(zip){ zipInput.value=zip; searchZip(); }
+    }
   </script>
 </body>
 </html>
