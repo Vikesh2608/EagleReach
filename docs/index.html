@@ -12,7 +12,7 @@
       --ink:#0d1b2a;
       --muted:#6b7280;
       --card:#ffffff;
-      --bg:#0b1220;            /* darker background to match your screenshot */
+      --bg:#0b1220;
       --border:#1f2937;
       --btn:#3b82f6;
       --btn-ink:#fff;
@@ -27,7 +27,7 @@
     a{color:var(--link);text-decoration:none}
     a:hover{text-decoration:underline}
 
-    /* Header */
+    /* Header (quote removed) */
     .sitebar{
       position:sticky;top:0;z-index:50;
       background:var(--brand);
@@ -37,36 +37,22 @@
     .bar-wrap{
       max-width:1100px;margin:0 auto;
       display:flex;align-items:center;gap:18px;
-      flex-wrap:wrap;                 /* ✅ allow wrap so the blue bar grows */
+      flex-wrap:wrap;                 /* wrap if needed */
       padding:12px 16px;
     }
     .brand{
       display:flex;align-items:center;gap:12px;
-      font-weight:700;letter-spacing:.2px;
-      min-width:0;                   /* allow quote to clamp */
+      font-weight:700;letter-spacing:.2px;min-width:0;
     }
     .brand .flag{font-size:18px}
     .brand .name{font-size:18px;white-space:nowrap}
-    .brand .quote{
-      font-size:12px;opacity:.92;
-      max-width:520px;
-      white-space:nowrap;            /* ✅ single line */
-      overflow:hidden;text-overflow:ellipsis;
-    }
-    .nav{
-      margin-left:auto;display:flex;gap:18px;flex-wrap:wrap;
-    }
+    .nav{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap}
     .nav button{
       background:transparent;border:0;color:var(--brand-ink);
       font:inherit;cursor:pointer;padding:6px 6px;border-radius:8px;
       white-space:nowrap;
     }
     .nav button:hover{background:rgba(255,255,255,.12)}
-
-    /* Mobile header refinements */
-    @media (max-width:900px){
-      .brand .quote{display:none}          /* ✅ hide long quote on small screens */
-    }
     @media (max-width:520px){
       .bar-wrap{gap:10px;padding:10px 12px}
       .nav{gap:12px}
@@ -131,14 +117,13 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
+  <!-- Header (no quote) -->
   <div class="sitebar">
     <div class="bar-wrap">
       <div class="brand">
         <span class="flag">🇺🇸</span>
         <span class="name">EagleReach</span>
         <span class="flag" title="Eagle">🦅</span>
-        <span class="quote">“A nation, as a society, forms a moral person, and every member of it is personally responsible for his society.” — Thomas Jefferson</span>
       </div>
       <nav class="nav">
         <button data-open="about">About</button>
@@ -268,17 +253,28 @@
     </div>
   </div>
 
-  <!-- Founder -->
+  <!-- Founder (UPDATED) -->
   <div class="modal" id="founder">
     <div class="dialog">
       <header>
         <h3>Founder</h3>
         <button class="x" data-close="founder" aria-label="Close">×</button>
       </header>
-      <p><b>Vikesh</b> — Master's graduate from the University of Illinois, Springfield in Information Systems &amp; Management and AI/ML. Bachelor's in Psychology and Arts from Osmania University and a Bachelor's in Computers from the University of Allahabad.</p>
-      <p><b>Career:</b> Currently working at Jabil as a Data Specialist/Analyst; previously a Test Engineer. Also worked as a DevOps Engineering Intern at Surfaces by Pacific.</p>
-      <p><b>Specialties:</b> Cloud specialist, DevOps, Data Engineering, and Generative AI — helping teams grow with practical automations.</p>
-      <p><b>Why EagleReach:</b> EagleReach is a passion project built for civic access and the people it serves. Volunteering and service are core values, and I’m proud to build tools that support communities and better civic participation.</p>
+
+      <p><b>Vikesh</b> is a technology evangelist and business solutions architect with a focus on <b>DevOps</b>, <b>Data Engineering</b>, <b>Cloud</b>, and <b>Generative AI</b>. He holds a Master’s degree in Information Systems &amp; Management (with AI/ML) from the University of Illinois Springfield and also completed a Bachelor’s in Computers.</p>
+
+      <p><b>Certifications:</b> Google Cloud <b>Professional Data Engineer</b>.</p>
+
+      <p><b>Experience highlights:</b></p>
+      <ul>
+        <li><b>Jabil</b> — Data Specialist / Analyst</li>
+        <li><b>S&amp;P Global (IHS Markit)</b> — Data Analyst</li>
+        <li><b>Techtate</b> — DevOps Engineer</li>
+        <li><b>Auscomp Computers</b> — Supply Chain Specialist</li>
+        <li><b>Surfaces by Pacific</b> — DevOps Engineering Intern</li>
+      </ul>
+
+      <p><b>Why EagleReach:</b> This project reflects a commitment to community and public service — making civic information fast, respectful, and accessible to everyone.</p>
     </div>
   </div>
 
@@ -310,10 +306,8 @@
   </div>
 
   <script>
-    // === Config ===
-    const API_BASE = 'https://eaglereach-1.onrender.com';  // <-- change if needed
+    const API_BASE = 'https://eaglereach-1.onrender.com';  // backend
 
-    // === Helpers ===
     const $ = sel => document.querySelector(sel);
     const el = (tag, attrs={}, children=[])=>{
       const n = document.createElement(tag);
@@ -326,7 +320,6 @@
       (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=>n.append(c));
       return n;
     };
-    const fmtPhone = p => (p||'').replace(/[^\d]/g,'');
     const copy = async text => { try{ await navigator.clipboard.writeText(text); alert('Copied!'); } catch(e){ prompt('Copy:', text); } };
 
     async function fetchJson(path, params){
@@ -337,13 +330,11 @@
       return r.json();
     }
 
-    // === State ===
     let lastZip = '';
     function setPlaceLine(z, place, st){
       $('#placeLine').innerText = z ? `${z} — ${place||''}${place?', ':''}${st||''}` : '';
     }
 
-    // === UI wiring ===
     document.querySelectorAll('[data-open]').forEach(b=>{
       b.addEventListener('click', ()=> $('#'+b.dataset.open).classList.add('open'));
     });
@@ -387,7 +378,6 @@
       }, {enableHighAccuracy:true, timeout:10000});
     });
 
-    // === Data loaders ===
     async function doSearch(zip){
       if(!zip){ alert('Enter a ZIP'); return; }
       lastZip = zip;
@@ -397,7 +387,6 @@
         setPlaceLine(zip, info.place||'', info.state||'');
       }catch(e){ setPlaceLine(zip, '', ''); }
 
-      // Links that depend on zip/place/state
       $('#openLocalNews').href = `https://news.google.com/search?q=${encodeURIComponent(zip)}&hl=en-US&gl=US&ceid=US:en`;
       $('#openWorldNews').href = `https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en`;
       $('#trafficLink').href    = `https://www.google.com/maps/@?api=1&map_action=map&layer=traffic&query=${encodeURIComponent(zip)}`;
@@ -469,7 +458,6 @@
       }
     }
 
-    // === boot ===
     (function boot(){
       const qp = new URLSearchParams(location.search);
       const startZip = qp.get('zip') || '';
