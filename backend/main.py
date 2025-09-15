@@ -30,8 +30,8 @@ ZIP_RE = re.compile(r"^\d{5}$")
 
 ZIPPOTAM_URL = "https://api.zippopotam.us/us/{zip}"
 WMR_HOUSE_URL = "https://whoismyrepresentative.com/getall_mems.php?zip={zip}&output=json"
-GOVTRACK_SENATE_URL = "https://www.govtrack.us/api/v2/role?current=true&role=senator&state={state}"
-GOVTRACK_HOUSE_URL = "https://www.govtrack.us/api/v2/role?current=true&role=representative&state={state}&district={district}"
+GOVTRACK_SENATE_URL = "https://www.govtrack.us/api/v2/role?current=true&role_type=senator&state={state}"
+GOVTRACK_HOUSE_URL = "https://www.govtrack.us/api/v2/role?current=true&role_type=representative&state={state}&district={district}"
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 
 app = FastAPI(title="EagleReach API", version="1.0.2")
