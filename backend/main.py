@@ -14,8 +14,11 @@ from fastapi.responses import JSONResponse
 # =========================
 # Config
 # =========================
-API_TIMEOUT = float(os.getenv("API_TIMEOUT", "8.0"))
+API_TIMEOUT = float(os.getenv("API_TIMEOUT", "10.0"))
 CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "900"))  # 15 min
+
+GCIVIC_API_KEY = os.getenv("GCIVIC_API_KEY", "").strip()  # REQUIRED
+OPENSTATES_API_KEY = os.getenv("OPENSTATES_API_KEY", "").strip()  # optional
 
 DEFAULT_ORIGINS = ",".join([
     "https://vikesh2608.github.io",
@@ -29,24 +32,11 @@ ALLOWED_ORIGINS = [o for o in os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS).spli
 
 ZIP_RE = re.compile(r"^\d{5}$")
 
-# External data sources
 ZIPPOTAM_URL = "https://api.zippopotam.us/us/{zip}"
-WMR_HOUSE_URL = "https://whoismyrepresentative.com/getall_mems.php?zip={zip}&output=json"
+GCIVIC_REPS_URL = "https://civicinfo.googleapis.com/civicinfo/v2/representatives"
+OPENSTATES_PEOPLE_URL = "https://v3.openstates.org/people"  # v3 REST
 
-# GovTrack requires role_type; be explicit about format & raise limit
-GOVTRACK_SENATE_URL = (
-    "https://www.govtrack.us/api/v2/role"
-    "?current=true&role_type=senator&state={state}&format=json&limit=100"
-)
-GOVTRACK_HOUSE_URL = (
-    "https://www.govtrack.us/api/v2/role"
-    "?current=true&role_type=representative&state={state}&district={district}&format=json&limit=100"
-)
-
-WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
-
-app = FastAPI(title="EagleReach API", version="1.3.0")
-
+app = FastAPI(title="EagleReach (Civic v2)", version="2.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -74,7 +64,7 @@ def cache_set(key: str, data: Any):
     _cache[key] = (time.time(), data)
 
 # =========================
-# Shared HTTP client
+# HTTP client
 # =========================
 client: Optional[httpx.AsyncClient] = None
 
@@ -83,7 +73,7 @@ async def on_startup():
     global client
     client = httpx.AsyncClient(
         timeout=API_TIMEOUT,
-        headers={"User-Agent": "EagleReach/1.3 (+https://github.com/Vikesh2608/EagleReach)"},
+        headers={"User-Agent": "EagleReach/2.0 (+https://github.com/Vikesh2608/EagleReach)"},
         follow_redirects=True,
     )
 
@@ -97,43 +87,8 @@ async def on_shutdown():
 # =========================
 # Helpers
 # =========================
-def clean_party(p: Optional[str]) -> Optional[str]:
-    if not p:
-        return p
-    p = p.strip()
-    mapping = {
-        "Democrat": "Democratic",
-        "Democratic": "Democratic",
-        "Republican": "Republican",
-        "Independent": "Independent",
-    }
-    return mapping.get(p, p)
-
-def gt_role_to_person(role: Dict[str, Any]) -> Dict[str, Any]:
-    person = role.get("person") or {}
-    pid = person.get("id")
-    website = role.get("website") or (role.get("extra") or {}).get("url") or person.get("link")
-    photo = f"https://www.govtrack.us/static/legisphotos/{pid}-200px.jpeg" if pid else None
-    extras = role.get("extras") or role.get("extra") or {}
-    twitter = extras.get("twitter") or extras.get("twitter_id") if isinstance(extras, dict) else None
-    return {
-        "name": person.get("name"),
-        "party": clean_party(role.get("party")),
-        "state": role.get("state"),
-        "district": role.get("district"),
-        "role": role.get("role_type_label") or role.get("role_type"),
-        "website": website,
-        "phone": role.get("phone"),
-        "contact_form": role.get("contact_form"),
-        "twitter": twitter,
-        "photo": photo,
-        "govtrack_id": pid,
-    }
-
-async def fetch_json(url: str, cache_key: Optional[str] = None) -> Any:
-    """
-    GET + JSON with caching, Accept header, and small retries for 429/5xx.
-    """
+async def fetch_json(url: str, *, params: Dict[str, Any] = None, headers: Dict[str, str] = None,
+                     cache_key: Optional[str] = None, retries: int = 2) -> Any:
     if cache_key:
         cached = cache_get(cache_key)
         if cached is not None:
@@ -142,56 +97,28 @@ async def fetch_json(url: str, cache_key: Optional[str] = None) -> Any:
     if client is None:
         raise HTTPException(status_code=500, detail="HTTP client not ready")
 
-    attempts = 3
     last_err: Optional[Exception] = None
-
-    for i in range(attempts):
+    for i in range(retries + 1):
         try:
-            r = await client.get(
-                url,
-                headers={"Accept": "application/json, */*;q=0.1"},
-            )
-            # Retry on transient codes
-            if r.status_code in (429, 500, 502, 503, 504):
-                last_err = httpx.HTTPStatusError("retryable", request=r.request, response=r)
-                await asyncio.sleep(0.5 * (i + 1))
+            r = await client.get(url, params=params, headers=headers)
+            if r.status_code in (429, 500, 502, 503, 504) and i < retries:
+                await asyncio.sleep(0.6 * (i + 1))
                 continue
-
             r.raise_for_status()
-            ct = (r.headers.get("content-type") or "").lower()
-            if "application/json" in ct:
-                data = r.json()
-            else:
-                # best-effort JSON parse
-                try:
-                    data = r.json()
-                except Exception:
-                    try:
-                        data = json.loads(r.text)
-                    except Exception:
-                        data = {"raw": r.text}
-
+            data = r.json()
             if cache_key:
                 cache_set(cache_key, data)
             return data
-
-        except httpx.HTTPStatusError as e:
-            last_err = e
-            await asyncio.sleep(0.5 * (i + 1))
         except Exception as e:
             last_err = e
-            await asyncio.sleep(0.5 * (i + 1))
-
-    # out of retries
-    if isinstance(last_err, httpx.HTTPStatusError):
-        raise HTTPException(
-            status_code=502,
-            detail=f"Upstream {last_err.response.status_code} for {url}",
-        ) from last_err
-    raise HTTPException(status_code=502, detail=f"Upstream error for {url}") from last_err
+            if i < retries:
+                await asyncio.sleep(0.6 * (i + 1))
+            else:
+                raise HTTPException(status_code=502, detail=f"Upstream error for {url}") from e
+    raise HTTPException(status_code=502, detail=str(last_err) if last_err else "Upstream error")
 
 async def zippopotam_info(zipcode: str) -> Dict[str, Any]:
-    data = await fetch_json(ZIPPOTAM_URL.format(zip=zipcode), f"zip:{zipcode}")
+    data = await fetch_json(ZIPPOTAM_URL.format(zip=zipcode), cache_key=f"zip:{zipcode}")
     places = data.get("places") or []
     if not places:
         raise HTTPException(status_code=404, detail="ZIP not found")
@@ -205,176 +132,161 @@ async def zippopotam_info(zipcode: str) -> Dict[str, Any]:
         "lon": float(p.get("longitude")),
     }
 
-async def whois_house(zipcode: str) -> Optional[str]:
-    """Try to get district from WhoIsMyRepresentative; tolerate failures."""
-    try:
-        data = await fetch_json(WMR_HOUSE_URL.format(zip=zipcode), f"wmr:{zipcode}")
-        if isinstance(data, dict):
-            results = data.get("results") or []
-            for r in results:
-                d = (r.get("district") or "").strip()
-                if d.isdigit():
-                    return d
-    except Exception:
-        pass
-    return None
+def gcivic_office_map(offices: List[Dict[str, Any]], officials: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Flatten Google Civic 'offices' + 'officials' arrays into structured roles."""
+    results = []
+    for off in offices or []:
+        name = off.get("name")
+        division_id = off.get("divisionId")
+        levels = off.get("levels") or []
+        roles = off.get("roles") or []
+        indices = off.get("officialIndices") or []
 
-async def govtrack_senators(state: str) -> List[Dict[str, Any]]:
-    """Tolerant wrapper: return [] on upstream issues."""
-    try:
-        data = await fetch_json(GOVTRACK_SENATE_URL.format(state=state), f"sen:{state}")
-        return [gt_role_to_person(o) for o in data.get("objects", [])]
-    except Exception:
-        return []
+        for idx in indices:
+            if idx is None or idx >= len(officials):
+                continue
+            o = officials[idx] or {}
+            phones = o.get("phones") or []
+            urls = o.get("urls") or []
+            photo = o.get("photoUrl")
+            party = o.get("party")
+            channels = {c["type"].lower(): c["id"] for c in (o.get("channels") or []) if "type" in c and "id" in c}
+            twitter = channels.get("twitter")
+            fb = channels.get("facebook")
 
-async def govtrack_reps(state: str, district: str) -> List[Dict[str, Any]]:
-    """Tolerant wrapper: return [] on upstream issues."""
-    try:
-        data = await fetch_json(
-            GOVTRACK_HOUSE_URL.format(state=state, district=district),
-            f"rep:{state}:{district}",
-        )
-        return [gt_role_to_person(o) for o in data.get("objects", [])]
-    except Exception:
-        return []
+            results.append({
+                "office": name,
+                "division_id": division_id,
+                "levels": levels,
+                "roles": roles,
+                "name": o.get("name"),
+                "party": party,
+                "phones": phones,
+                "urls": urls,
+                "photo": photo,
+                "twitter": twitter,
+                "facebook": fb,
+                "emails": o.get("emails") or [],
+                "address": o.get("address") or [],
+            })
+    return results
 
-async def wikidata_mayor(city: str, state_full: str) -> Optional[Dict[str, Any]]:
-    if client is None:
-        return None
-    query = f"""
-    SELECT ?mayor ?mayorLabel ?website WHERE {{
-      ?city rdfs:label "{city}"@en ;
-            wdt:P17 wd:Q30 ;
-            wdt:P131 ?state .
-      ?state rdfs:label "{state_full}"@en .
-      OPTIONAL {{ ?city wdt:P6 ?mayor . }}
-      OPTIONAL {{ ?mayor wdt:P856 ?website . }}
-      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
-    }} LIMIT 1
-    """
-    try:
-        r = await client.get(
-            WIKIDATA_SPARQL,
-            params={"format": "json", "query": query},
-            headers={"Accept": "application/sparql-results+json"},
-        )
-        r.raise_for_status()
-        data = r.json()
-        rows = data.get("results", {}).get("bindings", [])
-        if not rows:
-            return None
-        row = rows[0]
-        name = row.get("mayorLabel", {}).get("value")
-        website = row.get("website", {}).get("value")
-        if not name:
-            return None
-        return {"name": name, "website": website}
-    except Exception:
-        return None
+def pick_federal(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    senators = []
+    house = []
+    for r in results:
+        rs = [s.lower() for s in (r.get("roles") or [])]
+        lv = [l.lower() for l in (r.get("levels") or [])]
+        office = (r.get("office") or "").lower()
+
+        # US Senators
+        if "legislatorupperbody" in rs or "upper" in office or "senate" in office:
+            if "country" in lv or "national" in lv or "us" in office:
+                senators.append(r)
+        # US House
+        if "legislatorlowerbody" in rs or "house" in office:
+            if "country" in lv or "national" in lv or "us" in office:
+                house.append(r)
+    return {"senators": senators, "representatives": house}
 
 # =========================
 # Routes
 # =========================
 @app.get("/")
-def root():
-    return {"ok": True, "service": "EagleReach API"}
+def home():
+    return {"ok": True, "service": "EagleReach API (Google Civic)"}
 
 @app.get("/health")
 def health():
     return {"ok": True, "ts": int(time.time())}
 
-@app.get("/officials")
-async def officials(
-    zip: str = Query(..., description="US 5-digit ZIP code"),
-    debug: int = Query(0, description="Set 1 to include upstream status info"),
+@app.get("/civic")
+async def civic(
+    address: str = Query(..., description="US address or ZIP (e.g., 45220)"),
+    include_state_leg: int = Query(0, description="1 to query OpenStates for active state legislators"),
+    debug: int = Query(0, description="1 to include upstream status"),
 ):
-    if not ZIP_RE.match(zip):
-        raise HTTPException(status_code=400, detail="Invalid ZIP. Use 5 digits.")
+    if ZIP_RE.match(address):
+        # Normalize & add city/state via zippopotam (nice to have; not required)
+        loc = await zippopotam_info(address)
+        normalized_address = f"{loc['city']}, {loc['state']} {loc['zip']}"
+        state_abbr = loc["state"]
+    else:
+        normalized_address = address
+        # do the best to guess state from the string (fallback)
+        m = re.search(r"\b(AL|AK|AZ|AR|CA|CO|CT|DE|DC|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b", address, re.I)
+        state_abbr = m.group(1).upper() if m else None
 
-    upstream_info: Dict[str, Optional[str]] = {
-        "zippopotam": None, "govtrack_senators": None,
-        "whois": None, "govtrack_reps": None, "wikidata": None
+    if not GCIVIC_API_KEY:
+        raise HTTPException(status_code=400, detail="GCIVIC_API_KEY not set on the server.")
+
+    upstream = {}
+
+    # --- Google Civic Info ---
+    civic_params = {
+        "key": GCIVIC_API_KEY,
+        "address": normalized_address,
+        "levels": "country",  # federal only; remove to get all levels
     }
+    civic_data = await fetch_json(GCIVIC_REPS_URL, params=civic_params, cache_key=f"civic:{normalized_address}")
+    offices = civic_data.get("offices") or []
+    officials = civic_data.get("officials") or []
+    flattened = gcivic_office_map(offices, officials)
+    fed = pick_federal(flattened)
 
-    # Resolve location (hard requirement)
-    loc = await zippopotam_info(zip)
-    upstream_info["zippopotam"] = "ok"
-    state = loc["state"]
-    city = loc["city"]
-    state_full = loc["state_full"]
+    upstream["google_civic"] = f"ok: off={len(offices)} officials={len(officials)} flat={len(flattened)}"
 
-    # Parallel upstream calls with tolerant wrappers
-    async def _sen():
+    # --- Optionally: OpenStates (state legislators) ---
+    state_legislators: List[Dict[str, Any]] = []
+    if include_state_leg and state_abbr and OPENSTATES_API_KEY:
         try:
-            s = await govtrack_senators(state)
-            upstream_info["govtrack_senators"] = f"ok({len(s)})" if s else "empty"
-            return s
+            os_params = {
+                # filter to current, active state legislators
+                "jurisdiction": state_abbr,          # v3 supports state abbreviations
+                "classification": "legislator",
+                "active": "true",
+                "per_page": "50",
+            }
+            headers = {"X-API-KEY": OPENSTATES_API_KEY}
+            os_data = await fetch_json(OPENSTATES_PEOPLE_URL, params=os_params, headers=headers,
+                                       cache_key=f"openstates:{state_abbr}")
+            for p in os_data.get("results", []):
+                state_legislators.append({
+                    "name": p.get("name"),
+                    "party": p.get("party"),
+                    "chamber": (p.get("chamber") or p.get("current_role", {}).get("chamber")),
+                    "district": (p.get("district") or p.get("current_role", {}).get("district")),
+                    "links": p.get("links") or [],
+                    "email": p.get("email"),
+                })
+            upstream["openstates"] = f"ok({len(state_legislators)})"
         except Exception as e:
-            upstream_info["govtrack_senators"] = f"err({type(e).__name__})"
-            return []
-
-    async def _whois():
-        try:
-            d = await whois_house(zip)
-            upstream_info["whois"] = "ok" if d else "empty"
-            return d
-        except Exception as e:
-            upstream_info["whois"] = f"err({type(e).__name__})"
-            return None
-
-    async def _may():
-        try:
-            m = await wikidata_mayor(city, state_full)
-            upstream_info["wikidata"] = "ok" if m else "empty"
-            return m
-        except Exception as e:
-            upstream_info["wikidata"] = f"err({type(e).__name__})"
-            return None
-
-    district, senators, mayor = await asyncio.gather(_whois(), _sen(), _may())
-
-    reps: List[Dict[str, Any]] = []
-    if district:
-        try:
-            reps = await govtrack_reps(state, district)
-            upstream_info["govtrack_reps"] = f"ok({len(reps)})" if reps else "empty"
-        except Exception as e:
-            upstream_info["govtrack_reps"] = f"err({type(e).__name__})"
+            upstream["openstates"] = f"err({type(e).__name__})"
+    elif include_state_leg and not OPENSTATES_API_KEY:
+        upstream["openstates"] = "skipped(no API key)"
+    else:
+        upstream["openstates"] = "skipped"
 
     payload = {
-        "location": {
-            "zip": loc["zip"], "city": city, "state": state, "state_full": state_full,
-            "lat": loc["lat"], "lon": loc["lon"],
-        },
-        "officials": {"senators": senators, "representatives": reps, "mayor": mayor},
+        "input_address": normalized_address,
+        "federal": fed,                       # { senators: [...], representatives: [...] }
+        "all_civic": flattened,               # everything returned at country level
+        "state_legislators": state_legislators or None,
         "sources": {
-            "zip": "Zippopotam.us",
-            "district": "WhoIsMyRepresentative (best-effort)",
-            "congress": "GovTrack.us",
-            "mayor": "Wikidata",
-        },
+            "federal": "Google Civic Information API",
+            "state_legislators": "OpenStates (optional)",
+        }
     }
 
-    warnings = []
-    if not senators:
-        warnings.append("No senators from GovTrack (rate limit or upstream error).")
-    if district and not reps:
-        warnings.append(f"No House member from GovTrack for {state}-{district}.")
-    if not mayor:
-        warnings.append("No mayor from Wikidata.")
-    if warnings:
-        payload["warnings"] = warnings
-
     if debug:
-        payload["debug"] = upstream_info
+        payload["debug"] = upstream
 
     return payload
 
 # =========================
-# Global error handler -> JSON
+# Error handler
 # =========================
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    # Log to Render logs
     print("UNCAUGHT ERROR:", repr(exc))
     return JSONResponse(status_code=500, content={"error": "internal_server_error", "detail": str(exc)})
