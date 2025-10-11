@@ -1,3 +1,4 @@
+# backend/main.py
 import os
 import re
 import time
@@ -10,11 +11,11 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-# -----------------------------
+# =========================
 # Config
-# -----------------------------
+# =========================
 API_TIMEOUT = float(os.getenv("API_TIMEOUT", "8.0"))
-CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "900"))
+CACHE_TTL_SECONDS = int(os.getenv("CACHE_TTL_SECONDS", "900"))  # 15 min
 
 DEFAULT_ORIGINS = ",".join([
     "https://vikesh2608.github.io",
@@ -28,13 +29,15 @@ ALLOWED_ORIGINS = [o for o in os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS).spli
 
 ZIP_RE = re.compile(r"^\d{5}$")
 
+# External data sources
 ZIPPOTAM_URL = "https://api.zippopotam.us/us/{zip}"
 WMR_HOUSE_URL = "https://whoismyrepresentative.com/getall_mems.php?zip={zip}&output=json"
+# NOTE: GovTrack requires role_type (NOT role)
 GOVTRACK_SENATE_URL = "https://www.govtrack.us/api/v2/role?current=true&role_type=senator&state={state}"
-GOVTRACK_HOUSE_URL = "https://www.govtrack.us/api/v2/role?current=true&role_type=representative&state={state}&district={district}"
+GOVTRACK_HOUSE_URL  = "https://www.govtrack.us/api/v2/role?current=true&role_type=representative&state={state}&district={district}"
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 
-app = FastAPI(title="EagleReach API", version="1.0.2")
+app = FastAPI(title="EagleReach API", version="1.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,9 +47,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -----------------------------
+# =========================
 # Simple in-memory TTL cache
-# -----------------------------
+# =========================
 _cache: Dict[str, Tuple[float, Any]] = {}
 
 def cache_get(key: str):
@@ -62,9 +65,9 @@ def cache_get(key: str):
 def cache_set(key: str, data: Any):
     _cache[key] = (time.time(), data)
 
-# -----------------------------
-# HTTP client
-# -----------------------------
+# =========================
+# Shared HTTP client
+# =========================
 client: Optional[httpx.AsyncClient] = None
 
 @app.on_event("startup")
@@ -72,7 +75,7 @@ async def on_startup():
     global client
     client = httpx.AsyncClient(
         timeout=API_TIMEOUT,
-        headers={"User-Agent": "EagleReach/1.0"},
+        headers={"User-Agent": "EagleReach/1.1 (+https://github.com/Vikesh2608/EagleReach)"},
         follow_redirects=True,
     )
 
@@ -83,14 +86,15 @@ async def on_shutdown():
         await client.aclose()
         client = None
 
-# -----------------------------
+# =========================
 # Helpers
-# -----------------------------
+# =========================
 def clean_party(p: Optional[str]) -> Optional[str]:
     if not p:
         return p
     p = p.strip()
-    mapping = {"Democrat": "Democratic", "Democratic": "Democratic", "Republican": "Republican", "Independent": "Independent"}
+    mapping = {"Democrat": "Democratic", "Democratic": "Democratic",
+               "Republican": "Republican", "Independent": "Independent"}
     return mapping.get(p, p)
 
 def gt_role_to_person(role: Dict[str, Any]) -> Dict[str, Any]:
@@ -115,30 +119,29 @@ def gt_role_to_person(role: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 async def fetch_json(url: str, cache_key: Optional[str] = None) -> Any:
-    """GET+JSON with caching and robust error handling."""
+    """GET + JSON with caching and robust fallbacks."""
     if cache_key:
         cached = cache_get(cache_key)
         if cached is not None:
             return cached
+
     if client is None:
         raise HTTPException(status_code=500, detail="HTTP client not ready")
 
     try:
         r = await client.get(url)
         r.raise_for_status()
-        # WhoIsMyRepresentative sometimes returns text/html. Try JSON parse, else fallback.
-        ct = r.headers.get("content-type", "")
-        if "application/json" in ct.lower():
+        ct = r.headers.get("content-type", "").lower()
+        if "application/json" in ct:
             data = r.json()
         else:
-            # best-effort parse
+            # some providers (WMR) respond with text/html — try parsing anyway
             try:
                 data = r.json()
             except Exception:
                 try:
                     data = json.loads(r.text)
                 except Exception:
-                    # give caller a chance to handle non-JSON
                     data = {"raw": r.text}
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=502, detail=f"Upstream {e.response.status_code} for {url}") from e
@@ -165,7 +168,7 @@ async def zippopotam_info(zipcode: str) -> Dict[str, Any]:
     }
 
 async def whois_house(zipcode: str) -> Optional[str]:
-    """Try to get the district number from WMR; tolerate failures."""
+    """Try to get district from WhoIsMyRepresentative; tolerate failures."""
     try:
         data = await fetch_json(WMR_HOUSE_URL.format(zip=zipcode), f"wmr:{zipcode}")
         if isinstance(data, dict):
@@ -182,7 +185,7 @@ async def govtrack_senators(state: str) -> List[Dict[str, Any]]:
     data = await fetch_json(GOVTRACK_SENATE_URL.format(state=state), f"sen:{state}")
     return [gt_role_to_person(o) for o in data.get("objects", [])]
 
-async def govtrack_representatives(state: str, district: str) -> List[Dict[str, Any]]:
+async def govtrack_reps(state: str, district: str) -> List[Dict[str, Any]]:
     data = await fetch_json(GOVTRACK_HOUSE_URL.format(state=state, district=district), f"rep:{state}:{district}")
     return [gt_role_to_person(o) for o in data.get("objects", [])]
 
@@ -220,9 +223,9 @@ async def wikidata_mayor(city: str, state_full: str) -> Optional[Dict[str, Any]]
     except Exception:
         return None
 
-# -----------------------------
+# =========================
 # Routes
-# -----------------------------
+# =========================
 @app.get("/")
 def root():
     return {"ok": True, "service": "EagleReach API"}
@@ -236,40 +239,31 @@ async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
     if not ZIP_RE.match(zip):
         raise HTTPException(status_code=400, detail="Invalid ZIP. Use 5 digits.")
 
-    # Resolve location first
+    # Resolve location
     loc = await zippopotam_info(zip)
     state = loc["state"]
     city = loc["city"]
     state_full = loc["state_full"]
 
-    # Parallel upstream lookups
+    # Parallel lookups
     district_task = whois_house(zip)
     senators_task = govtrack_senators(state)
     mayor_task = wikidata_mayor(city, state_full)
-
     district, senators, mayor = await asyncio.gather(district_task, senators_task, mayor_task)
 
     reps: List[Dict[str, Any]] = []
     if district:
         try:
-            reps = await govtrack_representatives(state, district)
+            reps = await govtrack_reps(state, district)
         except Exception:
-            reps = []   # tolerate representative lookup failure
+            reps = []   # tolerate rep lookup failure
 
     payload = {
         "location": {
-            "zip": loc["zip"],
-            "city": loc["city"],
-            "state": state,
-            "state_full": state_full,
-            "lat": loc["lat"],
-            "lon": loc["lon"],
+            "zip": loc["zip"], "city": city, "state": state, "state_full": state_full,
+            "lat": loc["lat"], "lon": loc["lon"],
         },
-        "officials": {
-            "senators": senators,
-            "representatives": reps,
-            "mayor": mayor,
-        },
+        "officials": {"senators": senators, "representatives": reps, "mayor": mayor},
         "sources": {
             "zip": "Zippopotam.us",
             "district": "WhoIsMyRepresentative (best-effort)",
@@ -279,14 +273,16 @@ async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
     }
 
     if not senators and not reps and not mayor:
+        # location OK but all providers failed
         raise HTTPException(status_code=502, detail="Civic data providers unavailable. Try again later.")
     return payload
 
-# -----------------------------
-# Global exception handler -> JSON
-# -----------------------------
+# =========================
+# Global error handler -> JSON
+# =========================
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    # Print to logs for debugging on Render
+    # Log to Render logs
     print("UNCAUGHT ERROR:", repr(exc))
     return JSONResponse(status_code=500, content={"error": "internal_server_error", "detail": str(exc)})
+
