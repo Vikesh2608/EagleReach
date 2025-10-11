@@ -33,13 +33,19 @@ ZIP_RE = re.compile(r"^\d{5}$")
 ZIPPOTAM_URL = "https://api.zippopotam.us/us/{zip}"
 WMR_HOUSE_URL = "https://whoismyrepresentative.com/getall_mems.php?zip={zip}&output=json"
 
-# GovTrack requires role_type (NOT role)
-GOVTRACK_SENATE_URL = "https://www.govtrack.us/api/v2/role?current=true&role_type=senator&state={state}"
-GOVTRACK_HOUSE_URL  = "https://www.govtrack.us/api/v2/role?current=true&role_type=representative&state={state}&district={district}"
+# GovTrack requires role_type; be explicit about format & raise limit
+GOVTRACK_SENATE_URL = (
+    "https://www.govtrack.us/api/v2/role"
+    "?current=true&role_type=senator&state={state}&format=json&limit=100"
+)
+GOVTRACK_HOUSE_URL = (
+    "https://www.govtrack.us/api/v2/role"
+    "?current=true&role_type=representative&state={state}&district={district}&format=json&limit=100"
+)
 
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 
-app = FastAPI(title="EagleReach API", version="1.2.0")
+app = FastAPI(title="EagleReach API", version="1.3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -77,7 +83,7 @@ async def on_startup():
     global client
     client = httpx.AsyncClient(
         timeout=API_TIMEOUT,
-        headers={"User-Agent": "EagleReach/1.2 (+https://github.com/Vikesh2608/EagleReach)"},
+        headers={"User-Agent": "EagleReach/1.3 (+https://github.com/Vikesh2608/EagleReach)"},
         follow_redirects=True,
     )
 
@@ -125,7 +131,9 @@ def gt_role_to_person(role: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 async def fetch_json(url: str, cache_key: Optional[str] = None) -> Any:
-    """GET + JSON with caching and robust fallbacks."""
+    """
+    GET + JSON with caching, Accept header, and small retries for 429/5xx.
+    """
     if cache_key:
         cached = cache_get(cache_key)
         if cached is not None:
@@ -134,30 +142,53 @@ async def fetch_json(url: str, cache_key: Optional[str] = None) -> Any:
     if client is None:
         raise HTTPException(status_code=500, detail="HTTP client not ready")
 
-    try:
-        r = await client.get(url)
-        r.raise_for_status()
-        ct = (r.headers.get("content-type") or "").lower()
-        if "application/json" in ct:
-            data = r.json()
-        else:
-            # Some providers (WMR) may respond with text/html. Try parsing anyway.
-            try:
-                data = r.json()
-            except Exception:
-                try:
-                    data = json.loads(r.text)
-                except Exception:
-                    data = {"raw": r.text}
-    except httpx.HTTPStatusError as e:
-        # Bubble up as 502 so callers can see upstream issues if needed
-        raise HTTPException(status_code=502, detail=f"Upstream {e.response.status_code} for {url}") from e
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Upstream error for {url}") from e
+    attempts = 3
+    last_err: Optional[Exception] = None
 
-    if cache_key:
-        cache_set(cache_key, data)
-    return data
+    for i in range(attempts):
+        try:
+            r = await client.get(
+                url,
+                headers={"Accept": "application/json, */*;q=0.1"},
+            )
+            # Retry on transient codes
+            if r.status_code in (429, 500, 502, 503, 504):
+                last_err = httpx.HTTPStatusError("retryable", request=r.request, response=r)
+                await asyncio.sleep(0.5 * (i + 1))
+                continue
+
+            r.raise_for_status()
+            ct = (r.headers.get("content-type") or "").lower()
+            if "application/json" in ct:
+                data = r.json()
+            else:
+                # best-effort JSON parse
+                try:
+                    data = r.json()
+                except Exception:
+                    try:
+                        data = json.loads(r.text)
+                    except Exception:
+                        data = {"raw": r.text}
+
+            if cache_key:
+                cache_set(cache_key, data)
+            return data
+
+        except httpx.HTTPStatusError as e:
+            last_err = e
+            await asyncio.sleep(0.5 * (i + 1))
+        except Exception as e:
+            last_err = e
+            await asyncio.sleep(0.5 * (i + 1))
+
+    # out of retries
+    if isinstance(last_err, httpx.HTTPStatusError):
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream {last_err.response.status_code} for {url}",
+        ) from last_err
+    raise HTTPException(status_code=502, detail=f"Upstream error for {url}") from last_err
 
 async def zippopotam_info(zipcode: str) -> Dict[str, Any]:
     data = await fetch_json(ZIPPOTAM_URL.format(zip=zipcode), f"zip:{zipcode}")
@@ -199,8 +230,10 @@ async def govtrack_senators(state: str) -> List[Dict[str, Any]]:
 async def govtrack_reps(state: str, district: str) -> List[Dict[str, Any]]:
     """Tolerant wrapper: return [] on upstream issues."""
     try:
-        data = await fetch_json(GOVTRACK_HOUSE_URL.format(state=state, district=district),
-                                f"rep:{state}:{district}")
+        data = await fetch_json(
+            GOVTRACK_HOUSE_URL.format(state=state, district=district),
+            f"rep:{state}:{district}",
+        )
         return [gt_role_to_person(o) for o in data.get("objects", [])]
     except Exception:
         return []
