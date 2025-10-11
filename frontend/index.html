@@ -1,489 +1,282 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>EagleReach</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>
-    :root {
-      --brand: #0d47a1;
-      --accent: #0d6efd;
-      --bg: #f8fafc;
-    }
-    body { background: var(--bg); }
-    header {
-      background: var(--brand);
-      color: #fff;
-      padding: .75rem 1rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-      position: sticky; top: 0; z-index: 1000;
-    }
-    .brand { display: flex; align-items: center; gap: .5rem; font-weight: 700; }
-    .brand img { height: 20px; }
-    nav a { color:#fff; text-decoration:none; margin-left:1rem; font-weight:500; }
-    nav a:hover { text-decoration:underline; }
-    .container { max-width: 1100px; padding-top: 1rem; }
-    .card { border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,.05); border: 1px solid #e9ecef; }
-    .btn-primary { background: var(--accent)!important; border-color: var(--accent)!important; }
-    .btn-dark { background: #1f2937!important; border-color: #1f2937!important; }
-    .listish { border: 1px solid #e9ecef; border-radius: 8px; padding: .6rem .75rem; margin-bottom: .5rem; background: #fff; }
-    footer { text-align:center; padding:2rem 1rem; color:#6c757d; }
-    /* Mobile-friendly input group */
-    .input-wrap { display:flex; flex-wrap:wrap; gap:.5rem; }
-    #zipInput {
-      flex: 1 1 260px; min-width: 220px; max-width: 100%;
-      font-size: 18px; /* avoids iOS zoom, shows all digits */
-    }
-    .action-btn { flex: 0 0 auto; }
-    #placeLine { min-height: 1.25rem; }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Eagle Reach 🦅</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <header>
-    <div class="brand">
-      <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" alt="US flag" />
-      <span>EagleReach</span>
+<body class="bg-slate-50 text-slate-900">
+  <header class="bg-[#0a1f44] text-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="text-2xl">🦅</div>
+        <div>
+          <div class="text-2xl font-extrabold tracking-wide">Eagle Reach</div>
+          <div class="text-xs opacity-80">Civic info at your fingertips</div>
+        </div>
+      </div>
+      <nav class="hidden sm:flex items-center gap-4 text-sm">
+        <a href="#officials" class="hover:underline">Officials</a>
+        <a href="#news" class="hover:underline">News</a>
+        <a href="#register" class="hover:underline">Register</a>
+        <a href="#emergency" class="hover:underline">Emergency</a>
+        <a href="#about" class="hover:underline">About</a>
+        <a href="#founder" class="hover:underline">Founder</a>
+        <a href="#feedback" class="hover:underline">Feedback</a>
+      </nav>
     </div>
-    <small>Civic info, fast &amp; free — built for everyone.</small>
-    <nav>
-      <a href="#" onclick="showTab('main')">Home</a>
-      <a href="#" onclick="showTab('about')">About</a>
-      <a href="#" onclick="showTab('founder')">Founder</a>
-      <a href="#" onclick="showTab('contact')">Contact</a>
-      <a href="#" onclick="showTab('feedback')">Feedback</a>
-    </nav>
   </header>
 
-  <!-- MAIN -->
-  <div class="container" id="main">
-    <div class="card p-3 mb-3">
-      <label class="form-label fw-bold" for="zipInput">Enter ZIP</label>
-      <div class="input-wrap">
-        <input id="zipInput" class="form-control" inputmode="numeric" pattern="[0-9]*" maxlength="5"
-               placeholder="ZIP (e.g., 45220)" oninput="zipChanged(this.value)" />
-        <button class="btn btn-danger action-btn" id="btnLocate" onclick="useMyLocation()">📍 Use my location</button>
-        <button class="btn btn-primary action-btn" onclick="searchZip()">🔍 Search</button>
-        <button class="btn btn-outline-secondary action-btn" onclick="copyLink()">📋 Copy Share Link</button>
-        <button class="btn btn-outline-secondary action-btn" onclick="clearAll()">🗑 Clear history</button>
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-8">
+    <section class="bg-white rounded-xl shadow p-4">
+      <h2 class="text-xl font-semibold text-[#0a1f44] mb-3">Find Your Officials</h2>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <input id="zip" class="border rounded px-3 py-2 flex-1" placeholder="Enter ZIP (e.g., 45220)"/>
+        <button id="btnLookup" class="bg-[#0a1f44] text-white px-4 py-2 rounded hover:opacity-90">Search</button>
+        <button id="btnLocate" class="bg-blue-600 text-white px-4 py-2 rounded hover:opacity-90">Use my location</button>
       </div>
-      <div id="placeLine" class="text-muted mt-1"></div>
-    </div>
+      <p id="where" class="text-sm text-slate-600 mt-2"></p>
+      <p id="warn" class="text-sm text-amber-700 mt-2 hidden"></p>
+    </section>
 
-    <div class="row">
-      <!-- Elected reps -->
-      <div class="col-md-8">
-        <div class="card p-3 mb-3">
-          <h5 class="fw-bold mb-2">Elected Representatives</h5>
-          <div id="officials"></div>
-          <small class="text-muted d-block mt-2">Sources: Zippopotam (ZIP), WhoIsMyRepresentative (House), GovTrack (Senate), Open-Meteo (Weather).</small>
+    <section id="officials" class="grid md:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl shadow p-4">
+        <h3 class="font-semibold text-blue-700 mb-2">City & State</h3>
+        <div id="locBox" class="text-sm space-y-1"></div>
+      </div>
+      <div class="bg-white rounded-xl shadow p-4 md:col-span-2">
+        <h3 class="font-semibold text-blue-700 mb-2">Federal Officials</h3>
+        <div class="grid sm:grid-cols-3 gap-3 text-sm">
+          <div>
+            <div class="font-medium mb-1">U.S. Senators</div>
+            <div id="senators" class="space-y-2"></div>
+          </div>
+          <div>
+            <div class="font-medium mb-1">U.S. Representative</div>
+            <div id="rep" class="space-y-2"></div>
+          </div>
+          <div>
+            <div class="font-medium mb-1">Mayor</div>
+            <div id="mayor" class="space-y-2"></div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <!-- Voter -->
-      <div class="col-md-4">
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold mb-2">Voter Info &amp; Education</h6>
-          <button class="btn btn-primary w-100 mb-2" onclick="openNew('https://www.usa.gov/how-to-vote')">How to vote (USA.gov)</button>
-          <button class="btn btn-primary w-100 mb-2" onclick="openNew('https://www.nass.org/can-I-vote')">Register to vote</button>
-          <button class="btn btn-primary w-100" onclick="openNew('https://www.nass.org/can-I-vote')">Find your Election Office</button>
-        </div>
+    <section id="register" class="grid md:grid-cols-2 gap-4">
+      <div class="bg-white rounded-xl shadow p-4">
+        <h3 class="font-semibold text-blue-700 mb-2">Next Election</h3>
+        <div id="elections" class="text-sm space-y-1"></div>
       </div>
-    </div>
+      <div class="bg-white rounded-xl shadow p-4">
+        <h3 class="font-semibold text-blue-700 mb-2">Register to Vote</h3>
+        <div id="registerLinks" class="text-sm space-y-1"></div>
+      </div>
+    </section>
 
-    <!-- News + Elections -->
-    <div class="row">
-      <div class="col-md-6">
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold mb-2">News</h6>
-          <button class="btn btn-dark me-2" onclick="openNew('https://news.google.com')">Open Local News</button>
-          <button class="btn btn-dark" onclick="openNew('https://www.bbc.com/news')">World News</button>
-        </div>
+    <section id="news" class="grid md:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl shadow p-4">
+        <h3 class="font-semibold text-blue-700 mb-2">Local News</h3>
+        <div id="newsLocal" class="text-sm space-y-2"></div>
       </div>
-      <div class="col-md-6">
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold mb-2">Upcoming Elections</h6>
-          <div id="elections">Next Federal: November 3, 2025</div>
-        </div>
+      <div class="bg-white rounded-xl shadow p-4">
+        <h3 class="font-semibold text-blue-700 mb-2">U.S. News</h3>
+        <div id="newsUS" class="text-sm space-y-2"></div>
       </div>
-    </div>
+      <div class="bg-white rounded-xl shadow p-4">
+        <h3 class="font-semibold text-blue-700 mb-2">World News</h3>
+        <div id="newsWorld" class="text-sm space-y-2"></div>
+      </div>
+    </section>
 
-    <!-- Traffic + Weather -->
-    <div class="row">
-      <div class="col-md-6">
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold mb-2">Traffic</h6>
-          <p class="mb-2">Open live traffic for your area in Google Maps.</p>
-          <button class="btn btn-primary" onclick="openTraffic()">Open Traffic Map</button>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card p-3 mb-3">
-          <h6 class="fw-bold mb-2">Local Weather (7-day)</h6>
-          <div id="weather"></div>
-        </div>
-      </div>
-    </div>
+    <section id="emergency" class="bg-white rounded-xl shadow p-4">
+      <h3 class="font-semibold text-blue-700 mb-2">Emergency & City Services</h3>
+      <div id="emergencyBox" class="text-sm space-y-1"></div>
+      <p class="text-xs text-slate-500 mt-2">Tip: Many cities offer a 311 website/app for potholes, lights, trash, noise, etc.</p>
+    </section>
 
-    <!-- Concerns -->
-    <div class="card p-3 mb-3">
-      <h6 class="fw-bold mb-2">Raise a Concern</h6>
-      <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-primary" onclick="openNew('https://www.google.com/search?q=report+potholes+near+me')">Potholes</button>
-        <button class="btn btn-primary" onclick="openNew('https://www.google.com/search?q=report+trash+collection+issue+near+me')">Trash</button>
-        <button class="btn btn-primary" onclick="openNew('https://www.google.com/search?q=report+street+light+outage+near+me')">Street lights</button>
-      </div>
-      <p class="text-muted small mt-2 mb-0">Report city issues (311), contact your city hall, or write to your representatives.</p>
-    </div>
-
-    <!-- Emergency -->
-    <div class="card p-3">
-      <h6 class="fw-bold mb-2">Emergency</h6>
-      <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-primary" href="tel:911">911 — Emergency</a>
-        <a class="btn btn-primary" href="tel:988">988 — Suicide & Crisis</a>
-        <a class="btn btn-primary" href="tel:211">211 — Community Services</a>
-        <button class="btn btn-primary" onclick="openNew('https://www.usa.gov/local-governments')">311 — City Services</button>
-        <a class="btn btn-primary" href="tel:811">811 — Before You Dig</a>
-        <a class="btn btn-primary" href="tel:18002221222">Poison Control</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ABOUT -->
-  <div class="container" id="about" style="display:none;">
-    <div class="card p-3">
-      <h4>About EagleReach</h4>
-      <p>
-        EagleReach is a civic information assistant that helps residents quickly access their elected
-        representatives, voter resources, weather, live traffic, and news — no sign-in required.
+    <section id="about" class="bg-white rounded-xl shadow p-4">
+      <h3 class="font-semibold text-blue-700 mb-2">About Eagle Reach</h3>
+      <p class="text-sm leading-6">
+        Eagle Reach connects neighbors to trustworthy civic information—fast. We blend open data and public sources
+        to show your elected officials, contacts, and upcoming elections, then surface local and global news so you can
+        stay informed. Our goal is simple: help people participate, speak up, and look out for each other.
+        An informed community is a safer, stronger community.
       </p>
-      <p>
-        Enter a ZIP or tap “Use my location” to discover your local officials and useful links.
-        The goal is simple: make civic information fast, free, and accessible for everyone.
-      </p>
-      <ul>
-        <li>ZIP-based lookup (with location auto-detect)</li>
-        <li>Voter info — How to vote, registration, election offices</li>
-        <li>7-day local weather, traffic map, and quick open local/world news</li>
-        <li>Buttons to report city issues like potholes, trash, and street-light outages</li>
-      </ul>
-    </div>
-  </div>
+    </section>
 
-  <!-- FOUNDER -->
-  <div class="container" id="founder" style="display:none;">
-    <div class="card p-3">
-      <h4>Founder</h4>
-      <p>
-        <strong>Vikesh Sagar Bairam</strong> is a Master’s graduate from the University of Illinois, Springfield,
-        specializing in Information Systems &amp; Management with a focus on AI/ML. He also holds Bachelor’s degrees
-        in Psychology &amp; Arts and in Computers, and is a <em>Google Cloud Professional Data Engineer</em>.
+    <section id="founder" class="bg-white rounded-xl shadow p-4">
+      <h3 class="font-semibold text-blue-700 mb-2">Founder: Vikesh Sagar Bairam</h3>
+      <p class="text-sm leading-6">
+        Vikesh Sagar Bairam holds a Master’s from the University of Illinois; a Bachelor of Computer Applications from the University of Allahabad;
+        a Bachelor of Psychology from Osmania University; and an Advanced Diploma of Supply Chain Management from Alison (Brisbane, Australia).
+        A GCP Professional Data Engineer and cloud specialist, Vikesh brings ~7 years across Research, Data Engineering, DevOps, and Supply Chain Operations.
+        Eagle Reach is his contribution to civic access—using engineering to make public life easier, safer, and smarter.
       </p>
-      <p>
-        Experience includes Data Analyst at S&amp;P Global (IHS Markit), Supply-Chain Specialist at Auscomp Computers,
-        DevOps Engineer at Techtate, and Test Engineer at Jabil. With hands-on leadership across data, DevOps, and
-        cloud AI/ML, Vikesh built EagleReach so people can access civic information in the most direct, user-friendly way.
-      </p>
-    </div>
-  </div>
+    </section>
 
-  <!-- CONTACT -->
-  <div class="container" id="contact" style="display:none;">
-    <div class="card p-3">
-      <h4>Contact</h4>
-      <p class="mb-2">Let’s connect:</p>
-      <div class="d-flex gap-2 flex-wrap">
-        <a class="btn btn-primary" href="https://www.linkedin.com/in/vikesh-bairam-219769258/" target="_blank" rel="noopener">LinkedIn</a>
-        <a class="btn btn-dark" href="https://github.com/vikesh2608" target="_blank" rel="noopener">GitHub</a>
-        <a class="btn btn-outline-secondary" href="mailto:vikebairam@gmail.com">Send Email</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- FEEDBACK -->
-  <div class="container" id="feedback" style="display:none;">
-    <div class="card p-3">
-      <h4>Feedback</h4>
-      <p class="mb-3">Have ideas or found a bug? Send a quick note:</p>
-      <form onsubmit="sendFeedback(event)">
-        <div class="mb-2">
-          <label class="form-label">Subject</label>
-          <input id="fbSubject" class="form-control" placeholder="Feedback subject" />
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Message</label>
-          <textarea id="fbMessage" class="form-control" rows="4" placeholder="Type your feedback here..."></textarea>
-        </div>
-        <button class="btn btn-primary" type="submit">Open Mail</button>
-        <button class="btn btn-outline-secondary ms-2" type="button" onclick="copyEmail()">Copy my email</button>
-        <small class="text-muted d-block mt-2">Your device opens your email app with the subject and message pre-filled.</small>
+    <section id="feedback" class="bg-white rounded-xl shadow p-4">
+      <h3 class="font-semibold text-blue-700 mb-2">Feedback</h3>
+      <form id="feedbackForm" class="space-y-2 text-sm">
+        <input class="border rounded w-full px-3 py-2" placeholder="Your name (optional)"/>
+        <input class="border rounded w-full px-3 py-2" placeholder="Your email (optional)"/>
+        <textarea class="border rounded w-full px-3 py-2" rows="4" placeholder="Share your thoughts or report an issue..."></textarea>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:opacity-90" type="submit">Send Feedback</button>
+        <p class="text-xs text-slate-500">This demo stores feedback locally in your browser only.</p>
       </form>
+    </section>
+  </main>
+
+  <footer class="text-center text-xs text-slate-500 py-6">
+    © 2025 Eagle Reach. Built with public/open data.
+  </footer>
+
+<script>
+const API_BASE = (location.hostname.includes('github.io'))
+  ? 'https://eaglereach-1.onrender.com'  // change if your Render subdomain differs
+  : 'http://localhost:8000';
+
+const $ = (id) => document.getElementById(id);
+
+function card(person) {
+  if (!person) return '<div class="text-slate-500">None</div>';
+  const site = person.website || (person.urls && person.urls[0]);
+  const phone = person.phone || (person.phones && person.phones[0]);
+  return `
+    <div class="border rounded p-3">
+      <div class="font-medium">${person.name || 'Unknown'}</div>
+      <div class="text-slate-600">${person.party || ''}</div>
+      ${phone ? `<div>📞 ${phone}</div>` : ''}
+      ${site ? `<div>🔗 <a class="text-blue-700 underline" href="${site}" target="_blank" rel="noopener">Website</a></div>` : ''}
+    </div>`;
+}
+
+function listNews(items) {
+  if (!items || !items.length) return '<div class="text-slate-500">No stories right now.</div>';
+  return items.map(i => `
+    <div>
+      <a class="text-blue-700 underline" href="${i.link}" target="_blank" rel="noopener">${i.title}</a>
+      ${i.published ? `<div class="text-xs text-slate-500">${i.published}</div>` : ''}
     </div>
-  </div>
+  `).join('');
+}
 
-  <footer>© 2025 EagleReach</footer>
+async function loadOfficials(zip) {
+  const r = await fetch(`${API_BASE}/officials?zip=${encodeURIComponent(zip)}`);
+  if (!r.ok) throw new Error('officials failed');
+  return r.json();
+}
+async function loadElections(state) {
+  const r = await fetch(`${API_BASE}/elections?state=${encodeURIComponent(state)}`);
+  if (!r.ok) throw new Error('elections failed');
+  return r.json();
+}
+async function loadNewsLocal(city, state) {
+  const r = await fetch(`${API_BASE}/news?scope=local&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`);
+  if (!r.ok) throw new Error('news local failed');
+  return r.json();
+}
+async function loadNewsUS() {
+  const r = await fetch(`${API_BASE}/news?scope=national`);
+  if (!r.ok) throw new Error('news us failed');
+  return r.json();
+}
+async function loadNewsWorld() {
+  const r = await fetch(`${API_BASE}/news?scope=international`);
+  if (!r.ok) throw new Error('news world failed');
+  return r.json();
+}
+async function loadEmergency() {
+  const r = await fetch(`${API_BASE}/emergency`);
+  if (!r.ok) throw new Error('emergency failed');
+  return r.json();
+}
 
-  <script>
-    // -------- NAV ----------
-    function showTab(id){
-      ["main","about","founder","contact","feedback"].forEach(k=>{
-        const el = document.getElementById(k);
-        if(el) el.style.display = (k===id) ? "block" : "none";
-      });
-      window.scrollTo({top:0, behavior:"smooth"});
-    }
-    showTab("main");
-
-    // -------- HELPERS ----------
-    const zipInput = document.getElementById("zipInput");
-    const placeLine = document.getElementById("placeLine");
-    const officialsDiv = document.getElementById("officials");
-    const weatherDiv = document.getElementById("weather");
-    const electionsDiv = document.getElementById("elections");
-
-    function openNew(url){ window.open(url, "_blank", "noopener"); }
-    function copyLink(){
-      const url = location.origin + location.pathname + "?zip=" + encodeURIComponent(zipInput.value || "");
-      navigator.clipboard.writeText(url).then(()=>alert("Share link copied!"));
-    }
-    function clearAll(){
-      zipInput.value = "";
-      placeLine.textContent = "";
-      officialsDiv.innerHTML = "";
-      weatherDiv.innerHTML = "";
-      electionsDiv.textContent = "Next Federal: November 3, 2025";
-      history.replaceState({}, "", location.pathname);
-    }
-    function copyEmail(){
-      navigator.clipboard.writeText("vikebairam@gmail.com").then(()=>alert("Email copied: vikebairam@gmail.com"));
-    }
-    function sendFeedback(e){
-      e.preventDefault();
-      const subj = document.getElementById("fbSubject").value || "EagleReach feedback";
-      const body = document.getElementById("fbMessage").value || "";
-      const mail = `mailto:vikebairam@gmail.com?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
-      location.href = mail;
-    }
-
-    // -------- CORE LOOKUPS ----------
-    async function fetchJSON(url){
-      const res = await fetch(url);
-      if(!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
-    }
-    async function fetchText(url){
-      const res = await fetch(url);
-      if(!res.ok) throw new Error("HTTP " + res.status);
-      return res.text();
-    }
-
-    // ZIP -> lat/lon + place/state
-    async function getZipInfo(zip){
-      const data = await fetchJSON(`https://api.zippopotam.us/us/${encodeURIComponent(zip)}`);
-      const p = data.places?.[0];
-      if(!p) throw new Error("ZIP not found");
-      return {
-        zip: data["post code"] || zip,
-        place: p["place name"],
-        state: p["state abbreviation"],
-        lat: +p.latitude, lon: +p.longitude
-      };
-    }
-
-    // House reps via WhoIsMyRepresentative (through r.jina.ai)
-    async function getHouse(zip){
-      try {
-        const raw = await fetchText(`https://r.jina.ai/http://whoismyrepresentative.com/getall_mems.php?zip=${encodeURIComponent(zip)}&output=json`);
-        const data = JSON.parse(raw);
-        if (Array.isArray(data.results)) {
-          return data.results.map(r => ({
-            name: r.name, office: r.office || r.district || "Representative",
-            party: r.party, phone: r.phone, url: r.link
-          }));
-        }
-      } catch(e){
-        console.warn("WIMR failed:", e);
+async function useMyLocation() {
+  $('warn').classList.add('hidden');
+  if (!navigator.geolocation) {
+    $('warn').textContent = 'Geolocation not supported in this browser.';
+    $('warn').classList.remove('hidden'); return;
+  }
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      const { latitude, longitude } = pos.coords;
+      const r = await fetch(`${API_BASE}/revgeo?lat=${latitude}&lon=${longitude}`);
+      const info = await r.json();
+      if (info.zip) $('zip').value = info.zip;
+      if (info.city && info.state) {
+        $('where').textContent = `Detected: ${info.city}, ${info.state} (CD ${info.congressional_district || '—'})`;
       }
-      return [];
+    } catch {
+      $('warn').textContent = 'Could not resolve your location.';
+      $('warn').classList.remove('hidden');
+    }
+  }, () => {
+    $('warn').textContent = 'Location permission denied.';
+    $('warn').classList.remove('hidden');
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+async function runLookup() {
+  const zip = $('zip').value.trim();
+  $('warn').classList.add('hidden');
+  if (!/^[0-9]{5}$/.test(zip)) {
+    $('warn').textContent = 'Enter a valid 5-digit ZIP.';
+    $('warn').classList.remove('hidden'); return;
+  }
+  try {
+    const data = await loadOfficials(zip);
+    const loc = data.location || {};
+    $('locBox').innerHTML = `
+      <div>ZIP: ${loc.zip}</div>
+      <div>City: ${loc.city || ''}</div>
+      <div>State: ${loc.state || ''}</div>
+      <div>Congressional District: ${loc.district || '—'}</div>
+    `;
+    const off = data.officials || {};
+    $('senators').innerHTML = (off.senators || []).map(card).join('') || '<div class="text-slate-500">None</div>';
+    $('rep').innerHTML = card(off.representative);
+    $('mayor').innerHTML = card(off.mayor);
+
+    if (loc.state) {
+      const el = await loadElections(loc.state);
+      $('elections').innerHTML = `
+        <div>Next federal general election: <strong>${el.next_federal_general}</strong></div>
+        <div>Learn / Register: <a class="text-blue-700 underline" href="${el.state_resources.register_to_vote}" target="_blank">vote.gov</a></div>
+        <div>State Election Office: <a class="text-blue-700 underline" href="${el.state_resources.state_election_office}" target="_blank">resources</a></div>
+      `;
+      $('registerLinks').innerHTML = `
+        <div><a class="text-blue-700 underline" target="_blank" href="${el.state_resources.register_to_vote}">How to register (vote.gov)</a></div>
+        <div><a class="text-blue-700 underline" target="_blank" href="${el.state_resources.state_election_office}">Your state election office</a></div>
+      `;
     }
 
-    // Senators via GovTrack
-    async function getSenators(stateAbbr){
-      try{
-        const gt = await fetchJSON(`https://www.govtrack.us/api/v2/role?current=true&role_type=senator&state=${encodeURIComponent(stateAbbr)}`);
-        const arr = gt.objects || [];
-        return arr.map(role=>{
-          const person = role.person || {};
-          return {
-            name: `${person.firstname || ""} ${person.lastname || ""}`.trim(),
-            office: "United States Senator",
-            party: role.party,
-            phone: role.phone,
-            url: person.link
-          };
-        });
-      }catch(e){
-        console.warn("GovTrack failed:", e);
-        return [];
-      }
+    if (loc.city && loc.state) {
+      const [local, us, world] = await Promise.all([loadNewsLocal(loc.city, loc.state), loadNewsUS(), loadNewsWorld()]);
+      $('newsLocal').innerHTML = listNews(local.items);
+      $('newsUS').innerHTML    = listNews(us.items);
+      $('newsWorld').innerHTML = listNews(world.items);
     }
 
-    // Weather via Open-Meteo
-    async function getWeather(lat, lon){
-      const url = new URL("https://api.open-meteo.com/v1/forecast");
-      url.searchParams.set("latitude", lat);
-      url.searchParams.set("longitude", lon);
-      url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,weathercode");
-      url.searchParams.set("timezone", "auto");
-      const data = await fetchJSON(url.toString());
-      const codeMap = {
-        0:"Clear",1:"Mainly clear",2:"Partly cloudy",3:"Cloudy",45:"Fog",48:"Rime fog",
-        51:"Light drizzle",53:"Moderate drizzle",55:"Dense drizzle",56:"Freezing drizzle",57:"Freezing drizzle",
-        61:"Light rain",63:"Moderate rain",65:"Heavy rain",66:"Freezing rain",67:"Freezing rain",
-        71:"Light snow",73:"Moderate snow",75:"Heavy snow",77:"Snow grains",
-        80:"Rain showers",81:"Rain showers",82:"Violent showers",85:"Snow showers",86:"Snow showers",
-        95:"Thunderstorm",96:"Thunderstorm (hail)",99:"Thunderstorm (hail)"
-      };
-      const days = [];
-      const d = data.daily || {};
-      (d.time || []).forEach((date, i)=>{
-        const code = +((d.weathercode || [])[i] ?? 0);
-        days.push({
-          date, summary: codeMap[code] || "Weather",
-          max: (d.temperature_2m_max || [])[i],
-          min: (d.temperature_2m_min || [])[i]
-        });
-      });
-      return days;
-    }
+    const em = await loadEmergency();
+    $('emergencyBox').innerHTML = (em.emergency || []).map(x => `<div>${x.title}: <strong>${x.number}</strong></div>`).join('');
 
-    // -------- RENDER ----------
-    function showPlace(zi){
-      placeLine.textContent = `${zi.zip} — ${zi.place}, ${zi.state}`;
-    }
-    function renderOfficials(list, zi){
-      officialsDiv.innerHTML = "";
-      if(list.length === 0){
-        const mayor = document.createElement("div");
-        mayor.className = "listish";
-        const q = `${zi.place} ${zi.state} mayor official site`;
-        mayor.innerHTML =
-          `<strong>${zi.place} Mayor</strong><br>
-           <a class="btn btn-sm btn-outline-dark mt-1" target="_blank" href="https://www.google.com/search?q=${encodeURIComponent(q)}">Website</a>`;
-        officialsDiv.appendChild(mayor);
-        return;
-      }
-      list.forEach(o=>{
-        const card = document.createElement("div");
-        card.className = "listish";
-        card.innerHTML = `
-          <strong>${o.name ?? ""}</strong><br>
-          ${o.office ?? ""}${o.party ? " — " + o.party : ""}<br>
-          ${o.phone ? `<a class="btn btn-sm btn-outline-dark mt-1 me-2" href="tel:${o.phone}">Call</a>` : ""}
-          ${o.url ? `<a class="btn btn-sm btn-outline-dark mt-1" target="_blank" href="${o.url}">Website</a>` : ""}`;
-        officialsDiv.appendChild(card);
-      });
-    }
-    function renderWeather(days){
-      weatherDiv.innerHTML = "";
-      days.forEach(d=>{
-        const div = document.createElement("div");
-        div.className = "listish";
-        div.textContent = `${d.date}: ${d.summary} (High ${d.max}° / Low ${d.min}°)`;
-        weatherDiv.appendChild(div);
-      });
-    }
+  } catch (e) {
+    console.error(e);
+    $('warn').textContent = "Couldn't load officials. Try again.";
+    $('warn').classList.remove('hidden');
+  }
+}
 
-    // -------- SEARCH FLOW ----------
-    async function doLookupFromZip(zip){
-      const zi = await getZipInfo(zip);
-      showPlace(zi);
+$('btnLocate').addEventListener('click', useMyLocation);
+$('btnLookup').addEventListener('click', runLookup);
+$('zip').addEventListener('keydown', (e) => { if (e.key === 'Enter') runLookup(); });
 
-      // reps: house + senators fallback
-      let reps = await getHouse(zi.zip);
-      if (!reps || reps.length === 0) {
-        const sens = await getSenators(zi.state);
-        reps = sens; // at least senators show up
-      } else {
-        const sens = await getSenators(zi.state);
-        reps = reps.concat(sens);
-      }
-      renderOfficials(reps, zi);
-
-      const wx = await getWeather(zi.lat, zi.lon);
-      renderWeather(wx);
-
-      history.replaceState({}, "", `${location.pathname}?zip=${encodeURIComponent(zi.zip)}`);
-    }
-
-    async function searchZip(){
-      const zip = (zipInput.value || "").trim();
-      if(zip.length !== 5) { alert("Please enter a 5-digit ZIP."); return; }
-      try { await doLookupFromZip(zip); }
-      catch(err){ console.error(err); alert("Search failed: " + err.message); }
-    }
-
-    function zipChanged(v){
-      // As soon as 5 digits typed, fetch city/state (and show under field).
-      if (v && v.length === 5) {
-        getZipInfo(v).then(zi => { showPlace(zi); }).catch(()=>{ placeLine.textContent = ""; });
-      } else {
-        placeLine.textContent = "";
-      }
-    }
-
-    // -------- LOCATION FLOW ----------
-    async function useMyLocation(){
-      const btn = document.getElementById("btnLocate");
-      btn.disabled = true;
-      try{
-        // GPS
-        const pos = await new Promise((res, rej) =>
-          navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy:true, timeout:12000 })
-        );
-        const lat = pos.coords.latitude, lon = pos.coords.longitude;
-        const rev = await fetchJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
-        const zip = rev.postcode || "";
-        if(zip){
-          zipInput.value = zip;
-          await doLookupFromZip(zip);
-          return;
-        }
-        await useIPFallback();
-      }catch(e){
-        console.warn("GPS error:", e);
-        await useIPFallback();
-      }finally{
-        btn.disabled = false;
-      }
-    }
-
-    async function useIPFallback(){
-      try{
-        const ip = await fetchJSON("https://ipapi.co/json/");
-        if(ip?.postal){
-          zipInput.value = ip.postal;
-          await doLookupFromZip(ip.postal);
-          return;
-        }
-      }catch(_){}
-      alert("Could not resolve ZIP from your location. You can type a ZIP manually.");
-    }
-
-    // -------- TRAFFIC ----------
-    function openTraffic(){
-      const zip = (zipInput.value || "").trim();
-      if(!zip) { alert("Enter ZIP first."); return; }
-      openNew(`https://www.google.com/maps/search/${encodeURIComponent(zip + " traffic")}`);
-    }
-
-    // -------- LOAD FROM ?zip= ----------
-    (function loadFromQuery(){
-      const params = new URLSearchParams(location.search);
-      const z = params.get("zip");
-      if(z){ zipInput.value = z; doLookupFromZip(z).catch(console.error); }
-    })();
-  </script>
+$('feedbackForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  alert('Thanks for your feedback! (Stored locally for demo.)');
+});
+</script>
 </body>
 </html>
