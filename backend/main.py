@@ -33,13 +33,13 @@ ZIP_RE = re.compile(r"^\d{5}$")
 ZIPPOTAM_URL = "https://api.zippopotam.us/us/{zip}"
 WMR_HOUSE_URL = "https://whoismyrepresentative.com/getall_mems.php?zip={zip}&output=json"
 
-# *** IMPORTANT: GovTrack uses role_type (NOT role) ***
+# GovTrack requires role_type (NOT role)
 GOVTRACK_SENATE_URL = "https://www.govtrack.us/api/v2/role?current=true&role_type=senator&state={state}"
 GOVTRACK_HOUSE_URL  = "https://www.govtrack.us/api/v2/role?current=true&role_type=representative&state={state}&district={district}"
 
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 
-app = FastAPI(title="EagleReach API", version="1.1.1")
+app = FastAPI(title="EagleReach API", version="1.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -77,7 +77,7 @@ async def on_startup():
     global client
     client = httpx.AsyncClient(
         timeout=API_TIMEOUT,
-        headers={"User-Agent": "EagleReach/1.1 (+https://github.com/Vikesh2608/EagleReach)"},
+        headers={"User-Agent": "EagleReach/1.2 (+https://github.com/Vikesh2608/EagleReach)"},
         follow_redirects=True,
     )
 
@@ -137,11 +137,11 @@ async def fetch_json(url: str, cache_key: Optional[str] = None) -> Any:
     try:
         r = await client.get(url)
         r.raise_for_status()
-        ct = r.headers.get("content-type", "").lower()
+        ct = (r.headers.get("content-type") or "").lower()
         if "application/json" in ct:
             data = r.json()
         else:
-            # some providers (WMR) respond with text/html — try parsing anyway
+            # Some providers (WMR) may respond with text/html. Try parsing anyway.
             try:
                 data = r.json()
             except Exception:
@@ -150,6 +150,7 @@ async def fetch_json(url: str, cache_key: Optional[str] = None) -> Any:
                 except Exception:
                     data = {"raw": r.text}
     except httpx.HTTPStatusError as e:
+        # Bubble up as 502 so callers can see upstream issues if needed
         raise HTTPException(status_code=502, detail=f"Upstream {e.response.status_code} for {url}") from e
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Upstream error for {url}") from e
@@ -187,21 +188,19 @@ async def whois_house(zipcode: str) -> Optional[str]:
         pass
     return None
 
-# ---- Replace helpers are here ----
 async def govtrack_senators(state: str) -> List[Dict[str, Any]]:
+    """Tolerant wrapper: return [] on upstream issues."""
     try:
         data = await fetch_json(GOVTRACK_SENATE_URL.format(state=state), f"sen:{state}")
         return [gt_role_to_person(o) for o in data.get("objects", [])]
     except Exception:
-        # tolerate upstream issues and return an empty list
         return []
 
 async def govtrack_reps(state: str, district: str) -> List[Dict[str, Any]]:
+    """Tolerant wrapper: return [] on upstream issues."""
     try:
-        data = await fetch_json(
-            GOVTRACK_HOUSE_URL.format(state=state, district=district),
-            f"rep:{state}:{district}",
-        )
+        data = await fetch_json(GOVTRACK_HOUSE_URL.format(state=state, district=district),
+                                f"rep:{state}:{district}")
         return [gt_role_to_person(o) for o in data.get("objects", [])]
     except Exception:
         return []
@@ -252,25 +251,62 @@ def health():
     return {"ok": True, "ts": int(time.time())}
 
 @app.get("/officials")
-async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
+async def officials(
+    zip: str = Query(..., description="US 5-digit ZIP code"),
+    debug: int = Query(0, description="Set 1 to include upstream status info"),
+):
     if not ZIP_RE.match(zip):
         raise HTTPException(status_code=400, detail="Invalid ZIP. Use 5 digits.")
 
-    # Resolve location
+    upstream_info: Dict[str, Optional[str]] = {
+        "zippopotam": None, "govtrack_senators": None,
+        "whois": None, "govtrack_reps": None, "wikidata": None
+    }
+
+    # Resolve location (hard requirement)
     loc = await zippopotam_info(zip)
+    upstream_info["zippopotam"] = "ok"
     state = loc["state"]
     city = loc["city"]
     state_full = loc["state_full"]
 
-    # Parallel lookups
-    district_task = whois_house(zip)
-    senators_task = govtrack_senators(state)
-    mayor_task = wikidata_mayor(city, state_full)
-    district, senators, mayor = await asyncio.gather(district_task, senators_task, mayor_task)
+    # Parallel upstream calls with tolerant wrappers
+    async def _sen():
+        try:
+            s = await govtrack_senators(state)
+            upstream_info["govtrack_senators"] = f"ok({len(s)})" if s else "empty"
+            return s
+        except Exception as e:
+            upstream_info["govtrack_senators"] = f"err({type(e).__name__})"
+            return []
+
+    async def _whois():
+        try:
+            d = await whois_house(zip)
+            upstream_info["whois"] = "ok" if d else "empty"
+            return d
+        except Exception as e:
+            upstream_info["whois"] = f"err({type(e).__name__})"
+            return None
+
+    async def _may():
+        try:
+            m = await wikidata_mayor(city, state_full)
+            upstream_info["wikidata"] = "ok" if m else "empty"
+            return m
+        except Exception as e:
+            upstream_info["wikidata"] = f"err({type(e).__name__})"
+            return None
+
+    district, senators, mayor = await asyncio.gather(_whois(), _sen(), _may())
 
     reps: List[Dict[str, Any]] = []
     if district:
-        reps = await govtrack_reps(state, district)  # tolerant helper above
+        try:
+            reps = await govtrack_reps(state, district)
+            upstream_info["govtrack_reps"] = f"ok({len(reps)})" if reps else "empty"
+        except Exception as e:
+            upstream_info["govtrack_reps"] = f"err({type(e).__name__})"
 
     payload = {
         "location": {
@@ -286,9 +322,19 @@ async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
         },
     }
 
-    if not senators and not reps and not mayor:
-        # location OK but all providers failed: surface a clear 502
-        raise HTTPException(status_code=502, detail="Civic data providers unavailable. Try again later.")
+    warnings = []
+    if not senators:
+        warnings.append("No senators from GovTrack (rate limit or upstream error).")
+    if district and not reps:
+        warnings.append(f"No House member from GovTrack for {state}-{district}.")
+    if not mayor:
+        warnings.append("No mayor from Wikidata.")
+    if warnings:
+        payload["warnings"] = warnings
+
+    if debug:
+        payload["debug"] = upstream_info
+
     return payload
 
 # =========================
