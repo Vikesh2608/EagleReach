@@ -1,282 +1,268 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Eagle Reach 🦅</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EagleReach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --blue:#0a377e; --blue-2:#0f4aa6; --bg:#f7f9fc; --card:#fff; --muted:#6b7280; --ring:#e5e7eb;
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#0f172a}
+    a{color:var(--blue-2);text-decoration:none} a:hover{text-decoration:underline}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    .nav{background:var(--blue);color:#fff} .nav a{color:#e6efff;margin:0 10px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+    .brand .eagle{font-size:26px}
+    .bar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px}
+    .grid{display:grid;gap:16px}
+    @media(min-width:900px){.grid-2{grid-template-columns:1.2fr .8fr}}
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:12px;padding:16px}
+    .btn{background:var(--blue-2);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .btn.secondary{background:#eef2ff;color:#1e3a8a}
+    input[type="text"]{width:100%;padding:12px 12px;border:1px solid var(--ring);border-radius:10px}
+    .muted{color:var(--muted)} .section-title{margin:4px 0 12px;font-weight:700}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pill{display:inline-flex;border:1px solid var(--ring);border-radius:999px;padding:4px 10px;background:#f8fafc}
+    .official{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed #e5e7eb}
+    .official:last-child{border-bottom:0} .official img{width:64px;height:78px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb}
+    .error{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:10px;border-radius:8px}
+    footer{color:#6b7280;text-align:center;margin:30px 0}
+    .tabs a{padding:6px 10px;border-radius:8px} .tabs a:hover{background:rgba(255,255,255,.15)}
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
-  <header class="bg-[#0a1f44] text-white shadow">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="text-2xl">🦅</div>
-        <div>
-          <div class="text-2xl font-extrabold tracking-wide">Eagle Reach</div>
-          <div class="text-xs opacity-80">Civic info at your fingertips</div>
-        </div>
-      </div>
-      <nav class="hidden sm:flex items-center gap-4 text-sm">
-        <a href="#officials" class="hover:underline">Officials</a>
-        <a href="#news" class="hover:underline">News</a>
-        <a href="#register" class="hover:underline">Register</a>
-        <a href="#emergency" class="hover:underline">Emergency</a>
-        <a href="#about" class="hover:underline">About</a>
-        <a href="#founder" class="hover:underline">Founder</a>
-        <a href="#feedback" class="hover:underline">Feedback</a>
+<body>
+  <header class="nav">
+    <div class="bar container">
+      <div class="brand"><span class="eagle">🦅</span> <span>EagleReach</span></div>
+      <nav class="tabs">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#founder">Founder</a>
+        <a href="#contact">Contact</a>
+        <a href="#feedback">Feedback</a>
       </nav>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-6 space-y-8">
-    <section class="bg-white rounded-xl shadow p-4">
-      <h2 class="text-xl font-semibold text-[#0a1f44] mb-3">Find Your Officials</h2>
-      <div class="flex flex-col sm:flex-row gap-2">
-        <input id="zip" class="border rounded px-3 py-2 flex-1" placeholder="Enter ZIP (e.g., 45220)"/>
-        <button id="btnLookup" class="bg-[#0a1f44] text-white px-4 py-2 rounded hover:opacity-90">Search</button>
-        <button id="btnLocate" class="bg-blue-600 text-white px-4 py-2 rounded hover:opacity-90">Use my location</button>
+  <main id="home" class="container">
+    <div class="card grid grid-2">
+      <div>
+        <div class="section-title">Enter ZIP</div>
+        <div class="row">
+          <input id="zip" type="text" placeholder="45220" />
+          <button id="searchBtn" class="btn">Search</button>
+          <button id="geoBtn" class="btn secondary">Use my location</button>
+        </div>
+        <div id="warn" class="muted" style="margin-top:8px"></div>
       </div>
-      <p id="where" class="text-sm text-slate-600 mt-2"></p>
-      <p id="warn" class="text-sm text-amber-700 mt-2 hidden"></p>
-    </section>
-
-    <section id="officials" class="grid md:grid-cols-3 gap-4">
-      <div class="bg-white rounded-xl shadow p-4">
-        <h3 class="font-semibold text-blue-700 mb-2">City & State</h3>
-        <div id="locBox" class="text-sm space-y-1"></div>
-      </div>
-      <div class="bg-white rounded-xl shadow p-4 md:col-span-2">
-        <h3 class="font-semibold text-blue-700 mb-2">Federal Officials</h3>
-        <div class="grid sm:grid-cols-3 gap-3 text-sm">
-          <div>
-            <div class="font-medium mb-1">U.S. Senators</div>
-            <div id="senators" class="space-y-2"></div>
-          </div>
-          <div>
-            <div class="font-medium mb-1">U.S. Representative</div>
-            <div id="rep" class="space-y-2"></div>
-          </div>
-          <div>
-            <div class="font-medium mb-1">Mayor</div>
-            <div id="mayor" class="space-y-2"></div>
-          </div>
+      <div>
+        <div class="section-title">Voter Info & Education</div>
+        <div class="grid">
+          <a id="voteGov" class="pill" target="_blank" rel="noopener">How to vote (USA.gov)</a>
+          <a id="register" class="pill" target="_blank" rel="noopener">Register to vote</a>
+          <a id="findOffice" class="pill" target="_blank" rel="noopener">Find your Election Office</a>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section id="register" class="grid md:grid-cols-2 gap-4">
-      <div class="bg-white rounded-xl shadow p-4">
-        <h3 class="font-semibold text-blue-700 mb-2">Next Election</h3>
-        <div id="elections" class="text-sm space-y-1"></div>
-      </div>
-      <div class="bg-white rounded-xl shadow p-4">
-        <h3 class="font-semibold text-blue-700 mb-2">Register to Vote</h3>
-        <div id="registerLinks" class="text-sm space-y-1"></div>
-      </div>
-    </section>
+    <div class="grid grid-2" style="margin-top:16px">
+      <section class="card">
+        <div class="section-title">Elected Representatives</div>
+        <div class="muted" id="locationLine"></div>
+        <div id="officials"></div>
+        <div class="muted" style="margin-top:10px">
+          Sources: Zippopotam (ZIP), FCC (district), congress-legislators (official sites & photos), Wikidata (mayor).
+        </div>
+      </section>
 
-    <section id="news" class="grid md:grid-cols-3 gap-4">
-      <div class="bg-white rounded-xl shadow p-4">
-        <h3 class="font-semibold text-blue-700 mb-2">Local News</h3>
-        <div id="newsLocal" class="text-sm space-y-2"></div>
-      </div>
-      <div class="bg-white rounded-xl shadow p-4">
-        <h3 class="font-semibold text-blue-700 mb-2">U.S. News</h3>
-        <div id="newsUS" class="text-sm space-y-2"></div>
-      </div>
-      <div class="bg-white rounded-xl shadow p-4">
-        <h3 class="font-semibold text-blue-700 mb-2">World News</h3>
-        <div id="newsWorld" class="text-sm space-y-2"></div>
-      </div>
-    </section>
+      <aside>
+        <section class="card">
+          <div class="section-title">News</div>
+          <div class="row" style="margin-bottom:10px">
+            <button id="localNewsBtn" class="btn secondary">Open Local News</button>
+            <button id="worldNewsBtn" class="btn secondary">World News</button>
+          </div>
+          <div id="newsList" class="grid"></div>
+          <div class="muted" style="margin-top:8px">Local news opens Google News for your ZIP’s city.</div>
+        </section>
 
-    <section id="emergency" class="bg-white rounded-xl shadow p-4">
-      <h3 class="font-semibold text-blue-700 mb-2">Emergency & City Services</h3>
-      <div id="emergencyBox" class="text-sm space-y-1"></div>
-      <p class="text-xs text-slate-500 mt-2">Tip: Many cities offer a 311 website/app for potholes, lights, trash, noise, etc.</p>
-    </section>
+        <section class="card" style="margin-top:16px">
+          <div class="section-title">Emergency & Community</div>
+          <ul id="emergencyList" class="muted" style="margin:0;padding-left:18px"></ul>
+        </section>
+      </aside>
+    </div>
 
-    <section id="about" class="bg-white rounded-xl shadow p-4">
-      <h3 class="font-semibold text-blue-700 mb-2">About Eagle Reach</h3>
-      <p class="text-sm leading-6">
-        Eagle Reach connects neighbors to trustworthy civic information—fast. We blend open data and public sources
-        to show your elected officials, contacts, and upcoming elections, then surface local and global news so you can
-        stay informed. Our goal is simple: help people participate, speak up, and look out for each other.
-        An informed community is a safer, stronger community.
+    <section id="about" class="card" style="margin-top:16px">
+      <div class="section-title">About</div>
+      <p>
+        EagleReach gives every U.S. resident fast, free access to civic essentials:
+        who represents you, how to vote, when elections are held, and what’s happening locally — all in one page.
+        Built with open public data and respect for privacy. No tracking, no paywalls.
       </p>
     </section>
 
-    <section id="founder" class="bg-white rounded-xl shadow p-4">
-      <h3 class="font-semibold text-blue-700 mb-2">Founder: Vikesh Sagar Bairam</h3>
-      <p class="text-sm leading-6">
-        Vikesh Sagar Bairam holds a Master’s from the University of Illinois; a Bachelor of Computer Applications from the University of Allahabad;
-        a Bachelor of Psychology from Osmania University; and an Advanced Diploma of Supply Chain Management from Alison (Brisbane, Australia).
-        A GCP Professional Data Engineer and cloud specialist, Vikesh brings ~7 years across Research, Data Engineering, DevOps, and Supply Chain Operations.
-        Eagle Reach is his contribution to civic access—using engineering to make public life easier, safer, and smarter.
-      </p>
+    <section id="founder" class="card" style="margin-top:16px">
+      <div class="section-title">Founder</div>
+      <p><strong>Vikesh Sagar Bairam</strong> — M.S., University of Illinois; B.C.A., University of Allahabad;
+        B.A. Psychology, Osmania University; Advanced Diploma in Supply Chain Management (Alison, Brisbane).
+        GCP Professional Data Engineer. ~7 years in Research, Data Engineering, DevOps, and Supply Chain Ops.</p>
     </section>
 
-    <section id="feedback" class="bg-white rounded-xl shadow p-4">
-      <h3 class="font-semibold text-blue-700 mb-2">Feedback</h3>
-      <form id="feedbackForm" class="space-y-2 text-sm">
-        <input class="border rounded w-full px-3 py-2" placeholder="Your name (optional)"/>
-        <input class="border rounded w-full px-3 py-2" placeholder="Your email (optional)"/>
-        <textarea class="border rounded w-full px-3 py-2" rows="4" placeholder="Share your thoughts or report an issue..."></textarea>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded hover:opacity-90" type="submit">Send Feedback</button>
-        <p class="text-xs text-slate-500">This demo stores feedback locally in your browser only.</p>
-      </form>
+    <section id="contact" class="card" style="margin-top:16px">
+      <div class="section-title">Contact</div>
+      <p>Have an idea or correction? Open an issue on the project repository or send feedback below.</p>
     </section>
+
+    <section id="feedback" class="card" style="margin-top:16px">
+      <div class="section-title">Feedback</div>
+      <p class="muted">Tell us what worked, what didn’t, and what you’d like to see next.</p>
+      <a class="btn secondary" target="_blank" rel="noopener" href="mailto:someone@example.com">Send feedback</a>
+    </section>
+
+    <footer>© <span id="year"></span> EagleReach — civic info, fast & free — built for everyone in the United States.</footer>
   </main>
 
-  <footer class="text-center text-xs text-slate-500 py-6">
-    © 2025 Eagle Reach. Built with public/open data.
-  </footer>
+  <script>
+    // 1) Backend base URL
+    const API_BASE = (location.hostname.includes('github.io'))
+      ? 'https://eaglereach-1.onrender.com'
+      : 'http://localhost:8000';
 
-<script>
-const API_BASE = (location.hostname.includes('github.io'))
-  ? 'https://eaglereach-1.onrender.com'  // change if your Render subdomain differs
-  : 'http://localhost:8000';
+    // 2) Elements
+    const zipInput = document.getElementById('zip');
+    const searchBtn = document.getElementById('searchBtn');
+    const geoBtn = document.getElementById('geoBtn');
+    const warnEl = document.getElementById('warn');
+    const officialsEl = document.getElementById('officials');
+    const locationLine = document.getElementById('locationLine');
+    const newsList = document.getElementById('newsList');
+    const localNewsBtn = document.getElementById('localNewsBtn');
+    const worldNewsBtn = document.getElementById('worldNewsBtn');
+    const emergencyList = document.getElementById('emergencyList');
+    const voteGov = document.getElementById('voteGov');
+    const registerLink = document.getElementById('register');
+    const officeLink = document.getElementById('findOffice');
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-const $ = (id) => document.getElementById(id);
+    // 3) Helpers
+    const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-function card(person) {
-  if (!person) return '<div class="text-slate-500">None</div>';
-  const site = person.website || (person.urls && person.urls[0]);
-  const phone = person.phone || (person.phones && person.phones[0]);
-  return `
-    <div class="border rounded p-3">
-      <div class="font-medium">${person.name || 'Unknown'}</div>
-      <div class="text-slate-600">${person.party || ''}</div>
-      ${phone ? `<div>📞 ${phone}</div>` : ''}
-      ${site ? `<div>🔗 <a class="text-blue-700 underline" href="${site}" target="_blank" rel="noopener">Website</a></div>` : ''}
-    </div>`;
-}
+    function officialHTML(o, role){
+      if(!o) return `<div class="muted">${role}: no data</div>`;
+      const lines = [];
+      lines.push(`<div class="official">`);
+      lines.push(o.photo ? `<img src="${esc(o.photo)}" alt="">` : `<div style="width:64px;height:78px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc"></div>`);
+      lines.push(`<div>`);
+      lines.push(`<div><strong>${esc(o.name)}</strong> <span class="muted">(${esc(o.party||'')})</span></div>`);
+      if(o.website) lines.push(`<div><a href="${esc(o.website)}" target="_blank" rel="noopener">Official website</a></div>`);
+      if(o.phone) lines.push(`<div class="muted">☎ ${esc(o.phone)}</div>`);
+      if(o.twitter) lines.push(`<div class="muted">Twitter: @${esc(o.twitter)}</div>`);
+      lines.push(`</div></div>`);
+      return lines.join("");
+    }
 
-function listNews(items) {
-  if (!items || !items.length) return '<div class="text-slate-500">No stories right now.</div>';
-  return items.map(i => `
-    <div>
-      <a class="text-blue-700 underline" href="${i.link}" target="_blank" rel="noopener">${i.title}</a>
-      ${i.published ? `<div class="text-xs text-slate-500">${i.published}</div>` : ''}
-    </div>
-  `).join('');
-}
+    function showError(msg){
+      warnEl.innerHTML = `<div class="error">${esc(msg)}</div>`;
+    }
+    function clearError(){ warnEl.textContent = ''; }
 
-async function loadOfficials(zip) {
-  const r = await fetch(`${API_BASE}/officials?zip=${encodeURIComponent(zip)}`);
-  if (!r.ok) throw new Error('officials failed');
-  return r.json();
-}
-async function loadElections(state) {
-  const r = await fetch(`${API_BASE}/elections?state=${encodeURIComponent(state)}`);
-  if (!r.ok) throw new Error('elections failed');
-  return r.json();
-}
-async function loadNewsLocal(city, state) {
-  const r = await fetch(`${API_BASE}/news?scope=local&city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`);
-  if (!r.ok) throw new Error('news local failed');
-  return r.json();
-}
-async function loadNewsUS() {
-  const r = await fetch(`${API_BASE}/news?scope=national`);
-  if (!r.ok) throw new Error('news us failed');
-  return r.json();
-}
-async function loadNewsWorld() {
-  const r = await fetch(`${API_BASE}/news?scope=international`);
-  if (!r.ok) throw new Error('news world failed');
-  return r.json();
-}
-async function loadEmergency() {
-  const r = await fetch(`${API_BASE}/emergency`);
-  if (!r.ok) throw new Error('emergency failed');
-  return r.json();
-}
+    // 4) Fetchers
+    async function loadEmergency(){
+      try{
+        const r = await fetch(`${API_BASE}/emergency`);
+        const j = await r.json();
+        emergencyList.innerHTML = (j.emergency||[])
+          .map(x => `<li>${esc(x.title)} — <strong>${esc(x.number)}</strong></li>`).join("");
+      }catch(e){ /* silent */ }
+    }
 
-async function useMyLocation() {
-  $('warn').classList.add('hidden');
-  if (!navigator.geolocation) {
-    $('warn').textContent = 'Geolocation not supported in this browser.';
-    $('warn').classList.remove('hidden'); return;
-  }
-  navigator.geolocation.getCurrentPosition(async (pos) => {
-    try {
-      const { latitude, longitude } = pos.coords;
-      const r = await fetch(`${API_BASE}/revgeo?lat=${latitude}&lon=${longitude}`);
-      const info = await r.json();
-      if (info.zip) $('zip').value = info.zip;
-      if (info.city && info.state) {
-        $('where').textContent = `Detected: ${info.city}, ${info.state} (CD ${info.congressional_district || '—'})`;
+    async function loadNews(scope, city, state){
+      try{
+        const url = new URL(`${API_BASE}/news`);
+        url.searchParams.set('scope', scope);
+        if(scope==='local'){ url.searchParams.set('city', city||''); url.searchParams.set('state', state||''); }
+        const r = await fetch(url);
+        const j = await r.json();
+        newsList.innerHTML = (j.items||[]).slice(0,8)
+          .map(n => `<div><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}</a></div>`).join("");
+      }catch(e){ newsList.innerHTML = `<div class="muted">No news available.</div>`; }
+    }
+
+    async function loadElections(state){
+      try{
+        const r = await fetch(`${API_BASE}/elections?state=${encodeURIComponent(state)}`);
+        const j = await r.json();
+        registerLink.href = j.state_resources.register_to_vote;
+        officeLink.href = j.state_resources.state_election_office;
+        voteGov.href = "https://www.usa.gov/how-to-vote";
+      }catch(e){ /* ignore */ }
+    }
+
+    async function run(zip){
+      clearError();
+      if(!/^\d{5}$/.test(zip)){ showError("Enter a valid 5-digit ZIP."); return; }
+      zipInput.value = zip;
+
+      try{
+        const r = await fetch(`${API_BASE}/officials?zip=${zip}`);
+        if(!r.ok){ throw new Error(`Lookup failed (${r.status})`); }
+        const j = await r.json();
+
+        // Location line
+        const loc = j.location || {};
+        locationLine.textContent = `${loc.city||''}, ${loc.state||''} ${loc.zip||''}${loc.district ? ` — Congressional District ${loc.district}` : ''}`;
+
+        // Officials
+        const sens = (j.officials?.senators)||[];
+        const rep  = j.officials?.representative || null;
+        const mayor= j.officials?.mayor || null;
+
+        let html = '';
+        html += sens.map(s => officialHTML(s, 'Senator')).join('');
+        html += officialHTML(rep, 'Representative');
+        if(mayor){
+          html += `<div class="official"><div style="width:64px;height:78px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc"></div><div><div><strong>${esc(mayor.name||'Mayor')}</strong></div>${mayor.website?`<div><a href="${esc(mayor.website)}" target="_blank" rel="noopener">Official website</a></div>`:''}</div></div>`;
+        }
+        officialsEl.innerHTML = html || `<div class="muted">No officials found.</div>`;
+
+        // Elections + news
+        if(loc.state){ loadElections(loc.state); }
+        loadNews('local', loc.city, loc.state);
+
+        // Buttons
+        localNewsBtn.onclick = () => loadNews('local', loc.city, loc.state);
+        worldNewsBtn.onclick = () => loadNews('international');
+
+      }catch(err){
+        showError(err.message || 'Could not load officials. Check your backend URL or try again.');
+        officialsEl.innerHTML = '';
       }
-    } catch {
-      $('warn').textContent = 'Could not resolve your location.';
-      $('warn').classList.remove('hidden');
-    }
-  }, () => {
-    $('warn').textContent = 'Location permission denied.';
-    $('warn').classList.remove('hidden');
-  }, { enableHighAccuracy: true, timeout: 10000 });
-}
-
-async function runLookup() {
-  const zip = $('zip').value.trim();
-  $('warn').classList.add('hidden');
-  if (!/^[0-9]{5}$/.test(zip)) {
-    $('warn').textContent = 'Enter a valid 5-digit ZIP.';
-    $('warn').classList.remove('hidden'); return;
-  }
-  try {
-    const data = await loadOfficials(zip);
-    const loc = data.location || {};
-    $('locBox').innerHTML = `
-      <div>ZIP: ${loc.zip}</div>
-      <div>City: ${loc.city || ''}</div>
-      <div>State: ${loc.state || ''}</div>
-      <div>Congressional District: ${loc.district || '—'}</div>
-    `;
-    const off = data.officials || {};
-    $('senators').innerHTML = (off.senators || []).map(card).join('') || '<div class="text-slate-500">None</div>';
-    $('rep').innerHTML = card(off.representative);
-    $('mayor').innerHTML = card(off.mayor);
-
-    if (loc.state) {
-      const el = await loadElections(loc.state);
-      $('elections').innerHTML = `
-        <div>Next federal general election: <strong>${el.next_federal_general}</strong></div>
-        <div>Learn / Register: <a class="text-blue-700 underline" href="${el.state_resources.register_to_vote}" target="_blank">vote.gov</a></div>
-        <div>State Election Office: <a class="text-blue-700 underline" href="${el.state_resources.state_election_office}" target="_blank">resources</a></div>
-      `;
-      $('registerLinks').innerHTML = `
-        <div><a class="text-blue-700 underline" target="_blank" href="${el.state_resources.register_to_vote}">How to register (vote.gov)</a></div>
-        <div><a class="text-blue-700 underline" target="_blank" href="${el.state_resources.state_election_office}">Your state election office</a></div>
-      `;
     }
 
-    if (loc.city && loc.state) {
-      const [local, us, world] = await Promise.all([loadNewsLocal(loc.city, loc.state), loadNewsUS(), loadNewsWorld()]);
-      $('newsLocal').innerHTML = listNews(local.items);
-      $('newsUS').innerHTML    = listNews(us.items);
-      $('newsWorld').innerHTML = listNews(world.items);
-    }
+    // 5) Events
+    searchBtn.addEventListener('click', () => run(zipInput.value.trim()));
+    zipInput.addEventListener('keydown', e => { if(e.key==='Enter') run(zipInput.value.trim()); });
+    geoBtn.addEventListener('click', async () => {
+      clearError();
+      if(!navigator.geolocation){ showError('Geolocation not available.'); return; }
+      navigator.geolocation.getCurrentPosition(async pos => {
+        try{
+          const {latitude:lat, longitude:lon} = pos.coords;
+          const r = await fetch(`${API_BASE}/revgeo?lat=${lat}&lon=${lon}`);
+          const j = await r.json();
+          if(!j.zip){ showError('Could not resolve a ZIP for your location.'); return; }
+          run(j.zip);
+        }catch(e){ showError('Reverse-geocoding failed.'); }
+      }, () => showError('Location permission denied.'));
+    });
 
-    const em = await loadEmergency();
-    $('emergencyBox').innerHTML = (em.emergency || []).map(x => `<div>${x.title}: <strong>${x.number}</strong></div>`).join('');
-
-  } catch (e) {
-    console.error(e);
-    $('warn').textContent = "Couldn't load officials. Try again.";
-    $('warn').classList.remove('hidden');
-  }
-}
-
-$('btnLocate').addEventListener('click', useMyLocation);
-$('btnLookup').addEventListener('click', runLookup);
-$('zip').addEventListener('keydown', (e) => { if (e.key === 'Enter') runLookup(); });
-
-$('feedbackForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  alert('Thanks for your feedback! (Stored locally for demo.)');
-});
-</script>
+    // 6) Initial boot
+    loadEmergency();
+  </script>
 </body>
 </html>
