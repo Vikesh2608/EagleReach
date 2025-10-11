@@ -32,12 +32,14 @@ ZIP_RE = re.compile(r"^\d{5}$")
 # External data sources
 ZIPPOTAM_URL = "https://api.zippopotam.us/us/{zip}"
 WMR_HOUSE_URL = "https://whoismyrepresentative.com/getall_mems.php?zip={zip}&output=json"
-# NOTE: GovTrack requires role_type (NOT role)
+
+# *** IMPORTANT: GovTrack uses role_type (NOT role) ***
 GOVTRACK_SENATE_URL = "https://www.govtrack.us/api/v2/role?current=true&role_type=senator&state={state}"
 GOVTRACK_HOUSE_URL  = "https://www.govtrack.us/api/v2/role?current=true&role_type=representative&state={state}&district={district}"
+
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 
-app = FastAPI(title="EagleReach API", version="1.1.0")
+app = FastAPI(title="EagleReach API", version="1.1.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -93,8 +95,12 @@ def clean_party(p: Optional[str]) -> Optional[str]:
     if not p:
         return p
     p = p.strip()
-    mapping = {"Democrat": "Democratic", "Democratic": "Democratic",
-               "Republican": "Republican", "Independent": "Independent"}
+    mapping = {
+        "Democrat": "Democratic",
+        "Democratic": "Democratic",
+        "Republican": "Republican",
+        "Independent": "Independent",
+    }
     return mapping.get(p, p)
 
 def gt_role_to_person(role: Dict[str, Any]) -> Dict[str, Any]:
@@ -181,13 +187,24 @@ async def whois_house(zipcode: str) -> Optional[str]:
         pass
     return None
 
+# ---- Replace helpers are here ----
 async def govtrack_senators(state: str) -> List[Dict[str, Any]]:
-    data = await fetch_json(GOVTRACK_SENATE_URL.format(state=state), f"sen:{state}")
-    return [gt_role_to_person(o) for o in data.get("objects", [])]
+    try:
+        data = await fetch_json(GOVTRACK_SENATE_URL.format(state=state), f"sen:{state}")
+        return [gt_role_to_person(o) for o in data.get("objects", [])]
+    except Exception:
+        # tolerate upstream issues and return an empty list
+        return []
 
 async def govtrack_reps(state: str, district: str) -> List[Dict[str, Any]]:
-    data = await fetch_json(GOVTRACK_HOUSE_URL.format(state=state, district=district), f"rep:{state}:{district}")
-    return [gt_role_to_person(o) for o in data.get("objects", [])]
+    try:
+        data = await fetch_json(
+            GOVTRACK_HOUSE_URL.format(state=state, district=district),
+            f"rep:{state}:{district}",
+        )
+        return [gt_role_to_person(o) for o in data.get("objects", [])]
+    except Exception:
+        return []
 
 async def wikidata_mayor(city: str, state_full: str) -> Optional[Dict[str, Any]]:
     if client is None:
@@ -253,10 +270,7 @@ async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
 
     reps: List[Dict[str, Any]] = []
     if district:
-        try:
-            reps = await govtrack_reps(state, district)
-        except Exception:
-            reps = []   # tolerate rep lookup failure
+        reps = await govtrack_reps(state, district)  # tolerant helper above
 
     payload = {
         "location": {
@@ -273,7 +287,7 @@ async def officials(zip: str = Query(..., description="US 5-digit ZIP code")):
     }
 
     if not senators and not reps and not mayor:
-        # location OK but all providers failed
+        # location OK but all providers failed: surface a clear 502
         raise HTTPException(status_code=502, detail="Civic data providers unavailable. Try again later.")
     return payload
 
@@ -285,4 +299,3 @@ async def global_exception_handler(request: Request, exc: Exception):
     # Log to Render logs
     print("UNCAUGHT ERROR:", repr(exc))
     return JSONResponse(status_code=500, content={"error": "internal_server_error", "detail": str(exc)})
-
