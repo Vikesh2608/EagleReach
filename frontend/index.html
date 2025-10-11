@@ -3,96 +3,94 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>US EagleReach — civic info, fast & free</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title>EagleReach — civic info, fast & free</title>
+  <meta name="color-scheme" content="light dark" />
   <style>
-    :root{
-      --bg:#f6f8fb; --card:#fff; --ink:#17223b; --muted:#6b7280;
-      --brand:#1d4ed8; --brand-ink:#fff; --ring:#93c5fd; --border:#e5e7eb;
+    :root {
+      --brand: #173f7a;
+      --brand-2: #1e56a0;
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --txt: #1a1a1a;
+      --muted: #6b7280;
+      --ok: #18a558;
+      --err: #c0392b;
+      --bd: #e4e7ec;
+      --pill: #edf2ff;
+      --pill-txt: #2c4cc9;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:Inter,system-ui,Segoe UI,Helvetica,Arial,sans-serif;
-      color:var(--ink); background:var(--bg);
-    }
-    .topbar{
-      position:sticky;top:0; z-index:20;
-      background:#0b2a6b; color:#cde3ff; border-bottom:1px solid rgba(255,255,255,.08);
-    }
-    .container{max-width:1100px;margin:0 auto;padding:0 16px}
-    .row{display:flex;gap:16px}
-    .between{display:flex;align-items:center;justify-content:space-between}
-    .brand{display:flex;align-items:center;gap:10px;padding:12px 0}
-    .brand .eagle{
-      width:26px;height:26px;border-radius:50%;
-      background:linear-gradient(135deg,#60a5fa,#2563eb);
-      display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700
-    }
-    nav a{color:#cfe2ff;text-decoration:none;margin-left:14px}
-    nav a:hover{color:#fff}
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--txt); font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; }
 
-    .page{padding:18px 0 36px}
-    .card{
-      background:var(--card); border:1px solid var(--border); border-radius:12px;
-      box-shadow:0 1px 2px rgba(15,23,42,.04); padding:14px
-    }
-    .card h3{margin:0 0 10px;font-size:16px}
-    .inputrow{display:flex;gap:10px;margin:10px 0}
-    input[type="text"]{
-      flex:1; font-size:16px; padding:12px 14px; border:1px solid var(--border); border-radius:10px;
-      outline:none
-    }
-    input[type="text"]:focus{border-color:#60a5fa; box-shadow:0 0 0 3px var(--ring)}
-    .btn{
-      padding:10px 14px; border-radius:10px; font-weight:600; border:1px solid var(--border);
-      background:#eef2ff; color:#0b2a6b; cursor:pointer
-    }
-    .btn.brand{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
-    .btn:hover{filter:brightness(.97)}
-    .warn{
-      display:none; margin-top:8px; padding:10px 12px; border-radius:10px;
-      background:#fee2e2; color:#7f1d1d; border:1px solid #fecaca; font-size:14px
-    }
+    /* Header */
+    .topbar { background: var(--brand); color: #fff; }
+    .topbar .wrap { max-width: 1120px; margin: 0 auto; padding: 10px 16px; display:flex; align-items:center; justify-content:space-between; }
+    .brand { font-weight: 700; letter-spacing: .2px; }
+    .brand small { opacity:.7; font-weight:500; margin-left:6px; }
+    .nav a { color:#dbe7ff; text-decoration:none; margin-left:14px; padding:6px 10px; border-radius:7px; }
+    .nav a:hover, .nav a.active { background: rgba(255,255,255,.12); color:#fff; }
 
-    .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
-    @media (max-width:900px){.cols{grid-template-columns:1fr}}
+    /* Page wrap */
+    .page { max-width: 1120px; margin: 18px auto 40px; padding: 0 16px; display:grid; grid-template-columns: 1fr 360px; grid-gap: 16px; }
+    @media (max-width: 1000px) { .page { grid-template-columns: 1fr; } }
 
-    .pill{font-size:12px; padding:2px 8px;border-radius:999px;background:#eef2ff;color:#1d4ed8}
+    /* Card */
+    .card { background: var(--card); border:1px solid var(--bd); border-radius:12px; box-shadow: 0 1px 0 rgba(0,0,0,.02); }
+    .card h3 { margin: 0; padding: 14px 16px; font-size: 15px; border-bottom:1px solid var(--bd); }
+    .card .body { padding: 14px 16px; }
 
-    .official{padding:10px 10px;border:1px dashed #e5e7eb;border-radius:10px;margin:6px 0}
-    .official .name{font-weight:700}
-    .official .meta{font-size:13px;color:var(--muted)}
-    .sub{font-size:13px;color:var(--muted)}
-    .listy{display:flex;flex-direction:column;gap:8px;}
-    .linkcard{display:block;padding:12px;border-radius:10px;border:1px solid var(--border);text-decoration:none;color:inherit;background:var(--card)}
-    .linkcard:hover{background:#f8fafc}
-    .footer{margin-top:22px;color:#6b7280;text-align:center;font-size:13px}
+    /* Controls */
+    .row { display:flex; gap: 8px; align-items:center; }
+    .row > * { flex: 0 0 auto; }
+    .row .grow { flex: 1 1 auto; }
+    input[type="text"] {
+      width:100%; padding:12px 12px; border:1px solid var(--bd); border-radius:10px; background:#fff;
+      font: inherit;
+    }
+    button {
+      padding: 10px 14px; background: var(--brand-2); color:#fff; border:0; border-radius:10px; font-weight:600; cursor:pointer;
+    }
+    button.secondary { background: #eef2ff; color:#27377a; }
+    button:hover { filter: brightness(.98); }
+
+    /* Status pill */
+    .status {
+      margin-top: 10px; padding:10px 12px; border-radius:9px;
+      background:#eef6ff; color:#274472; border:1px solid #d7e7ff;
+      font-size: 14px;
+    }
+    .status.ok    { background: #eefaf4; border-color:#c8f0dd; color:#145a32; }
+    .status.error { background: #ffecec; border-color:#ffd3d3; color:#a22020; }
+
+    /* Officials blocks */
+    .pill {
+      border:1px solid var(--bd); background:#fafbff; padding:10px 12px; border-radius:10px; color:#334155;
+    }
+    .pill + .pill { margin-top:8px; }
+
+    .muted { color: var(--muted); font-size: 13px; }
+
+    /* Footer */
+    .foot { text-align:center; color:var(--muted); padding: 18px 0 34px; font-size: 13px; }
+
+    /* Simple list style inside cards */
+    ul.links { list-style:none; padding:0; margin:0; }
+    ul.links li { margin: 6px 0; }
+    ul.links a { color: var(--brand-2); text-decoration: none; }
+    ul.links a:hover { text-decoration: underline; }
   </style>
-
-  <!-- The ONLY place you need to set your backend URL for GitHub Pages -->
-  <script>
-    const API_BASE = (window.location.hostname.includes('github.io'))
-      ? 'https://eaglereach-1.onrender.com'
-      : 'http://localhost:8000';
-  </script>
 </head>
-
 <body>
+
   <!-- Top bar -->
   <header class="topbar">
-    <div class="container between">
+    <div class="wrap">
       <div class="brand">
-        <div class="eagle">🦅</div>
-        <div>
-          <div style="font-weight:800;letter-spacing:.2px">US EagleReach</div>
-          <div style="font-size:12px;color:#9ec3ff">civic info, fast &amp; free</div>
-        </div>
+        us <strong>EagleReach</strong>
+        <small>— civic info, fast &amp; free for every U.S. resident</small>
       </div>
-      <nav>
-        <a href="#">Home</a>
+      <nav class="nav">
+        <a class="active" href="#">Home</a>
         <a href="#about">About</a>
         <a href="#founder">Founder</a>
         <a href="#contact">Contact</a>
@@ -101,193 +99,282 @@
     </div>
   </header>
 
-  <!-- Page -->
-  <main class="page container">
-    <!-- Search -->
-    <section class="card">
-      <h3>Enter ZIP</h3>
-      <div class="inputrow">
-        <input id="zip" type="text" placeholder="e.g., 45220" inputmode="numeric" />
-        <button id="btnSearch" class="btn brand">Search</button>
-        <button id="btnGeo" class="btn">Use my location</button>
+  <main class="page">
+    <!-- LEFT: main civic info -->
+    <section class="left-col">
+      <!-- Search -->
+      <div class="card">
+        <h3>Enter ZIP</h3>
+        <div class="body">
+          <form id="searchForm" class="row" onsubmit="doSearch(event)">
+            <input id="zip" class="grow" type="text" inputmode="numeric" placeholder="e.g., 45220" maxlength="10" />
+            <button id="btnSearch" type="submit">Search</button>
+            <button id="btnLocate" type="button" class="secondary">Use my location</button>
+          </form>
+          <div id="status" class="status" style="display:none;"></div>
+        </div>
       </div>
-      <div id="apiWarning" class="warn"></div>
+
+      <!-- Officials -->
+      <div class="card" style="margin-top:12px;">
+        <h3>Elected Representatives</h3>
+        <div class="body">
+          <div class="pill" id="senators">Senators</div>
+          <div class="pill" id="rep">House Representative</div>
+          <div class="pill" id="mayor">Mayor</div>
+
+          <p class="muted" style="margin-top:12px;">
+            Sources: Zippopotam (ZIP), FCC Census Block API (district, best-effort), congress-legislators (official photos & sites), Wikidata (mayor, best-effort).
+          </p>
+        </div>
+      </div>
     </section>
 
-    <div class="cols">
-      <!-- Left: Elected reps -->
-      <section class="card">
-        <h3 class="between" style="gap:10px">
-          Elected Representatives <span class="pill">by ZIP</span>
-        </h3>
-        <div style="margin:10px 0 8px;color:var(--muted);font-size:13px">Senators</div>
-        <div id="senators" class="listy"></div>
-
-        <div style="margin:12px 0 8px;color:var(--muted);font-size:13px">House Representative</div>
-        <div id="reps" class="listy"></div>
-
-        <div style="margin:12px 0 8px;color:var(--muted);font-size:13px">Mayor</div>
-        <div id="mayor" class="listy"></div>
-
-        <div class="sub" style="margin-top:10px">
-          Sources: Zippopotam (ZIP), FCC Census Block (district), congress-legislators (senators/rep),
-          Wikidata (mayor best-effort).
+    <!-- RIGHT: resources -->
+    <aside class="right-col">
+      <!-- Voter info -->
+      <div class="card">
+        <h3>Voter Info &amp; Education</h3>
+        <div class="body">
+          <ul class="links" id="voterLinks">
+            <li><a target="_blank" rel="noopener" href="https://www.usa.gov/how-to-vote">How to vote (USA.gov)</a></li>
+            <li><a id="linkRegister" target="_blank" rel="noopener" href="https://www.vote.gov/">Register to vote</a></li>
+            <li><a id="linkOffice" target="_blank" rel="noopener" href="https://www.eac.gov/voters/register-and-vote-in-your-state">Find your Election Office</a></li>
+            <li><span class="muted">Next federal general: <span id="nextElection">—</span></span></li>
+          </ul>
         </div>
-      </section>
+      </div>
 
-      <!-- Right: Voter info & news & emergency links -->
-      <section class="card">
-        <h3>Voter Info & Education</h3>
-        <div class="listy">
-          <a class="linkcard" href="https://www.usa.gov/how-to-vote" target="_blank" rel="noopener">
-            How to vote (USA.gov)
-            <div class="sub">Registration, deadlines, ID rules</div>
-          </a>
-          <a class="linkcard" href="https://www.vote.gov/" target="_blank" rel="noopener">
-            Register to vote
-            <div class="sub">Official state portals</div>
-          </a>
-          <a class="linkcard" href="https://www.eac.gov/voters/register-and-vote-in-your-state" target="_blank" rel="noopener">
-            Find your Election Office
-            <div class="sub">Local contact details</div>
-          </a>
+      <!-- News -->
+      <div class="card" style="margin-top:12px;">
+        <h3>News</h3>
+        <div class="body row">
+          <button class="secondary" id="btnLocalNews">Open Local News</button>
+          <button class="secondary" id="btnNationalNews">World News</button>
         </div>
-
-        <h3 style="margin-top:16px">News</h3>
-        <div class="row" style="gap:10px;margin-bottom:8px">
-          <button id="btnLocalNews" class="btn" title="Opens Google News in a new tab">Open Local News</button>
-          <button id="btnWorldNews" class="btn">World News</button>
+        <div class="body">
+          <p class="muted">Local news opens Google News for your ZIP’s city.</p>
         </div>
-        <div class="sub">Local news opens Google News for your ZIP’s city.</div>
+      </div>
 
-        <h3 style="margin-top:16px">Emergency & Community</h3>
-        <div class="listy">
-          <a class="linkcard" href="tel:911">Emergency (life-threatening): 911</a>
-          <a class="linkcard" href="tel:988">988 — Suicide & Crisis Lifeline</a>
-          <a class="linkcard" href="tel:+18002221222">Poison Control: 1-800-222-1222</a>
-          <a class="linkcard" href="https://www.211.org/" target="_blank" rel="noopener">211 — Community resources</a>
+      <!-- Emergency -->
+      <div class="card" style="margin-top:12px;">
+        <h3>Emergency &amp; Community</h3>
+        <div class="body">
+          <ul class="links">
+            <li><strong>Emergency (life-threatening):</strong> <a href="tel:911">911</a></li>
+            <li>Suicide &amp; Crisis Lifeline: <a href="tel:988">988</a> · <a href="https://988lifeline.org/" target="_blank" rel="noopener">Website</a></li>
+            <li>PCC / Poison Control: <a href="tel:18002221222">1-800-222-1222</a></li>
+            <li>City Services: <a href="https://www.usa.gov/local-governments" target="_blank" rel="noopener">311 (check your city website)</a></li>
+            <li>Community Resources: <a href="https://www.211.org/" target="_blank" rel="noopener">211 · 211.org</a></li>
+          </ul>
         </div>
-      </section>
-    </div>
-
-    <div class="footer">© 2025 EagleReach — built to make civic info easy for everyone in the U.S.</div>
+      </div>
+    </aside>
   </main>
 
-  <!-- App logic -->
+  <footer class="foot">
+    © 2025 EagleReach — Civic info, fast & free — built for everyone in the United States.
+  </footer>
+
+  <!-- ======= Frontend JS ======= -->
   <script>
-    const qs = s => document.querySelector(s);
-    const zipInput    = qs('#zip');
-    const btnSearch   = qs('#btnSearch');
-    const btnGeo      = qs('#btnGeo');
-    const warn        = qs('#apiWarning');
-    const senatorsBox = qs('#senators');
-    const repsBox     = qs('#reps');
-    const mayorBox    = qs('#mayor');
-    const btnLocalNews= qs('#btnLocalNews');
-    const btnWorldNews= qs('#btnWorldNews');
+    // Point the frontend to your backend
+    const API_BASE = (window.location.hostname.includes('github.io'))
+      ? 'https://eaglereach-1.onrender.com'
+      : 'http://localhost:8000';
 
-    function setWarning(msg){ warn.textContent = msg; warn.style.display = 'block'; }
-    function hideWarning(){ warn.style.display = 'none'; }
-    const make = html => (tmp => { tmp.innerHTML = html.trim(); return tmp.firstChild; })(document.createElement('div'));
+    // UI elements
+    const zipInput   = document.getElementById('zip');
+    const statusBar  = document.getElementById('status');
+    const btnSearch  = document.getElementById('btnSearch');
+    const btnLocate  = document.getElementById('btnLocate');
 
-    async function fetchJSON(url){
-      const r = await fetch(url, { headers: { 'Accept':'application/json' } });
-      if (!r.ok){
-        const text = await r.text().catch(()=> '');
-        throw new Error(`HTTP ${r.status} ${r.statusText} — ${text.slice(0,160)}`);
+    const elSen      = document.getElementById('senators');
+    const elRep      = document.getElementById('rep');
+    const elMayor    = document.getElementById('mayor');
+
+    const linkRegister = document.getElementById('linkRegister');
+    const linkOffice   = document.getElementById('linkOffice');
+    const nextElection = document.getElementById('nextElection');
+
+    const btnLocalNews     = document.getElementById('btnLocalNews');
+    const btnNationalNews  = document.getElementById('btnNationalNews');
+
+    // helpers
+    function showStatus(msg, type='info') {
+      statusBar.style.display = msg ? 'block' : 'none';
+      statusBar.textContent = msg || '';
+      statusBar.classList.remove('ok','error');
+      if (type === 'ok') statusBar.classList.add('ok');
+      else if (type === 'error') statusBar.classList.add('error');
+    }
+    function escapeHTML(s='') {
+      return String(s).replace(/[&<>"']/g, (m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+    async function fetchJSON(url, opts) {
+      const r = await fetch(url, opts);
+      let data = {};
+      try { data = await r.json(); } catch {}
+      return { ok: r.ok, status: r.status, data };
+    }
+
+    // ========== SEARCH ==========
+    async function doSearch(ev) {
+      ev?.preventDefault?.();
+      const zip = zipInput.value.trim();
+      if (!zip) return;
+      showStatus(`Looking up officials for ZIP ${zip}…`);
+
+      // 1) Officials
+      const off = await fetchJSON(`${API_BASE}/officials?zip=${encodeURIComponent(zip)}`);
+      if (!off.ok) {
+        showStatus(off.data?.detail || 'Couldn’t load officials. Check your backend URL or try again.', 'error');
+        return;
       }
-      return r.json();
+      const { location, officials, sources } = off.data || {};
+      renderOfficials(officials);
+
+      // 2) Elections & voter links (need state code)
+      const state = (location?.state || '').toUpperCase();
+      if (state) {
+        const el = await fetchJSON(`${API_BASE}/elections?state=${encodeURIComponent(state)}`);
+        if (el.ok) {
+          linkRegister.href = el.data?.state_resources?.register_to_vote || 'https://www.vote.gov/';
+          linkOffice.href   = el.data?.state_resources?.state_election_office || 'https://www.eac.gov/voters/register-and-vote-in-your-state';
+          nextElection.textContent = el.data?.next_federal_general || '—';
+        }
+      } else {
+        linkRegister.href = 'https://www.vote.gov/';
+        linkOffice.href   = 'https://www.eac.gov/voters/register-and-vote-in-your-state';
+        nextElection.textContent = '—';
+      }
+
+      // 3) Wire news buttons based on city/state (fallback to national/world)
+      const city = location?.city || '';
+      const st   = state || '';
+      btnLocalNews.onclick = () => {
+        if (city && st) window.open(`https://news.google.com/search?q=${encodeURIComponent(city + ', ' + st)}`, '_blank');
+        else window.open('https://news.google.com', '_blank');
+      };
+      btnNationalNews.onclick = () => {
+        window.open('https://news.google.com/topics/CAAqJggKIiBDQkFTRWdvSkwyMHZNREZqZEdKc0VnSmxiaWdBUAE', '_blank'); // world
+      };
+
+      showStatus(`Loaded civic info for ${escapeHTML(location?.city || '')}, ${escapeHTML(location?.state || '')}.`, 'ok');
     }
 
-    function officialRow(o){
-      const website = o.website ? ` • <a href="${o.website}" target="_blank" rel="noopener">website</a>` : '';
-      const phone   = o.phone   ? ` • ${o.phone}` : '';
-      const party   = o.party   ? ` (${o.party})` : '';
-      return `<div class="official">
-        <div class="name">${o.name || 'Unknown'}${party}</div>
-        <div class="meta">${website}${phone}</div>
-      </div>`;
+    function renderOfficials(officials={}) {
+      const sen = officials.senators || [];
+      const rep = officials.representative || null;
+      const mayor = officials.mayor || null;
+
+      elSen.innerHTML = sen.length
+        ? sen.map(p => personLine(p)).join('<br/>')
+        : 'Senators: <span class="muted">not found (rate limit or provider unavailable)</span>';
+
+      elRep.innerHTML = rep
+        ? personLine(rep, 'House Representative')
+        : 'House Representative: <span class="muted">not found (rate limit or provider unavailable)</span>';
+
+      elMayor.innerHTML = mayor
+        ? personLine(mayor, 'Mayor')
+        : 'Mayor: <span class="muted">not found (best-effort)</span>';
     }
 
-    async function loadOfficialsByZip(zip){
-      hideWarning();
-      senatorsBox.innerHTML = repsBox.innerHTML = mayorBox.innerHTML = '';
-      try{
-        const data = await fetchJSON(`${API_BASE}/officials?zip=${encodeURIComponent(zip)}`);
-        console.log('officials', data);
+    function personLine(p={}, label='') {
+      const name = escapeHTML(p.name || 'Unknown');
+      const party = p.party ? ` · ${escapeHTML(p.party)}` : '';
+      const site = p.website ? ` · <a href="${escapeHTML(p.website)}" target="_blank" rel="noopener">website</a>` : '';
+      const phone = p.phone ? ` · <a href="tel:${escapeHTML(p.phone)}">${escapeHTML(p.phone)}</a>` : '';
+      const tw = p.twitter ? ` · <a href="https://twitter.com/${escapeHTML(p.twitter)}" target="_blank" rel="noopener">@${escapeHTML(p.twitter)}</a>` : '';
+      const lbl = label ? `<strong>${label}:</strong> ` : '';
+      return `${lbl}${name}${party}${site}${phone}${tw}`;
+    }
 
-        // Senators
-        if (data.officials?.senators?.length){
-          senatorsBox.innerHTML = data.officials.senators.map(officialRow).join('');
-        } else {
-          senatorsBox.innerHTML = `<div class="sub">No senators found.</div>`;
+    // ========== LOCATION BUTTON ==========
+    async function reverseWithBackend(lat, lon) {
+      return fetchJSON(`${API_BASE}/revgeo?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
+    }
+    async function reverseWithOSM(lat, lon) {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+      const r = await fetchJSON(url, { headers: { 'Accept':'application/json' } });
+      if (r.ok && r.data && r.data.address) {
+        const pc = r.data.address.postcode;
+        const city = r.data.address.city || r.data.address.town || r.data.address.village || r.data.address.hamlet;
+        const state = r.data.address.state;
+        return { ok: !!pc, data: { zip: pc, city, state } };
+      }
+      return { ok: false, data: {} };
+    }
+    async function reverseWithIP() {
+      const r = await fetchJSON('https://ipapi.co/json/');
+      if (r.ok && r.data && r.data.postal) {
+        return { ok: true, data: { zip: r.data.postal, city: r.data.city, state: r.data.region } };
+      }
+      return { ok: false, data: {} };
+    }
+
+    async function useMyLocation() {
+      showStatus('Getting your location… (please allow permission)');
+      if (!navigator.geolocation) {
+        showStatus('Geolocation not supported by this browser. Enter your ZIP manually.', 'error');
+        return;
+      }
+      const opts = { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 };
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const { latitude, longitude } = pos.coords || {};
+        if (latitude == null || longitude == null) {
+          showStatus('Couldn’t read coordinates from your device.', 'error');
+          return;
         }
-
-        // House Rep
-        if (data.officials?.representative){
-          repsBox.innerHTML = officialRow(data.officials.representative);
-        } else {
-          repsBox.innerHTML = `<div class="sub">No representative found.</div>`;
-        }
-
-        // Mayor
-        if (data.officials?.mayor){
-          mayorBox.innerHTML = officialRow(data.officials.mayor);
-        } else {
-          mayorBox.innerHTML = `<div class="sub">No mayor found (best-effort).</div>`;
-        }
-
-        // News buttons use the location
-        const city = data.location?.city, state = data.location?.state;
-        btnLocalNews.onclick = () => {
-          if (city && state){
-            const q = encodeURIComponent(`${city}, ${state}`);
-            window.open(`https://news.google.com/search?q=${q}`, '_blank', 'noopener');
-          } else {
-            window.open('https://news.google.com/', '_blank', 'noopener');
+        try {
+          // backend first
+          showStatus('Converting your coordinates to a ZIP…');
+          let out = await reverseWithBackend(latitude, longitude);
+          if (out.ok && out.data && out.data.zip) {
+            zipInput.value = out.data.zip;
+            showStatus(`Detected ZIP ${out.data.zip} (${out.data.city || ''} ${out.data.state || ''}).`, 'ok');
+            doSearch();
+            return;
           }
-        };
-      }catch(err){
-        console.error(err);
-        const corsHint = err.message.includes('TypeError: Failed to fetch') ? ' (CORS/network)' : '';
-        setWarning(`Couldn't load officials.${corsHint} ${err.message}`);
-      }
+          // OSM fallback
+          out = await reverseWithOSM(latitude, longitude);
+          if (out.ok && out.data.zip) {
+            zipInput.value = out.data.zip;
+            showStatus(`Detected ZIP ${out.data.zip} (${out.data.city || ''} ${out.data.state || ''}).`, 'ok');
+            doSearch();
+            return;
+          }
+          // IP last resort
+          out = await reverseWithIP();
+          if (out.ok && out.data.zip) {
+            zipInput.value = out.data.zip;
+            showStatus(`Approximate ZIP by IP: ${out.data.zip}. If this seems wrong, type your ZIP.`, 'info');
+            doSearch();
+            return;
+          }
+          showStatus('Couldn’t determine your ZIP. Please type it manually.', 'error');
+        } catch {
+          showStatus('Location lookup failed. Please type your ZIP.', 'error');
+        }
+      }, (err) => {
+        if (err.code === err.PERMISSION_DENIED)      showStatus('Location permission denied. Please type your ZIP.', 'error');
+        else if (err.code === err.TIMEOUT)           showStatus('Location timed out. Try again or type your ZIP.', 'error');
+        else                                         showStatus('Couldn’t get your location. Please type your ZIP.', 'error');
+      }, opts);
     }
 
-    // Controls
-    btnSearch.addEventListener('click', () => {
-      const zip = (zipInput.value || '').trim();
-      if (!/^\d{5}$/.test(zip)){ setWarning('Enter a valid 5-digit ZIP'); return; }
-      loadOfficialsByZip(zip);
-    });
-    zipInput.addEventListener('keydown', e => { if (e.key === 'Enter') btnSearch.click(); });
+    // wire up
+    btnLocate.addEventListener('click', (e)=>{ e.preventDefault(); useMyLocation(); });
 
-    btnGeo.addEventListener('click', () => {
-      hideWarning();
-      if (!navigator.geolocation){ setWarning('Geolocation not supported'); return; }
-      navigator.geolocation.getCurrentPosition(async pos => {
-        try{
-          const { latitude, longitude } = pos.coords;
-          const rg = await fetchJSON(`${API_BASE}/revgeo?lat=${latitude}&lon=${longitude}`);
-          if (rg?.zip){ zipInput.value = rg.zip; loadOfficialsByZip(rg.zip); }
-          else setWarning('Couldn’t determine ZIP from your location');
-        }catch(e){ console.error(e); setWarning('Location lookup failed'); }
-      }, () => setWarning('Location permission denied/unavailable'),
-      { enableHighAccuracy:true, timeout:10000 });
-    });
-
-    btnWorldNews.addEventListener('click', () => {
-      window.open('https://news.google.com/topstories', '_blank', 'noopener');
-    });
-
-    // Optional: try URL ?zip=XXXXX on load
-    (function boot(){
-      const u = new URL(location.href);
-      const z = u.searchParams.get('zip');
-      if (z && /^\d{5}$/.test(z)){
-        zipInput.value = z; loadOfficialsByZip(z);
-      }
-    })();
+    // optional: auto-search if a ZIP is on the URL ?zip=…
+    const qs = new URLSearchParams(location.search);
+    const startZip = qs.get('zip');
+    if (startZip) {
+      zipInput.value = startZip;
+      doSearch();
+    }
   </script>
 </body>
 </html>
