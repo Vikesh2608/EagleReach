@@ -3,42 +3,51 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>EagleReach</title>
+  <title>EagleReach — civic info, fast & free</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root{
       --blue:#0a377e; --blue-2:#0f4aa6; --bg:#f7f9fc; --card:#fff; --muted:#6b7280; --ring:#e5e7eb;
     }
-    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#0f172a}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#0f172a}
     a{color:var(--blue-2);text-decoration:none} a:hover{text-decoration:underline}
     .container{max-width:1100px;margin:0 auto;padding:20px}
-    .nav{background:var(--blue);color:#fff} .nav a{color:#e6efff;margin:0 10px}
+    .nav{background:var(--blue);color:#fff}
+    .bar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px}
     .brand{display:flex;align-items:center;gap:10px;font-weight:700}
     .brand .eagle{font-size:26px}
-    .bar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px}
+    .tabs a{color:#e6efff;margin:0 8px;padding:6px 10px;border-radius:8px}
+    .tabs a:hover{background:rgba(255,255,255,.15)}
     .grid{display:grid;gap:16px}
-    @media(min-width:900px){.grid-2{grid-template-columns:1.2fr .8fr}}
+    .grid-2{grid-template-columns:1.2fr .8fr}
+    @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
     .card{background:var(--card);border:1px solid var(--ring);border-radius:12px;padding:16px}
+    .section-title{margin:4px 0 12px;font-weight:700}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input[type="text"]{flex:1;min-width:240px;padding:12px;border:1px solid var(--ring);border-radius:10px}
     .btn{background:var(--blue-2);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
     .btn.secondary{background:#eef2ff;color:#1e3a8a}
-    input[type="text"]{width:100%;padding:12px 12px;border:1px solid var(--ring);border-radius:10px}
-    .muted{color:var(--muted)} .section-title{margin:4px 0 12px;font-weight:700}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .pill{display:inline-flex;border:1px solid var(--ring);border-radius:999px;padding:4px 10px;background:#f8fafc}
-    .official{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed #e5e7eb}
-    .official:last-child{border-bottom:0} .official img{width:64px;height:78px;border-radius:6px;object-fit:cover;border:1px solid #e5e7eb}
+    .pill{display:inline-flex;border:1px solid var(--ring);border-radius:999px;padding:6px 12px;background:#f8fafc}
+    .muted{color:var(--muted)}
     .error{background:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:10px;border-radius:8px}
+    /* Officials */
+    .official{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed #e5e7eb}
+    .official:last-child{border-bottom:0}
+    .photo{width:64px;height:78px;border-radius:6px;border:1px solid #e5e7eb;background:#f8fafc;object-fit:cover}
     footer{color:#6b7280;text-align:center;margin:30px 0}
-    .tabs a{padding:6px 10px;border-radius:8px} .tabs a:hover{background:rgba(255,255,255,.15)}
   </style>
 </head>
 <body>
+  <!-- Header -->
   <header class="nav">
     <div class="bar container">
-      <div class="brand"><span class="eagle">🦅</span> <span>EagleReach</span></div>
-      <nav class="tabs">
+      <div class="brand"><span class="eagle">🦅</span><span>EagleReach</span></div>
+      <nav class="tabs" aria-label="Site">
         <a href="#home">Home</a>
         <a href="#about">About</a>
         <a href="#founder">Founder</a>
@@ -49,16 +58,19 @@
   </header>
 
   <main id="home" class="container">
+
+    <!-- Search + voter info -->
     <div class="card grid grid-2">
       <div>
         <div class="section-title">Enter ZIP</div>
         <div class="row">
-          <input id="zip" type="text" placeholder="45220" />
+          <input id="zip" type="text" placeholder="45220" aria-label="ZIP code" />
           <button id="searchBtn" class="btn">Search</button>
           <button id="geoBtn" class="btn secondary">Use my location</button>
         </div>
         <div id="warn" class="muted" style="margin-top:8px"></div>
       </div>
+
       <div>
         <div class="section-title">Voter Info & Education</div>
         <div class="grid">
@@ -69,11 +81,12 @@
       </div>
     </div>
 
+    <!-- Officials + news + emergency -->
     <div class="grid grid-2" style="margin-top:16px">
-      <section class="card">
-        <div class="section-title">Elected Representatives</div>
-        <div class="muted" id="locationLine"></div>
-        <div id="officials"></div>
+      <section class="card" aria-labelledby="repsTitle">
+        <div id="repsTitle" class="section-title">Elected Representatives</div>
+        <div id="locationLine" class="muted"></div>
+        <div id="officials" style="margin-top:8px"></div>
         <div class="muted" style="margin-top:10px">
           Sources: Zippopotam (ZIP), FCC (district), congress-legislators (official sites & photos), Wikidata (mayor).
         </div>
@@ -97,6 +110,7 @@
       </aside>
     </div>
 
+    <!-- Informational sections -->
     <section id="about" class="card" style="margin-top:16px">
       <div class="section-title">About</div>
       <p>
@@ -128,12 +142,12 @@
   </main>
 
   <script>
-    // 1) Backend base URL
+    // === CONFIG: Backend URL ===
     const API_BASE = (location.hostname.includes('github.io'))
       ? 'https://eaglereach-1.onrender.com'
       : 'http://localhost:8000';
 
-    // 2) Elements
+    // Elements
     const zipInput = document.getElementById('zip');
     const searchBtn = document.getElementById('searchBtn');
     const geoBtn = document.getElementById('geoBtn');
@@ -149,36 +163,33 @@
     const officeLink = document.getElementById('findOffice');
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // 3) Helpers
-    const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-
-    function officialHTML(o, role){
-      if(!o) return `<div class="muted">${role}: no data</div>`;
-      const lines = [];
-      lines.push(`<div class="official">`);
-      lines.push(o.photo ? `<img src="${esc(o.photo)}" alt="">` : `<div style="width:64px;height:78px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc"></div>`);
-      lines.push(`<div>`);
-      lines.push(`<div><strong>${esc(o.name)}</strong> <span class="muted">(${esc(o.party||'')})</span></div>`);
-      if(o.website) lines.push(`<div><a href="${esc(o.website)}" target="_blank" rel="noopener">Official website</a></div>`);
-      if(o.phone) lines.push(`<div class="muted">☎ ${esc(o.phone)}</div>`);
-      if(o.twitter) lines.push(`<div class="muted">Twitter: @${esc(o.twitter)}</div>`);
-      lines.push(`</div></div>`);
-      return lines.join("");
-    }
-
-    function showError(msg){
-      warnEl.innerHTML = `<div class="error">${esc(msg)}</div>`;
-    }
+    // Utils
+    const esc = (s) => (s == null ? '' : String(s)).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+    function showError(msg){ warnEl.innerHTML = `<div class="error">${esc(msg)}</div>`; }
     function clearError(){ warnEl.textContent = ''; }
 
-    // 4) Fetchers
+    function officialHTML(o){
+      if(!o) return '';
+      return `
+        <div class="official">
+          ${o.photo ? `<img class="photo" src="${esc(o.photo)}" alt="">` : `<div class="photo" aria-hidden="true"></div>`}
+          <div>
+            <div><strong>${esc(o.name)}</strong> ${o.party ? `<span class="muted">(${esc(o.party)})</span>`:''}</div>
+            ${o.website ? `<div><a href="${esc(o.website)}" target="_blank" rel="noopener">Official website</a></div>`:''}
+            ${o.phone ? `<div class="muted">☎ ${esc(o.phone)}</div>`:''}
+            ${o.twitter ? `<div class="muted">Twitter: @${esc(o.twitter)}</div>`:''}
+          </div>
+        </div>
+      `;
+    }
+
     async function loadEmergency(){
       try{
         const r = await fetch(`${API_BASE}/emergency`);
         const j = await r.json();
         emergencyList.innerHTML = (j.emergency||[])
           .map(x => `<li>${esc(x.title)} — <strong>${esc(x.number)}</strong></li>`).join("");
-      }catch(e){ /* silent */ }
+      }catch{}
     }
 
     async function loadNews(scope, city, state){
@@ -190,7 +201,7 @@
         const j = await r.json();
         newsList.innerHTML = (j.items||[]).slice(0,8)
           .map(n => `<div><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.title)}</a></div>`).join("");
-      }catch(e){ newsList.innerHTML = `<div class="muted">No news available.</div>`; }
+      }catch{ newsList.innerHTML = `<div class="muted">No news available.</div>`; }
     }
 
     async function loadElections(state){
@@ -200,7 +211,7 @@
         registerLink.href = j.state_resources.register_to_vote;
         officeLink.href = j.state_resources.state_election_office;
         voteGov.href = "https://www.usa.gov/how-to-vote";
-      }catch(e){ /* ignore */ }
+      }catch{}
     }
 
     async function run(zip){
@@ -210,41 +221,44 @@
 
       try{
         const r = await fetch(`${API_BASE}/officials?zip=${zip}`);
-        if(!r.ok){ throw new Error(`Lookup failed (${r.status})`); }
+        if(!r.ok) throw new Error(`Lookup failed (${r.status})`);
         const j = await r.json();
 
-        // Location line
         const loc = j.location || {};
         locationLine.textContent = `${loc.city||''}, ${loc.state||''} ${loc.zip||''}${loc.district ? ` — Congressional District ${loc.district}` : ''}`;
 
-        // Officials
         const sens = (j.officials?.senators)||[];
         const rep  = j.officials?.representative || null;
         const mayor= j.officials?.mayor || null;
 
         let html = '';
-        html += sens.map(s => officialHTML(s, 'Senator')).join('');
-        html += officialHTML(rep, 'Representative');
+        html += sens.map(officialHTML).join('');
+        if(rep) html += officialHTML(rep);
         if(mayor){
-          html += `<div class="official"><div style="width:64px;height:78px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc"></div><div><div><strong>${esc(mayor.name||'Mayor')}</strong></div>${mayor.website?`<div><a href="${esc(mayor.website)}" target="_blank" rel="noopener">Official website</a></div>`:''}</div></div>`;
+          html += `
+            <div class="official">
+              <div class="photo" aria-hidden="true"></div>
+              <div>
+                <div><strong>${esc(mayor.name||'Mayor')}</strong></div>
+                ${mayor.website?`<div><a href="${esc(mayor.website)}" target="_blank" rel="noopener">Official website</a></div>`:''}
+              </div>
+            </div>`;
         }
         officialsEl.innerHTML = html || `<div class="muted">No officials found.</div>`;
 
-        // Elections + news
         if(loc.state){ loadElections(loc.state); }
         loadNews('local', loc.city, loc.state);
 
-        // Buttons
         localNewsBtn.onclick = () => loadNews('local', loc.city, loc.state);
         worldNewsBtn.onclick = () => loadNews('international');
 
       }catch(err){
-        showError(err.message || 'Could not load officials. Check your backend URL or try again.');
+        showError(err.message || 'Couldn’t load officials. Check your backend URL or try again.');
         officialsEl.innerHTML = '';
       }
     }
 
-    // 5) Events
+    // Events
     searchBtn.addEventListener('click', () => run(zipInput.value.trim()));
     zipInput.addEventListener('keydown', e => { if(e.key==='Enter') run(zipInput.value.trim()); });
     geoBtn.addEventListener('click', async () => {
@@ -257,11 +271,11 @@
           const j = await r.json();
           if(!j.zip){ showError('Could not resolve a ZIP for your location.'); return; }
           run(j.zip);
-        }catch(e){ showError('Reverse-geocoding failed.'); }
+        }catch{ showError('Reverse-geocoding failed.'); }
       }, () => showError('Location permission denied.'));
     });
 
-    // 6) Initial boot
+    // Boot
     loadEmergency();
   </script>
 </body>
