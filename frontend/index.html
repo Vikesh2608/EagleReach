@@ -1,6 +1,6 @@
 <script>
   // ------------------------------
-  // Backend base (already set)
+  // Backend base
   // ------------------------------
   const API_BASE = (window.location.hostname.includes('github.io'))
     ? 'https://eaglereach-1.onrender.com'
@@ -9,14 +9,14 @@
   // Small helpers
   const $ = (id) => document.getElementById(id);
   const esc = (s) =>
-    String(s ?? '')
-      .replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    String(s ?? '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  const delay = (ms) => new Promise(r => setTimeout(r, ms));
 
   function itemHTML(p) {
     if (!p) return '';
-    const photo = p.photo
-      ? `<img src="${esc(p.photo)}" alt="" />`
-      : `<img src="https://via.placeholder.com/48" alt="">`;
+    const photo = p.photo ? `<img src="${esc(p.photo)}" alt="">`
+                          : `<img src="https://via.placeholder.com/48" alt="">`;
     const name = esc(p.name || 'Unknown');
     const role = esc([p.role, p.party, p.state && p.state.toUpperCase(), p.district && `#${p.district}`]
       .filter(Boolean).join(' • '));
@@ -35,33 +35,19 @@
   }
 
   function renderOfficials(data) {
-    // Accept BOTH shapes:
-    //   { officials: { senators: [...], representative: {...} } }
-    //   { officials: { senators: [...], representatives: [...] } }
     const off = data.officials || {};
     const senators = Array.isArray(off.senators) ? off.senators : [];
-    const reps = Array.isArray(off.representatives)
-      ? off.representatives
-      : (off.representative ? [off.representative] : []);
-
-    $('senators').innerHTML = senators.length
-      ? senators.map(itemHTML).join('')
-      : '<div class="empty">No data.</div>';
-
-    $('representatives').innerHTML = reps.length
-      ? reps.map(itemHTML).join('')
-      : '<div class="empty">No data.</div>';
-
-    $('mayor').innerHTML = off.mayor
-      ? itemHTML(off.mayor)
-      : '<div class="empty">No data.</div>';
+    const reps = Array.isArray(off.representatives) ? off.representatives
+                : (off.representative ? [off.representative] : []);
+    $('senators').innerHTML = senators.length ? senators.map(itemHTML).join('') : '<div class="empty">No data.</div>';
+    $('representatives').innerHTML = reps.length ? reps.map(itemHTML).join('') : '<div class="empty">No data.</div>';
+    $('mayor').innerHTML = off.mayor ? itemHTML(off.mayor) : '<div class="empty">No data.</div>';
   }
 
   function renderLocation(loc) {
     $('locBadge').textContent =
-      (loc?.city && loc?.state)
-        ? `${loc.city}, ${loc.state}`
-        : (loc?.zip ? `ZIP ${loc.zip}` : '');
+      (loc?.city && loc?.state) ? `${loc.city}, ${loc.state}`
+      : (loc?.zip ? `ZIP ${loc.zip}` : '');
   }
 
   function showBanner(msg = '', type = 'error') {
@@ -78,17 +64,17 @@
     $('zip').disabled = isLoading;
   }
 
-  // Fetch helpers
   async function apiGet(path) {
     const r = await fetch(`${API_BASE}${path}`);
     if (!r.ok) {
-      const text = await r.text().catch(()=>'');
+      const text = await r.text().catch(()=> '');
       throw new Error(`HTTP ${r.status} ${r.statusText} — ${text}`.slice(0, 300));
     }
     return r.json();
   }
 
-  async function lookupOfficials(zip) {
+  // --- Lookups ----------------------------------------------------
+  async function lookupOfficialsByZip(zip) {
     setLoading(true);
     showBanner(`Looking up officials for ZIP ${zip}...`, 'info');
     try {
@@ -104,55 +90,79 @@
     }
   }
 
-  async function loadNews(city, state) {
+  async function lookupOfficialsByGeo(lat, lon) {
+    setLoading(true);
+    showBanner(`Finding officials for your exact location…`, 'info');
     try {
-      const qCity = encodeURIComponent(city || '');
-      const qState = encodeURIComponent(state || '');
-      const newsLocal = await apiGet(`/news?scope=local&city=${qCity}&state=${qState}`);
-      const newsWorld = await apiGet(`/news?scope=national`);
-      $('openLocalNews').onclick = () => window.open(`https://news.google.com/search?q=${encodeURIComponent(city + ' ' + state)}&hl=en-US&gl=US&ceid=US:en`, '_blank');
-      $('worldNews').onclick = () => window.open('https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en','_blank');
-    } catch (e) { console.warn('News failed:', e); }
+      const data = await apiGet(`/officials/by_geo?lat=${lat}&lon=${lon}`);
+      showBanner('');
+      renderLocation(data.location);
+      renderOfficials(data);
+    } catch (e) {
+      console.error(e);
+      showBanner(`Couldn't load officials from your location. ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  // Wire up UI
-  window.addEventListener('DOMContentLoaded', () => {
+  // Optional: news buttons (kept simple)
+  async function loadNews(city, state) {
+    try {
+      $('openLocalNews').onclick = () =>
+        window.open(`https://news.google.com/search?q=${encodeURIComponent((city||'') + ' ' + (state||''))}&hl=en-US&gl=US&ceid=US:en`, '_blank');
+      $('worldNews').onclick = () =>
+        window.open('https://news.google.com/topstories?hl=en-US&gl=US&ceid=US:en','_blank');
+    } catch(e) {}
+  }
+
+  // --- Warm-up: ping /health once so Render free tier wakes up ----
+  async function warmBackend() {
+    try {
+      showBanner('Waking the server (Render free tier)…', 'info');
+      await Promise.race([
+        apiGet('/health'),
+        (async ()=> { await delay(8000); throw new Error('warmup timeout'); })()
+      ]);
+      showBanner('');
+    } catch {
+      // even if warmup times out, we carry on; the next request will still wake it
+    }
+  }
+
+  // --- Wire up UI -------------------------------------------------
+  window.addEventListener('DOMContentLoaded', async () => {
+    warmBackend();
+
     $('searchForm').addEventListener('submit', (ev) => {
       ev.preventDefault();
       const zip = $('zip').value.trim();
-      if (/^\d{5}$/.test(zip)) lookupOfficials(zip);
+      if (/^\d{5}$/.test(zip)) lookupOfficialsByZip(zip);
       else showBanner('Please enter a valid 5-digit ZIP.');
     });
 
     $('locBtn').addEventListener('click', () => {
-      showBanner('Fetching your ZIP from the browser location...', 'info');
+      showBanner('Requesting browser location…', 'info');
       setLoading(true);
       if (!navigator.geolocation) {
-        showBanner('Geolocation not supported in this browser. Type your ZIP instead.'); setLoading(false); return;
+        showBanner('Geolocation not supported in this browser. Type your ZIP instead.');
+        setLoading(false);
+        return;
       }
       navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords || {};
-          if (typeof latitude !== 'number' || typeof longitude !== 'number') throw new Error('Invalid coordinates');
-          const res = await apiGet(`/revgeo?lat=${latitude}&lon=${longitude}`);
-          if (!res?.zip) throw new Error('Could not determine ZIP for your location');
-          $('zip').value = res.zip;
-          lookupOfficials(res.zip);
-        } catch (e) {
-          console.error(e);
-          showBanner(`Location lookup failed. ${e.message}`);
-          setLoading(false);
+        const { latitude, longitude } = pos.coords || {};
+        if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+          showBanner('Location unavailable. Please enter your ZIP.'); setLoading(false); return;
         }
+        await lookupOfficialsByGeo(latitude, longitude);
       }, (err) => {
         showBanner(`Location permission denied. Please enter your ZIP manually. (${err.message || 'geolocation error'})`);
         setLoading(false);
       }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
     });
 
-    // Optional: if the input already has 5 digits, auto-search on load
+    // Auto-search if a 5-digit value is already present
     const initial = $('zip').value.trim();
-    if (/^\d{5}$/.test(initial)) {
-      lookupOfficials(initial);
-    }
+    if (/^\d{5}$/.test(initial)) lookupOfficialsByZip(initial);
   });
 </script>
