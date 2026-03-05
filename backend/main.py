@@ -1,6 +1,7 @@
-from fastapi import FastAPI,HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import httpx,yaml
+import httpx
+import yaml
 
 app = FastAPI()
 
@@ -11,81 +12,76 @@ allow_methods=["*"],
 allow_headers=["*"],
 )
 
-ZIPPOTAM_URL="https://api.zippopotam.us/us/{zip}"
-LEGIS_URL="https://raw.githubusercontent.com/unitedstates/congress-legislators/gh-pages/legislators-current.yaml"
+ZIPPOTAM_URL = "https://api.zippopotam.us/us/{zip}"
+LEGIS_URL = "https://raw.githubusercontent.com/unitedstates/congress-legislators/gh-pages/legislators-current.yaml"
 
-client=httpx.AsyncClient()
+client = httpx.AsyncClient()
 
-async def zip_info(zip):
+async def get_zip_info(zip):
+r = await client.get(ZIPPOTAM_URL.format(zip=zip))
 
-r=await client.get(ZIPPOTAM_URL.format(zip=zip))
+```
+if r.status_code != 200:
+    raise HTTPException(status_code=404, detail="ZIP not found")
 
-if r.status_code!=200:
-raise HTTPException(404,"ZIP not found")
+data = r.json()
+place = data["places"][0]
 
-data=r.json()
-
-p=data["places"][0]
-
-return{
-"city":p,
-"state":p,
-"lat":p,
-"lon":p
+return {
+    "city": place["place name"],
+    "state": place["state abbreviation"]
 }
+```
 
 async def load_legislators():
-
-r=await client.get(LEGIS_URL)
-
+r = await client.get(LEGIS_URL)
 return yaml.safe_load(r.text)
 
 @app.get("/health")
 def health():
-return{"ok":True}
+return {"ok": True}
 
 @app.get("/officials")
-async def officials(zip:str):
+async def officials(zip: str):
 
-loc=await zip_info(zip)
+```
+loc = await get_zip_info(zip)
+state = loc["state"]
 
-state=loc["state"]
+data = await load_legislators()
 
-data=await load_legislators()
-
-senators=[]
-rep=None
+senators = []
+rep = None
 
 for p in data:
 
-t=p["terms"][-1]
+    term = p["terms"][-1]
 
-if t["type"]=="sen" and t["state"]==state:
+    if term["type"] == "sen" and term["state"] == state:
+        senators.append({
+            "name": p["name"]["official_full"],
+            "party": term["party"],
+            "website": term.get("url"),
+            "photo": f"https://theunitedstates.io/images/congress/450x550/{p['id']['bioguide']}.jpg"
+        })
 
-senators.append({
-"name":p["official_full"],
-"party":t,
-"website":t.get("url"),
-"photo":f"https://theunitedstates.io/images/congress/450x550/{p['id']['bioguide']}.jpg"
-})
+    if term["type"] == "rep" and term["state"] == state:
+        rep = {
+            "name": p["name"]["official_full"],
+            "party": term["party"],
+            "website": term.get("url"),
+            "photo": f"https://theunitedstates.io/images/congress/450x550/{p['id']['bioguide']}.jpg"
+        }
 
-if t["type"]=="rep" and t["state"]==state:
-
-rep={
-"name":p["official_full"],
-"party":t,
-"website":t.get("url"),
-"photo":f"https://theunitedstates.io/images/congress/450x550/{p['id']['bioguide']}.jpg"
+return {
+    "location": {
+        "zip": zip,
+        "city": loc["city"],
+        "state": state
+    },
+    "officials": {
+        "senators": senators,
+        "representative": rep
+    }
 }
-
-return{
-"location":{
-"zip":zip,
-"city":loc,
-"state":state
-},
-"officials":{
-"senators":senators,
-"representative":rep
-}
-}
+```
