@@ -191,7 +191,7 @@ let zip = geo.zip;
 // fallback if revgeo does not return ZIP
 if (!zip) {
 
-zip = document.getElementById("zipInput").value;
+zip = $("zip").value;
 
 if (!zip) {
 throw new Error("ZIP unavailable");
@@ -209,7 +209,6 @@ showBanner("");
 } catch(e) {
 
 console.error(e);
-
 showBanner("Location lookup failed.");
 
 }
@@ -217,6 +216,8 @@ showBanner("Location lookup failed.");
 setLoading(false);
 
 }
+
+
 // ==============================
 // Warm backend (Render free tier)
 // ==============================
@@ -289,7 +290,7 @@ await lookupOfficialsByGeo(latitude,longitude);
 
 },
 
-(err)=>{
+()=>{
 
 showBanner("Location permission denied");
 
