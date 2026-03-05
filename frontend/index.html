@@ -1,185 +1,317 @@
+<script>
 
-&lt;script&gt;
 // ------------------------------
 // Backend base
 // ------------------------------
-const API_BASE = (window.location.hostname.includes(&#39;github.io&#39;))
-? &#39;https://eaglereach-1.onrender.com&#39;
-: &#39;http://localhost:8000&#39;;
+const API_BASE =
+window.location.hostname === "vikesh2608.github.io"
+? "https://eaglereach-1.onrender.com"
+: "http://localhost:8000";
 
+
+// ------------------------------
 // Small helpers
-const $ = (id) =&gt; document.getElementById(id);
-const esc = (s) =&gt;
-String(s ?? &#39;&#39;).replace(/[&amp;&lt;&gt;&quot;&#39;]/g, (m) =&gt;
-({&#39;&amp;&#39;:&#39;&amp;amp;&#39;,&#39;&lt;&#39;:&#39;&amp;lt;&#39;,&#39;&gt;&#39;:&#39;&amp;gt;&#39;,&#39;&quot;&#39;:&#39;&amp;quot;&#39;,&quot;&#39;&quot;:&#39;&amp;#39;&#39;}[m]));
+// ------------------------------
+const $ = (id) => document.getElementById(id);
 
-const delay = (ms) =&gt; new Promise(r =&gt; setTimeout(r, ms));
+const esc = (s) =>
+String(s ?? '').replace(/[&<>"']/g, (m) =>
+({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
+const delay = (ms) => new Promise(r => setTimeout(r, ms));
+
+
+// ------------------------------
+// Render Officials
+// ------------------------------
 function itemHTML(p) {
-if (!p) return &#39;&#39;;
-const photo = p.photo ? `&lt;img src=&quot;${esc(p.photo)}&quot; alt=&quot;&quot;&gt;`
-: `&lt;img src=&quot;https://via.placeholder.com/48&quot; alt=&quot;&quot;&gt;`;
-const name = esc(p.name || &#39;Unknown&#39;);
-const role = esc([p.role, p.party, p.state &amp;&amp; p.state.toUpperCase(), p.district &amp;&amp;
-`#${p.district}`]
-.filter(Boolean).join(&#39; • &#39;));
-const website = p.website ? `&lt;a href=&quot;${esc(p.website)}&quot; target=&quot;_blank&quot;
-rel=&quot;noopener&quot;&gt;official website&lt;/a&gt;` : &#39;&#39;;
-const phone = p.phone ? `&lt;span&gt; | ${esc(p.phone)}&lt;/span&gt;` : &#39;&#39;;
 
-const twitter = p.twitter ? ` &lt;a href=&quot;https://twitter.com/${esc(p.twitter)}&quot;
-target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;@${esc(p.twitter)}&lt;/a&gt;` : &#39;&#39;;
+if (!p) return '';
+
+const photo = p.photo
+? `<img src="${esc(p.photo)}" alt="">`
+: `<img src="https://via.placeholder.com/48" alt="">`;
+
+const name = esc(p.name || 'Unknown');
+
+const role = esc([
+p.role,
+p.party,
+p.state && p.state.toUpperCase(),
+p.district && `#${p.district}`
+].filter(Boolean).join(' • '));
+
+const website = p.website
+? `<a href="${esc(p.website)}" target="_blank">official website</a>`
+: '';
+
+const phone = p.phone ? ` | ${esc(p.phone)}` : '';
+
+const twitter = p.twitter
+? ` <a href="https://twitter.com/${esc(p.twitter)}" target="_blank">@${esc(p.twitter)}</a>`
+: '';
+
 return `
-&lt;div class=&quot;official&quot;&gt;
+<div class="official">
 ${photo}
-&lt;div class=&quot;meta&quot;&gt;
-&lt;div class=&quot;name&quot;&gt;${name}&lt;/div&gt;
-&lt;div class=&quot;sub&quot;&gt;${role}&lt;/div&gt;
-&lt;div class=&quot;sub&quot;&gt;${website}${phone}${twitter}&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;`;
+<div class="meta">
+<div class="name">${name}</div>
+<div class="sub">${role}</div>
+<div class="sub">${website}${phone}${twitter}</div>
+</div>
+</div>
+`;
 }
+
 
 function renderOfficials(data) {
+
 const off = data.officials || {};
-const senators = Array.isArray(off.senators) ? off.senators : [];
-const reps = Array.isArray(off.representatives) ? off.representatives
-: (off.representative ? [off.representative] : []);
-$(&#39;senators&#39;).innerHTML = senators.length ? senators.map(itemHTML).join(&#39;&#39;) : &#39;&lt;div
-class=&quot;empty&quot;&gt;No data.&lt;/div&gt;&#39;;
-$(&#39;representatives&#39;).innerHTML = reps.length ? reps.map(itemHTML).join(&#39;&#39;) : &#39;&lt;div
-class=&quot;empty&quot;&gt;No data.&lt;/div&gt;&#39;;
-$(&#39;mayor&#39;).innerHTML = off.mayor ? itemHTML(off.mayor) : &#39;&lt;div class=&quot;empty&quot;&gt;No
-data.&lt;/div&gt;&#39;;
+
+const senators = Array.isArray(off.senators)
+? off.senators
+: [];
+
+const reps = off.representative
+? [off.representative]
+: [];
+
+$('senators').innerHTML =
+senators.length
+? senators.map(itemHTML).join('')
+: '<div class="empty">No data.</div>';
+
+$('representatives').innerHTML =
+reps.length
+? reps.map(itemHTML).join('')
+: '<div class="empty">No data.</div>';
+
+$('mayor').innerHTML =
+off.mayor
+? itemHTML(off.mayor)
+: '<div class="empty">No mayor data.</div>';
+
 }
+
 
 function renderLocation(loc) {
-$(&#39;locBadge&#39;).textContent =
 
-(loc?.city &amp;&amp; loc?.state) ? `${loc.city}, ${loc.state}`
-: (loc?.zip ? `ZIP ${loc.zip}` : &#39;&#39;);
+$('locBadge').textContent =
+(loc?.city && loc?.state)
+? `${loc.city}, ${loc.state}`
+: (loc?.zip ? `ZIP ${loc.zip}` : '');
+
 }
 
-function showBanner(msg = &#39;&#39;, type = &#39;error&#39;) {
-const el = $(&#39;apiWarning&#39;);
-if (!msg) { el.style.display = &#39;none&#39;; return; }
+
+// ------------------------------
+// Banner Messages
+// ------------------------------
+function showBanner(msg = '', type = 'error') {
+
+const el = $('apiWarning');
+
+if (!msg) {
+el.style.display = 'none';
+return;
+}
+
 el.textContent = msg;
 el.className = `banner ${type}`;
-el.style.display = &#39;block&#39;;
+el.style.display = 'block';
+
 }
 
-function setLoading(isLoading) {
-$(&#39;searchBtn&#39;).disabled = isLoading;
-$(&#39;locBtn&#39;).disabled = isLoading;
-$(&#39;zip&#39;).disabled = isLoading;
+
+function setLoading(v) {
+
+$('searchBtn').disabled = v;
+$('locBtn').disabled = v;
+$('zip').disabled = v;
+
 }
 
+
+// ------------------------------
+// API helper
+// ------------------------------
 async function apiGet(path) {
+
 const r = await fetch(`${API_BASE}${path}`);
+
 if (!r.ok) {
-const text = await r.text().catch(()=&gt; &#39;&#39;);
-throw new Error(`HTTP ${r.status} ${r.statusText} — ${text}`.slice(0, 300));
+const text = await r.text().catch(()=> '');
+throw new Error(`HTTP ${r.status} ${r.statusText} — ${text}`.slice(0,300));
 }
+
 return r.json();
+
 }
 
-// --- Lookups ----------------------------------------------------
+
+// ------------------------------------------------
+// ZIP lookup
+// ------------------------------------------------
 async function lookupOfficialsByZip(zip) {
+
 setLoading(true);
-showBanner(`Looking up officials for ZIP ${zip}...`, &#39;info&#39;);
+
+showBanner(`Looking up officials for ZIP ${zip}...`, 'info');
+
 try {
+
 const data = await apiGet(`/officials?zip=${encodeURIComponent(zip)}`);
-showBanner(&#39;&#39;);
+
 renderLocation(data.location);
+
 renderOfficials(data);
-} catch (e) {
+
+showBanner('');
+
+} catch(e) {
+
 console.error(e);
-showBanner(`Couldn&#39;t load officials. ${e.message}`);
-} finally {
-setLoading(false);
-}
+
+showBanner(`Couldn't load officials. ${e.message}`);
+
 }
 
+setLoading(false);
+
+}
+
+
+// ------------------------------------------------
+// GEO lookup (FIXED VERSION)
+// ------------------------------------------------
 async function lookupOfficialsByGeo(lat, lon) {
+
 setLoading(true);
-showBanner(`Finding officials for your exact location…`, &#39;info&#39;);
+
+showBanner("Finding your location...", "info");
+
 try {
-const data = await apiGet(`/officials/by_geo?lat=${lat}&amp;lon=${lon}`);
-showBanner(&#39;&#39;);
+
+const geo = await apiGet(`/revgeo?lat=${lat}&lon=${lon}`);
+
+if (!geo.zip) {
+throw new Error("ZIP not found for your location");
+}
+
+const data = await apiGet(`/officials?zip=${geo.zip}`);
+
 renderLocation(data.location);
+
 renderOfficials(data);
-} catch (e) {
+
+showBanner('');
+
+} catch(e) {
+
 console.error(e);
 
-showBanner(`Couldn&#39;t load officials from your location. ${e.message}`);
-} finally {
+showBanner(`Location lookup failed: ${e.message}`);
+
+}
+
 setLoading(false);
-}
+
 }
 
-// Optional: news buttons (kept simple)
-async function loadNews(city, state) {
-try {
-$(&#39;openLocalNews&#39;).onclick = () =&gt;
-window.open(`https://news.google.com/search?q=${encodeURIComponent((city||&#39;&#39;)
-+ &#39; &#39; + (state||&#39;&#39;))}&amp;hl=en-US&amp;gl=US&amp;ceid=US:en`, &#39;_blank&#39;);
-$(&#39;worldNews&#39;).onclick = () =&gt;
-window.open(&#39;https://news.google.com/topstories?hl=en-
-US&amp;gl=US&amp;ceid=US:en&#39;,&#39;_blank&#39;);
-} catch(e) {}
-}
 
-// --- Warm-up: ping /health once so Render free tier wakes up ----
+// ------------------------------------------------
+// Warm backend (Render free tier sleep fix)
+// ------------------------------------------------
 async function warmBackend() {
+
 try {
-showBanner(&#39;Waking the server (Render free tier)…&#39;, &#39;info&#39;);
+
+showBanner("Waking the server (Render free tier)...","info");
+
 await Promise.race([
-apiGet(&#39;/health&#39;),
-(async ()=&gt; { await delay(8000); throw new Error(&#39;warmup timeout&#39;); })()
+apiGet('/health'),
+(async ()=>{ await delay(8000); throw new Error("timeout") })()
 ]);
-showBanner(&#39;&#39;);
-} catch {
 
-// even if warmup times out, we carry on; the next request will still wake it
-}
+showBanner('');
+
+} catch {}
+
 }
 
-// --- Wire up UI -------------------------------------------------
-window.addEventListener(&#39;DOMContentLoaded&#39;, async () =&gt; {
+
+// ------------------------------------------------
+// UI wiring
+// ------------------------------------------------
+window.addEventListener('DOMContentLoaded', async () => {
+
 warmBackend();
 
-$(&#39;searchForm&#39;).addEventListener(&#39;submit&#39;, (ev) =&gt; {
+$('searchForm').addEventListener('submit', (ev)=>{
+
 ev.preventDefault();
-const zip = $(&#39;zip&#39;).value.trim();
-if (/^\d{5}$/.test(zip)) lookupOfficialsByZip(zip);
-else showBanner(&#39;Please enter a valid 5-digit ZIP.&#39;);
+
+const zip = $('zip').value.trim();
+
+if (/^\d{5}$/.test(zip))
+lookupOfficialsByZip(zip);
+else
+showBanner("Please enter a valid 5-digit ZIP.");
+
 });
 
-$(&#39;locBtn&#39;).addEventListener(&#39;click&#39;, () =&gt; {
-showBanner(&#39;Requesting browser location…&#39;, &#39;info&#39;);
+
+$('locBtn').addEventListener('click', ()=>{
+
+showBanner("Requesting browser location...","info");
+
 setLoading(true);
+
 if (!navigator.geolocation) {
-showBanner(&#39;Geolocation not supported in this browser. Type your ZIP instead.&#39;);
-setLoading(false);
-return;
-}
-navigator.geolocation.getCurrentPosition(async (pos) =&gt; {
-const { latitude, longitude } = pos.coords || {};
-if (typeof latitude !== &#39;number&#39; || typeof longitude !== &#39;number&#39;) {
 
-showBanner(&#39;Location unavailable. Please enter your ZIP.&#39;); setLoading(false);
+showBanner("Geolocation not supported. Enter ZIP manually.");
+
+setLoading(false);
+
 return;
+
 }
+
+navigator.geolocation.getCurrentPosition(
+
+async(pos)=>{
+
+const {latitude, longitude} = pos.coords;
+
 await lookupOfficialsByGeo(latitude, longitude);
-}, (err) =&gt; {
-showBanner(`Location permission denied. Please enter your ZIP manually.
-(${err.message || &#39;geolocation error&#39;})`);
+
+},
+
+(err)=>{
+
+showBanner(`Location permission denied (${err.message})`);
+
 setLoading(false);
-}, { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 });
+
+},
+
+{
+enableHighAccuracy:false,
+timeout:15000,
+maximumAge:300000
+}
+
+);
+
 });
 
-// Auto-search if a 5-digit value is already present
-const initial = $(&#39;zip&#39;).value.trim();
-if (/^\d{5}$/.test(initial)) lookupOfficialsByZip(initial);
+
+// Auto search if ZIP already present
+const initial = $('zip').value.trim();
+
+if (/^\d{5}$/.test(initial))
+lookupOfficialsByZip(initial);
+
 });
-&lt;/script&gt;
+
+</script>
