@@ -178,41 +178,45 @@ setLoading(false);
 // ==============================
 // Lookup by GEO (FIXED)
 // ==============================
-async function lookupOfficialsByGeo(lat,lon){
+async function lookupOfficialsByGeo(lat, lon) {
 
 setLoading(true);
 
-showBanner("Finding your location...","info");
-
-try{
+try {
 
 const geo = await apiGet(`/revgeo?lat=${lat}&lon=${lon}`);
 
-if(!geo.zip){
+let zip = geo.zip;
 
-throw new Error("ZIP not found");
+// fallback if revgeo does not return ZIP
+if (!zip) {
+
+zip = document.getElementById("zipInput").value;
+
+if (!zip) {
+throw new Error("ZIP unavailable");
+}
 
 }
 
-const data = await apiGet(`/officials?zip=${geo.zip}`);
+const data = await apiGet(`/officials?zip=${zip}`);
 
 renderLocation(data.location);
 renderOfficials(data);
 
 showBanner("");
 
-}catch(e){
+} catch(e) {
 
 console.error(e);
-showBanner("Location lookup failed");
+
+showBanner("Location lookup failed.");
 
 }
 
 setLoading(false);
 
 }
-
-
 // ==============================
 // Warm backend (Render free tier)
 // ==============================
