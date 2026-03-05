@@ -188,7 +188,6 @@ async def revgeo(lat: float, lon: float):
 
     return loc
 
-
 @app.get("/officials")
 async def officials(zip: str = Query(...)):
 
@@ -197,15 +196,20 @@ async def officials(zip: str = Query(...)):
 
     loc = await zippopotam_info(zip)
 
-    fcc = await fcc_district(loc["lat"], loc["lon"])
+    state = loc["state"]
 
-    state = fcc.get("state")
-    district = fcc.get("district")
+    district = None
+
+    try:
+        fcc = await fcc_district(loc["lat"], loc["lon"])
+        district = fcc.get("district")
+    except:
+        pass
 
     data = await load_legislators()
 
-    senators: List[Dict[str, Any]] = []
-    rep: Optional[Dict[str, Any]] = None
+    senators = []
+    rep = None
 
     for p in data:
 
@@ -223,7 +227,7 @@ async def officials(zip: str = Query(...)):
                 "party": t.get("party"),
                 "website": t.get("url"),
                 "phone": t.get("phone"),
-                "photo": f"https://theunitedstates.io/images/congress/450x550/{p['id']['bioguide']}.jpg",
+                "photo": f"https://theunitedstates.io/images/congress/450x550/{p['id']['bioguide']}.jpg"
             })
 
         if (
@@ -238,14 +242,14 @@ async def officials(zip: str = Query(...)):
                 "party": t.get("party"),
                 "website": t.get("url"),
                 "phone": t.get("phone"),
-                "photo": f"https://theunitedstates.io/images/congress/450x550/{p['id']['bioguide']}.jpg",
+                "photo": f"https://theunitedstates.io/images/congress/450x550/{p['id']['bioguide']}.jpg"
             }
 
     return {
         "location": {
             "zip": zip,
             "city": loc["city"],
-            "state": loc["state"],
+            "state": state,
             "district": district
         },
         "officials": {
@@ -253,3 +257,5 @@ async def officials(zip: str = Query(...)):
             "representative": rep
         }
     }
+
+
