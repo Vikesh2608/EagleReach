@@ -111,16 +111,23 @@ async def zippopotam_info(zipcode: str):
 
 async def fcc_district(lat: float, lon: float):
 
-    data = await fetch_json(
-        FCC_AREAS_URL.format(lat=lat, lon=lon)
-    )
+    try:
+        data = await fetch_json(
+            FCC_AREAS_URL.format(lat=lat, lon=lon)
+        )
 
-    res = data["results"][0]
+        res = data.get("results", [{}])[0]
 
-    return {
-        "state": res.get("state_code"),
-        "district": res.get("Congressional District"),
-    }
+        return {
+            "state": res.get("state_code"),
+            "district": res.get("Congressional District"),
+        }
+
+    except:
+        return {
+            "state": None,
+            "district": None
+        }
 
 
 async def nominatim_reverse(lat: float, lon: float):
