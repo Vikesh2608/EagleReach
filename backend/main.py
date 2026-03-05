@@ -17,8 +17,8 @@ LEGIS_URL = "https://raw.githubusercontent.com/unitedstates/congress-legislators
 
 client = httpx.AsyncClient()
 
-async def get_zip_info(zip):
-r = await client.get(ZIPPOTAM_URL.format(zip=zip))
+async def get_zip_info(zip_code: str):
+r = await client.get(ZIPPOTAM_URL.format(zip=zip_code))
 
 ```
 if r.status_code != 200:
@@ -51,10 +51,9 @@ state = loc["state"]
 data = await load_legislators()
 
 senators = []
-rep = None
+representative = None
 
 for p in data:
-
     term = p["terms"][-1]
 
     if term["type"] == "sen" and term["state"] == state:
@@ -66,7 +65,7 @@ for p in data:
         })
 
     if term["type"] == "rep" and term["state"] == state:
-        rep = {
+        representative = {
             "name": p["name"]["official_full"],
             "party": term["party"],
             "website": term.get("url"),
@@ -81,7 +80,7 @@ return {
     },
     "officials": {
         "senators": senators,
-        "representative": rep
+        "representative": representative
     }
 }
 ```
